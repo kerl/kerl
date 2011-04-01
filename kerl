@@ -45,6 +45,7 @@ usage() {
     echo "  install  Install the specified release at the given location"
     echo "  update   Update the list of available releases from erlang.org"
     echo "  list     List releases, builds and installations"
+    echo "  active   Print the path of the active installation"
     exit 1
 }
 
@@ -295,6 +296,14 @@ case "$1" in
                 exit 1
                 ;;
         esac
+        ;;
+    active)
+        if [ -n "$_KERL_SAVED_PATH" ]; then
+            echo "The current active installation is:"
+            echo `echo $PATH | cut -d ":" -f 1 | head -c -4`
+        else
+            echo "No Erlang/OTP kerl installation is currently active"
+        fi
         ;;
     *)
         echo "unkwnown command: $1"; usage; exit 1

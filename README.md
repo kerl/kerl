@@ -78,6 +78,11 @@ You're now ready to work with R14B02:
 When your done just type:
     $ kerl_deactivate
 
+Anytime you can check which installation, if any, is currently active with:
+
+    $ kerl active
+    No Erlang/OTP kerl installation is currently active
+
 Tuning
 ======
 
