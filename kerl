@@ -113,7 +113,7 @@ do_build() {
     ./configure $KERL_CONFIGURE_OPTIONS > \
         $KERL_BASE_DIR/logs/configure_$1.log 2>&1
     if [ "$?" -eq 1 ]; then
-        echo "./configure failed";
+        echo "./configure failed, see $KERL_BASE_DIR/logs/configure_$1.log";
         exit 1
     fi
     rm -f "$KERL_BASE_DIR/logs/configure_$1.log"
