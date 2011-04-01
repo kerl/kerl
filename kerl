@@ -28,6 +28,7 @@ KERL_DOWNLOAD_DIR=$KERL_BASE_DIR/archives
 KERL_BUILD_DIR=$KERL_BASE_DIR/builds
 KERL_CONFIGURE_OPTIONS=
 KERL_MAKE_OPTIONS=
+KERL_INSTALL_AGNER=
 
 # ensure the base dir exsists
 mkdir -p $KERL_BASE_DIR
@@ -139,7 +140,7 @@ do_install() {
         exit 1
     fi
     absdir=`cd "$2" && pwd`
-    echo "Installing Erlang/OTP $1 in $absdir"
+    echo "Installing Erlang/OTP $1 in $absdir..."
     cd $KERL_BUILD_DIR/otp_src_$1
     ./configure --prefix="$absdir" > /dev/null 2>&1
     make install > /dev/null 2>&1
@@ -148,9 +149,64 @@ do_install() {
         exit 1
     fi
     list_add installations "$1 $absdir";
-    echo "export PATH=$absdir/bin:\$PATH" > $absdir/activate
+    cat <<ACTIVATE > "$absdir/activate"
+# credits to virtualenv
+kerl_deactivate() {
+    if [ -n "\$_KERL_SAVED_PATH" ]; then
+        PATH="\$_KERL_SAVED_PATH"
+        export PATH
+        unset _KERL_SAVED_PATH
+    fi
+    if [ -n "\$_KERL_SAVED_AGNER_BIN" ]; then
+        AGNER_BIN="\$_KERL_SAVED_AGNER_BIN"
+        export AGNER_BIN
+        unset _KERL_SAVED_AGNER_BIN
+    fi
+    if [ -n "\$_KERL_SAVED_AGNER_PREFIX" ]; then
+        AGNER_PREFIX="\$_KERL_SAVED_AGNER_PREFIX"
+        export AGNER_PREFIX
+        unset _KERL_SAVED_AGNER_PREFIX
+    fi
+    if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
+        hash -r
+    fi
+    if [ ! "\$1" = "nondestructive" ]; then
+        unset -f kerl_deactivate
+    fi
+}
+kerl_deactivate nondestructive
+_KERL_SAVED_PATH="\$PATH"
+export _KERL_SAVED_PATH
+_KERL_SAVED_AGNER_BIN="\$AGNER_BIN"
+export _KERL_SAVED_AGNER_BIN
+_KERL_SAVED_AGNER_PREFIX="\$AGNER_PREFIX"
+export _KERL_SAVED_AGNER_PREFIX
+PATH="$absdir/bin:\$PATH"
+export PATH
+AGNER_BIN="$absdir/bin"
+export AGNER_BIN
+AGNER_PREFIX="$absdir/agner"
+export AGNER_PREFIX
+if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
+    hash -r
+fi
+ACTIVATE
+    if [ -n "$KERL_INSTALL_AGNER" ]; then
+        echo "Installing agner in $absdir..."
+        . "$absdir/activate" && cd "$absdir" && \
+        git clone https://github.com/agner/agner.git agner_build > /dev/null 2>&1 && \
+        cd agner_build && make > /dev/null 2>&1 && \
+        ./agner install agner > /dev/null 2>&1
+        if [ "$?" -eq 1 ]; then
+            echo "Couldn' install agner in $absdir"
+            exit 1
+        fi
+    fi
+    rm -Rf "$absdir/agner_build"
     echo "You can activate this installation running the following command:"
     echo ". $absdir/activate"
+    echo "Later on, you can leave the installation typing:"
+    echo "kerl_deactivate"
 }
 
 list_print() {
@@ -244,4 +300,3 @@ case "$1" in
         echo "unkwnown command: $1"; usage; exit 1
         ;;
 esac
-

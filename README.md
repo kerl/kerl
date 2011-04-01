@@ -3,7 +3,7 @@ kerl
 
 Easy building and installing of Erlang/OTP instances
 
-Kerl aims to be shell agnostic and its only dependency, excluding what's required to actually build Erlang/OTP, is curl.
+Kerl aims to be shell agnostic and its only dependencies, excluding what's required to actually build Erlang/OTP, are curl and git.
 
 Downloading
 ===========
@@ -48,12 +48,15 @@ You can verify it's been registered:
     $ ./kerl list builds
     R14B02
 
-Now install it to some location:
+Now install it to some location, optionally with agner support by adding KERL_INSTALL_AGNER=yes to you $HOME/.kerlrc file:
    
     $ ./kerl install R14B02 /path/to/install/dir/
-    Installing Erlang/OTP R14B02 in /path/to/install/dir/
+    Installing Erlang/OTP R14B02 in /path/to/install/dir...
+    Installing agner in /path/to/install/dir...
     You can activate this installation running the following command:
     . /path/to/install/dir/activate
+    Later on, you can leave the installation typing:
+    kerl_deactivate
 
 Here again you can check the installation's been registered:
 
@@ -64,11 +67,16 @@ And at last activate it:
 
     $ . /path/to/install/dir/activate
 
-You're now ready to work with R14B02
+You're now ready to work with R14B02:
 
     $ erl -version
     Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
 
+    $ agner version
+    0.4.15
+
+When your done just type:
+    $ kerl_deactivate
 
 Tuning
 ======
@@ -77,8 +85,9 @@ You can tune kerl using the .kerlrc file in your $HOME directory.
 
 You can set the following variables:
 
-- KERL_DOWNLOAD_DIR (where to put downloaded files)
-- KERL_BUILD_DIR (where to hold the builds)
-- KERL_CONFIGURE_OPTIONS (options to pass to Erlang's ./configure script)
-- KERL_MAKE_OPTIONS (options to pass to make, e.g. -j2)
+- KERL_DOWNLOAD_DIR where to put downloaded files, defaults to $HOME/.kerl/archives
+- KERL_BUILD_DIR where to hold the builds, defaults to $HOME/.kerl/builds
+- KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
+- KERL_MAKE_OPTIONS options to pass to make, e.g. -j2
+- KERL_INSTALL_AGNER if non-empty will cause agner to be installed along
 
