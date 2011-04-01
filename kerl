@@ -1,0 +1,244 @@
+#! /bin/sh
+
+# Copyright (c) 2011 Evax Software <contact(at)evax(dot)org>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+ERLANG_DOWNLOAD_URL=http://www.erlang.org/download
+
+KERL_BASE_DIR=$HOME/.kerl
+KERL_CONFIG=$HOME/.kerlrc
+KERL_DOWNLOAD_DIR=$KERL_BASE_DIR/archives
+KERL_BUILD_DIR=$KERL_BASE_DIR/builds
+KERL_CONFIGURE_OPTIONS=
+KERL_MAKE_OPTIONS=
+
+# source the config file if available
+if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
+
+usage() {
+    echo "kerl: build and install Erlang/OTP"
+    echo "usage: $0 <command> [options ...]"
+    echo "\n  <command>       Command to be executed\n"
+    echo "Valid commands are:"
+    echo "  build    Build specified release"
+    echo "  install  Install the specified release at the given location"
+    echo "  update   Update the list of available releases from erlang.org"
+    echo "  list     List releases, builds and installations"
+    exit 1
+}
+
+if [ $# -eq 0 ]; then usage; fi
+
+get_releases() {
+    curl -s $ERLANG_DOWNLOAD_URL/ | \
+        sed -e 's/^.*>otp_src_\(R1[-1234567890ABCD]\+\)\.tar\.gz<.*$/\1/' \
+            -e '/^R/!d'
+}
+
+update_checksum_file() {
+    echo "Getting the checksum file from erlang.org..." 
+    curl $ERLANG_DOWNLOAD_URL/MD5 > "$KERL_DOWNLOAD_DIR/MD5" || exit 1
+}
+
+ensure_checksum_file() {
+    if [ ! -f "$KERL_DOWNLOAD_DIR/MD5" ]; then
+        update_checksum_file
+    fi
+}
+
+check_releases() {
+    if [ ! -f "$KERL_BASE_DIR/otp_releases" ]; then
+        echo "Getting the available releases from erlang.org..."
+        get_releases > "$KERL_BASE_DIR/otp_releases"
+    fi
+}
+
+assert_valid_release() {
+    check_releases
+    for rel in `cat $KERL_BASE_DIR/otp_releases`; do
+        if [ "$1" = "$rel" ]; then
+            return 0
+        fi
+    done
+   echo "$1 is not a valid Erlang/OTP release" 
+   exit 1
+}
+
+do_build() {
+    assert_valid_release $1
+    FILENAME=otp_src_$1.tar.gz
+    if [ ! -f "$KERL_DOWNLOAD_DIR/$FILENAME" ]; then
+        echo "Downloading $FILENAME to $KERL_DOWNLOAD_DIR"
+        mkdir -p "$KERL_DOWNLOAD_DIR"
+        curl $ERLANG_DOWNLOAD_URL/$FILENAME > "$KERL_DOWNLOAD_DIR/$FILENAME"
+        update_checksum_file
+    fi
+    ensure_checksum_file
+    echo "Verifying archive checksum..."
+    SUM=`md5sum $KERL_DOWNLOAD_DIR/$FILENAME | cut -d " " -f 1`
+    ORIG_SUM=`grep $FILENAME $KERL_DOWNLOAD_DIR/MD5 | cut -d " " -f 2`
+    if [ "$SUM" != "$ORIG_SUM" ]; then
+        echo "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
+        exit 1
+    fi
+    echo "Checksum verified ($SUM)"
+    mkdir -p $KERL_BUILD_DIR
+    mkdir -p $KERL_BASE_DIR/logs
+    if [ ! -d $KERL_BUILD_DIR/otp_src_$1 ]; then
+        echo "Extracting source code"
+        cd $KERL_BUILD_DIR && tar xfz $KERL_DOWNLOAD_DIR/$FILENAME
+    fi
+    echo "Building Erlang/OTP $1, please wait..."
+    cd $KERL_BUILD_DIR/otp_src_$1
+    ./configure $KERL_CONFIGURE_OPTIONS > \
+        $KERL_BASE_DIR/logs/configure_$1.log 2>&1
+    if [ "$?" -eq 1 ]; then
+        echo "./configure failed";
+        exit 1
+    fi
+    rm -f "$KERL_BASE_DIR/logs/configure_$1.log"
+    make $KERL_MAKE_OPTIONS > $KERL_BASE_DIR/logs/build_$1.log 2>&1
+    if [ "$?" -eq 1 ]; then
+        echo "Build failed, see $KERL_BASE_DIR/logs/build_$1.log"; 
+        list_remove builds $2
+    fi
+    rm -f "$KERL_BASE_DIR/logs/build_$1.log"
+    echo "Erlang/OTP $1 has been successfully built";
+    list_add builds $1
+}
+
+do_install() {
+    assert_valid_release $1
+    if ! list_has builds $1; then
+        echo "You must build the $1 realease before installing it"
+        exit 1
+    fi
+    mkdir -p "$2"
+    if [ ! -d "$2" ]; then
+        echo "Destination is not a directory"
+        exit 1
+    fi
+    absdir=`cd "$2" && pwd`
+    echo "Installing Erlang/OTP $1 in $absdir"
+    cd $KERL_BUILD_DIR/otp_src_$1
+    ./configure --prefix="$absdir" > /dev/null 2>&1
+    make install > /dev/null 2>&1
+    if [ $? -eq 1 ]; then
+        echo "Couldn't install Erlang/OTP $1 in $absdir"
+        exit 1
+    fi
+    list_add installations "$1 $absdir";
+    echo "export PATH=$absdir/bin:\$PATH" > $absdir/activate
+    echo "You can activate this installation running the following command:"
+    echo ". $absdir/activate"
+}
+
+list_print() {
+    if [ -f $KERL_BASE_DIR/otp_$1 ]; then
+        if [ -z "$2" ]; then
+            cat $KERL_BASE_DIR/otp_$1
+        else
+            echo `cat $KERL_BASE_DIR/otp_$1`
+        fi
+    else
+        echo "There are no $1 available"
+    fi
+}
+
+list_add() {
+    if [ -f $KERL_BASE_DIR/otp_$1 ]; then
+        grep $2 $KERL_BASE_DIR/otp_$1 > /dev/null 2>&1 || \
+            echo $2 >> $KERL_BASE_DIR/otp_$1
+    else
+        echo $2 > $KERL_BASE_DIR/otp_$1
+    fi
+}
+
+list_remove() {
+    if [ -f $KERL_BASE_DIR/otp_$1 ]; then
+        sed -i -e '/$2/d' $KERL_BASE_DIR/otp_$1
+    fi
+}
+
+list_has() {
+    if [ -f $KERL_BASE_DIR/otp_$1 ]; then
+        grep $2 $KERL_BASE_DIR/otp_$1 > /dev/null 2>&1 && return 0
+    fi
+    return 1
+}
+
+list_usage() {
+    echo "usage: $0 list <releases|builds|installations>"
+}
+
+case "$1" in
+    build)
+        if [ $# -ne 2 ]; then
+            echo "specify a release to install (e.g. R14B02)"
+            exit 1
+        fi
+        do_build $2
+        ;;
+    install)
+        if [ $# -lt 2 ]; then
+            echo "usage: $0 $1 <release> [directory]"
+            exit 1
+        fi
+        if [ $# -eq 3 ]; then 
+            do_install $2 $3
+        else
+            do_install $2 .
+        fi
+        ;;
+    update)
+        rm -f $KERL_BASE_DIR/otp_releases
+        check_releases
+        echo "The available releases are:"
+        list_print releases spaces
+        ;;
+    list)
+        if [ $# -ne 2 ]; then
+            list_usage
+            exit 1
+        fi
+        case "$2" in
+            releases)
+                check_releases
+                list_print $2 space
+                echo "Run \"$0 update\" to update this list from erlang.org"
+                ;;
+            builds)
+                list_print $2
+                ;;
+            installations)
+                list_print $2
+                ;;
+            *)
+                echo "Cannot list $2"
+                list_usage
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        echo "unkwnown command: $1"; usage; exit 1
+        ;;
+esac
+
