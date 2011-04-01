@@ -29,6 +29,9 @@ KERL_BUILD_DIR=$KERL_BASE_DIR/builds
 KERL_CONFIGURE_OPTIONS=
 KERL_MAKE_OPTIONS=
 
+# ensure the base dir exsists
+mkdir -p $KERL_BASE_DIR
+
 # source the config file if available
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 
