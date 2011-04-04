@@ -5,6 +5,8 @@ Easy building and installing of Erlang/OTP instances
 
 Kerl aims to be shell agnostic and its only dependencies, excluding what's required to actually build Erlang/OTP, are curl and git.
 
+Unless explicitely disabled, agner is installed automatically in the sandboxes for supported Erlang/OTP versions.
+
 Downloading
 ===========
 
@@ -42,13 +44,15 @@ Pick your choice and build it:
     Extracting source code
     Building Erlang/OTP R14B02, please wait...
     Erlang/OTP R14B02 has been successfully built
+    Fetching and building agner...
+    Agner has been successfully built
 
 You can verify it's been registered:
 
     $ ./kerl list builds
     R14B02
 
-Now install it to some location, optionally with agner support by adding KERL_INSTALL_AGNER=yes to you $HOME/.kerlrc file:
+Now install it to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file):
    
     $ ./kerl install R14B02 /path/to/install/dir/
     Installing Erlang/OTP R14B02 in /path/to/install/dir...
@@ -75,6 +79,21 @@ You're now ready to work with R14B02:
     $ agner version
     0.4.15
 
+You can use agner to install packages in your activated installation, they'll be directly available:
+
+    $ agner install cowboy
+    (...)
+    Installed to:
+    /path/to/install/dir/lib/erlang/lib/cowboy-@master
+
+    $ erl
+    (...)
+    Eshell V5.8.3  (abort with ^G)
+    1> application:start(cowboy).
+    ok
+
+Note that you can also define a list of packages to be autoinstalled on agner enabled installations using the KERL_AGNER_AUTOINSTALL entry in you $HOME/.kerlrc file
+
 When your done just type:
     $ kerl_deactivate
 
@@ -82,6 +101,28 @@ Anytime you can check which installation, if any, is currently active with:
 
     $ kerl active
     No Erlang/OTP kerl installation is currently active
+
+You can get an overview of the current kerl state with:
+
+    $ kerl status
+    Available builds:
+    R14B02
+    ----------
+    Available installations:
+    R14B02 /path/to/install/dir
+    ----------
+    Currently active installation:
+    The current active installation is:
+    /path/to/install/dir
+
+You can delete builds and installations with the following commands:
+    
+    $ kerl delete build R14B02
+    The R14B02 build has been deleted
+
+    $ kerl delete installation /path/to/install/dir
+    The installation in /path/to/install/dir has been deleted
+
 
 Tuning
 ======
@@ -94,5 +135,5 @@ You can set the following variables:
 - KERL_BUILD_DIR where to hold the builds, defaults to $HOME/.kerl/builds
 - KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
 - KERL_MAKE_OPTIONS options to pass to make, e.g. -j2
-- KERL_INSTALL_AGNER if non-empty will cause agner to be installed along
-
+- KERL_DISABLE_AGNER if non-empty will disable agner support
+- KERL_AGNER_AUTOINSTALL a list of packages to pre-install
