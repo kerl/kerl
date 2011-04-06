@@ -42,6 +42,20 @@ else
     INSTALL_OPT=-sasl
 fi
 
+KERL_SYSTEM=`uname -s`
+case "$KERL_SYSTEM" in
+    Darwin)
+        MD5SUM=openssl md5
+        MD5SUM_FIELD=2
+        SED_OPT=-E
+        ;;
+    *)
+        MD5SUM=md5sum
+        MD5SUM_FIELD=1
+        SED_OPT=-r
+        ;;
+esac
+
 usage()
 {
     echo "kerl: build and install Erlang/OTP"
@@ -63,8 +77,8 @@ if [ $# -eq 0 ]; then usage; fi
 get_releases()
 {
     curl -s $ERLANG_DOWNLOAD_URL/ | \
-        sed -e 's/^.*>otp_src_\(R1[-1234567890ABCD]\+\)\.tar\.gz<.*$/\1/' \
-            -e '/^R/!d'
+        sed $SED_OPT -e 's/^.*>otp_src_(R1[-1234567890ABCD]+)\.tar\.gz<.*$/\1/' \
+                     -e '/^R/!d'
 }
 
 update_checksum_file()
@@ -152,7 +166,7 @@ do_build()
     fi
     ensure_checksum_file
     echo "Verifying archive checksum..."
-    SUM=`md5sum "$KERL_DOWNLOAD_DIR/$FILENAME" | cut -d " " -f 1`
+    SUM=`$MD5SUM "$KERL_DOWNLOAD_DIR/$FILENAME" | cut -d " " -f $MD5SUM_FIELD`
     ORIG_SUM=`grep $FILENAME "$KERL_DOWNLOAD_DIR/MD5" | cut -d " " -f 2`
     if [ "$SUM" != "$ORIG_SUM" ]; then
         echo "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
@@ -307,7 +321,7 @@ list_add()
 list_remove()
 {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        sed -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
+        sed $SED_OPT -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
     fi
 }
 
@@ -445,7 +459,7 @@ case "$1" in
             installation)
                 if is_valid_installation "$3"; then
                     rm -Rf "$3"
-                    escaped=`echo "$3" | sed -e 's#\/#\\\/#g'`
+                    escaped=`echo "$3" | sed $SED_OPT -e 's#\/#\\\/#g'`
                     list_remove $2s "$escaped"
                     echo "The installation in $3 has been deleted"
                 else
