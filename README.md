@@ -7,13 +7,20 @@ Kerl aims to be shell agnostic and its only dependencies, excluding what's requi
 
 Unless explicitely disabled, agner is installed automatically in the sandboxes for supported Erlang/OTP versions.
 
+All done so that, once a specific release has been built, creating a new installation is as fast as possible.
+
 Downloading
 ===========
 
 You can download the script directly from github:
 
     $ curl -O https://github.com/evax/kerl/raw/master/kerl
+
+Then ensure its executable
+
     $ chmod a+x kerl
+
+and drop it in your $PATH
 
 How it works
 ============
@@ -31,11 +38,11 @@ List the available releases (kerl ignores releases < 10):
     R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7 R10B-8 R10B-9 R11B-0 R11B-1
     R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1 R12B-2 R12B-3 R12B-4 R12B-5 R13A
     R13B R13B01 R13B02 R13B03 R13B04 R14A R14B R14B01 R14B02
-    Run "./kerl update" to update this list from erlang.org
+    Run "./kerl update releases" to update this list from erlang.org
 
 Pick your choice and build it:
 
-    $ ./kerl build R14B02
+    $ kerl build R14B02
     Downloading otp_src_R14B02.tar.gz to /home/evax/.kerl/archives
     (curl progresses...)
     Verifying archive checksum...
@@ -49,12 +56,12 @@ Pick your choice and build it:
 
 You can verify it's been registered:
 
-    $ ./kerl list builds
+    $ kerl list builds
     R14B02
 
-Now install it to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file):
+Now install it to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file):
    
-    $ ./kerl install R14B02 /path/to/install/dir/
+    $ kerl install R14B02 /path/to/install/dir/
     Installing Erlang/OTP R14B02 in /path/to/install/dir...
     Installing agner in /path/to/install/dir...
     You can activate this installation running the following command:
@@ -64,7 +71,7 @@ Now install it to some location (optionally you can disable agner support by add
 
 Here again you can check the installation's been registered:
 
-    $ ./kerl list installations
+    $ kerl list installations
     R14B02 /path/to/install/dir
 
 And at last activate it:
@@ -77,14 +84,14 @@ You're now ready to work with R14B02:
     Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
 
     $ agner version
-    0.4.15
+    0.4.16
 
 You can use agner to install packages in your activated installation, they'll be directly available:
 
     $ agner install cowboy
     (...)
     Installed to:
-    /path/to/install/dir/lib/erlang/lib/cowboy-@master
+    /path/to/install/dir/lib/cowboy-@master
 
     $ erl
     (...)
@@ -123,6 +130,11 @@ You can delete builds and installations with the following commands:
     $ kerl delete installation /path/to/install/dir
     The installation in /path/to/install/dir has been deleted
 
+You can update the agner version associated with a specific build (this will only affect installations made after that):
+
+    $ kerl update agner R14B02
+    Updating agner for build R14B02...
+    agner has been updated successfully
 
 Tuning
 ======
@@ -134,6 +146,7 @@ You can set the following variables:
 - KERL_DOWNLOAD_DIR where to put downloaded files, defaults to $HOME/.kerl/archives
 - KERL_BUILD_DIR where to hold the builds, defaults to $HOME/.kerl/builds
 - KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
-- KERL_MAKE_OPTIONS options to pass to make, e.g. -j2
 - KERL_DISABLE_AGNER if non-empty will disable agner support
 - KERL_AGNER_AUTOINSTALL a list of packages to pre-install
+- KERL_SASL_STARTUP use SASL system startup instead of minimal
+

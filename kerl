@@ -27,8 +27,8 @@ KERL_CONFIG=$HOME/.kerlrc
 KERL_DOWNLOAD_DIR=$KERL_BASE_DIR/archives
 KERL_BUILD_DIR=$KERL_BASE_DIR/builds
 KERL_CONFIGURE_OPTIONS=
-KERL_MAKE_OPTIONS=
 KERL_DISABLE_AGNER=
+KERL_SASL_STARTUP=
 
 # ensure the base dir exsists
 mkdir -p $KERL_BASE_DIR
@@ -36,14 +36,21 @@ mkdir -p $KERL_BASE_DIR
 # source the config file if available
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 
-usage() {
+if [ -z "$KERL_SASL_STARTUP" ]; then
+    INSTALL_OPT=-minimal
+else
+    INSTALL_OPT=-sasl
+fi
+
+usage()
+{
     echo "kerl: build and install Erlang/OTP"
     echo "usage: $0 <command> [options ...]"
     echo "\n  <command>       Command to be executed\n"
     echo "Valid commands are:"
     echo "  build    Build specified release"
     echo "  install  Install the specified release at the given location"
-    echo "  update   Update the list of available releases from erlang.org"
+    echo "  update   Update agner or the list of available releases from erlang.org"
     echo "  list     List releases, builds and installations"
     echo "  delete   Delete builds and installations"
     echo "  active   Print the path of the active installation"
@@ -53,24 +60,28 @@ usage() {
 
 if [ $# -eq 0 ]; then usage; fi
 
-get_releases() {
+get_releases()
+{
     curl -s $ERLANG_DOWNLOAD_URL/ | \
         sed -e 's/^.*>otp_src_\(R1[-1234567890ABCD]\+\)\.tar\.gz<.*$/\1/' \
             -e '/^R/!d'
 }
 
-update_checksum_file() {
+update_checksum_file()
+{
     echo "Getting the checksum file from erlang.org..." 
     curl $ERLANG_DOWNLOAD_URL/MD5 > "$KERL_DOWNLOAD_DIR/MD5" || exit 1
 }
 
-ensure_checksum_file() {
+ensure_checksum_file()
+{
     if [ ! -f "$KERL_DOWNLOAD_DIR/MD5" ]; then
         update_checksum_file
     fi
 }
 
-check_releases() {
+check_releases()
+{
     if [ ! -f "$KERL_BASE_DIR/otp_releases" ]; then
         echo "Getting the available releases from erlang.org..."
         get_releases > "$KERL_BASE_DIR/otp_releases"
@@ -83,7 +94,8 @@ KERL_NO_AGNER_SUPPORT="R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7
 R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1
 R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B R13B01 R13B02 R13B03 R13B04"
 
-agner_support() {
+agner_support()
+{
     if [ -z "$KERL_DISABLE_AGNER" ]; then
         for v in $KERL_NO_AGNER_SUPPORT; do
             if [ "$v" = "$1" ]; then
@@ -95,7 +107,8 @@ agner_support() {
     return 1 
 }
 
-assert_valid_release() {
+assert_valid_release()
+{
     check_releases
     for rel in `cat $KERL_BASE_DIR/otp_releases`; do
         if [ "$1" = "$rel" ]; then
@@ -106,14 +119,29 @@ assert_valid_release() {
    exit 1
 }
 
-is_valid_installation() {
+is_valid_installation()
+{
     if [ -f "$1/activate" ]; then
         return 0
     fi
     return 1
 }
 
-do_build() {
+do_update_agner()
+{
+    assert_valid_release $1
+    TARGET=$KERL_BUILD_DIR/release_$1
+    cd "$KERL_BUILD_DIR/agner_$1" && \
+        AGNER_BIN="$TARGET/bin" AGNER_EXACT_PREFIX="$TARGET/lib" \
+            ./agner install agner > /dev/null 2>&1
+    if [ "$?" -eq 1 ]; then
+        return 1
+    fi
+    return 0
+}
+
+do_build()
+{
     assert_valid_release $1
     FILENAME=otp_src_$1.tar.gz
     if [ ! -f "$KERL_DOWNLOAD_DIR/$FILENAME" ]; then
@@ -124,43 +152,40 @@ do_build() {
     fi
     ensure_checksum_file
     echo "Verifying archive checksum..."
-    SUM=`md5sum $KERL_DOWNLOAD_DIR/$FILENAME | cut -d " " -f 1`
-    ORIG_SUM=`grep $FILENAME $KERL_DOWNLOAD_DIR/MD5 | cut -d " " -f 2`
+    SUM=`md5sum "$KERL_DOWNLOAD_DIR/$FILENAME" | cut -d " " -f 1`
+    ORIG_SUM=`grep $FILENAME "$KERL_DOWNLOAD_DIR/MD5" | cut -d " " -f 2`
     if [ "$SUM" != "$ORIG_SUM" ]; then
         echo "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
         exit 1
     fi
     echo "Checksum verified ($SUM)"
-    mkdir -p $KERL_BUILD_DIR
-    mkdir -p $KERL_BASE_DIR/logs
-    if [ ! -d $KERL_BUILD_DIR/otp_src_$1 ]; then
+    mkdir -p "$KERL_BUILD_DIR"
+    mkdir -p "$KERL_BASE_DIR/logs"
+    if [ ! -d "$KERL_BUILD_DIR/otp_src_$1" ]; then
         echo "Extracting source code"
-        cd $KERL_BUILD_DIR && tar xfz $KERL_DOWNLOAD_DIR/$FILENAME
+        cd "$KERL_BUILD_DIR" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
     fi
-    mkdir -p "$KERL_BASE_DIR/install"
     echo "Building Erlang/OTP $1, please wait..."
-    cd $KERL_BUILD_DIR/otp_src_$1
-    ./configure $KERL_CONFIGURE_OPTIONS --prefix="$KERL_BASE_DIR/install/$1" > \
-        $KERL_BASE_DIR/logs/configure_$1.log 2>&1
+    cd "$KERL_BUILD_DIR/otp_src_$1"
+    ./otp_build setup -a $KERL_CONFIGURE_OPTIONS > "$KERL_BASE_DIR/logs/otp_build_$1.log" 2>&1
     if [ "$?" -eq 1 ]; then
-        echo "./configure failed, see $KERL_BASE_DIR/logs/configure_$1.log";
+        echo "Build failed, see $KERL_BASE_DIR/logs/otp_build_$1.log"
+        list_remove builds $2
         exit 1
     fi
-    rm -f "$KERL_BASE_DIR/logs/configure_$1.log"
-    make $KERL_MAKE_OPTIONS > $KERL_BASE_DIR/logs/build_$1.log 2>&1 && \
-        make install > $KERL_BASE_DIR/logs/build_$1.log 2>&1
-    if [ "$?" -eq 1 ]; then
-        echo "Build failed, see $KERL_BASE_DIR/logs/build_$1.log"
-        list_remove builds $2
-    fi
-    rm -f "$KERL_BASE_DIR/logs/build_$1.log"
+    rm -f "$KERL_BASE_DIR/logs/otp_build_$1.log"
+    ./otp_build release -a "$KERL_BUILD_DIR/release_$1" > /dev/null 2>&1
+    cd "$KERL_BUILD_DIR/release_$1"
+    ./Install $INSTALL_OPT "$KERL_BUILD_DIR/release_$1" > /dev/null 2>&1
     echo "Erlang/OTP $1 has been successfully built"
     list_add builds $1
     if agner_support $1; then
         echo "Fetching and building agner..."
-        cd "$KERL_BASE_DIR/builds" && \
+        cd "$KERL_BUILD_DIR" && \
         git clone https://github.com/agner/agner.git agner_$1 > /dev/null 2>&1 && \
-        cd agner_$1 && PATH="$KERL_BASE_DIR/otp_src_$1/bin:$PATH" make > /dev/null 2>&1
+            cd agner_$1 && \
+            PATH="$KERL_BASE_DIR/otp_src_$1/bin:$PATH" make > /dev/null 2>&1 && \
+            do_update_agner $1
         if [ "$?" -eq 1 ]; then
             echo "Agner install failed"; exit 1
         fi
@@ -168,7 +193,8 @@ do_build() {
     fi
 }
 
-do_install() {
+do_install()
+{
     assert_valid_release $1
     if ! list_has builds $1; then
         echo "You must build the $1 realease before installing it"
@@ -182,8 +208,8 @@ do_install() {
     absdir=`cd "$2" && pwd`
     echo "Installing Erlang/OTP $1 in $absdir..."
     cd $KERL_BUILD_DIR/otp_src_$1
-    ./configure $KERL_CONFIGURE_OPTIONS --prefix="$absdir" > /dev/null 2>&1 &&
-    make $KERL_MAKE_OPTIONS install > /dev/null 2>&1
+    ./otp_build release -a "$absdir" > /dev/null 2>&1 &&
+        cd "$absdir" && ./Install $INSTALL_OPT "$absdir" > /dev/null 2>&1
     if [ $? -eq 1 ]; then
         echo "Couldn't install Erlang/OTP $1 in $absdir"
         exit 1
@@ -191,7 +217,8 @@ do_install() {
     list_add installations "$1 $absdir";
     cat <<ACTIVATE > "$absdir/activate"
 # credits to virtualenv
-kerl_deactivate() {
+kerl_deactivate()
+{
     if [ -n "\$_KERL_SAVED_PATH" ]; then
         PATH="\$_KERL_SAVED_PATH"
         export PATH
@@ -225,7 +252,7 @@ PATH="$absdir/bin:\$PATH"
 export PATH
 AGNER_BIN="$absdir/bin"
 export AGNER_BIN
-AGNER_EXACT_PREFIX="$absdir/lib/erlang/lib"
+AGNER_EXACT_PREFIX="$absdir/lib"
 export AGNER_EXACT_PREFIX
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
@@ -233,27 +260,29 @@ fi
 ACTIVATE
     if agner_support $1; then
         echo "Installing agner in $absdir..."
-        . "$absdir/activate" && cd "$KERL_BASE_DIR/builds/agner_$1" && \
-        ./agner install agner > /dev/null 2>&1
-        if [ "$?" -eq 1 ]; then
-            echo "Couldn' install agner in $absdir"
-            exit 1
-        fi
-        if [ -n "$KERL_AGNER_AUTOINSTALL" ]; then
-            for i in $KERL_AGNER_AUTOINSTALL; do
-                echo "Autoinstalling $i"
-                agner install $i > /dev/null 2>&1
-            done
-        fi
+        cp -R "$KERL_BUILD_DIR/release_$1/lib/agner-@master" "$absdir/lib/"
+        cd "$absdir/bin" && ln -s "$absdir/lib/agner-@master/bin/agner" agner
+        #. "$absdir/activate" && cd "$KERL_BASE_DIR/builds/agner_$1" && \
+        #./agner install agner > /dev/null 2>&1
+        #if [ "$?" -eq 1 ]; then
+        #    echo "Couldn' install agner in $absdir"
+        #    exit 1
+        #fi
+        #if [ -n "$KERL_AGNER_AUTOINSTALL" ]; then
+        #    for i in $KERL_AGNER_AUTOINSTALL; do
+        #        echo "Autoinstalling $i"
+        #        agner install $i > /dev/null 2>&1
+        #    done
+        #fi
     fi
-    rm -Rf "$absdir/agner_build"
     echo "You can activate this installation running the following command:"
     echo ". $absdir/activate"
     echo "Later on, you can leave the installation typing:"
     echo "kerl_deactivate"
 }
 
-list_print() {
+list_print()
+{
     if [ -f $KERL_BASE_DIR/otp_$1 ]; then
         if [ -z "$2" ]; then
             cat $KERL_BASE_DIR/otp_$1
@@ -265,7 +294,8 @@ list_print() {
     fi
 }
 
-list_add() {
+list_add()
+{
     if [ -f $KERL_BASE_DIR/otp_$1 ]; then
         grep "$2" $KERL_BASE_DIR/otp_$1 > /dev/null 2>&1 || \
             echo "$2" >> $KERL_BASE_DIR/otp_$1
@@ -274,28 +304,38 @@ list_add() {
     fi
 }
 
-list_remove() {
+list_remove()
+{
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
         sed -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
     fi
 }
 
-list_has() {
+list_has()
+{
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
         grep $2 "$KERL_BASE_DIR/otp_$1" > /dev/null 2>&1 && return 0
     fi
     return 1
 }
 
-list_usage() {
+list_usage()
+{
     echo "usage: $0 list <releases|builds|installations>"
 }
 
-delete_usage() {
+delete_usage()
+{
     echo "usage: $0 delete <build|installation> id_or_path"
 }
 
-do_active() {
+update_usage()
+{
+    echo "usage: $0 $1 <releases|agner>"
+}
+
+do_active()
+{
     if [ -n "$_KERL_SAVED_PATH" ]; then
         echo "The current active installation is:"
         echo `echo $PATH | cut -d ":" -f 1 | head -c -4`
@@ -326,10 +366,38 @@ case "$1" in
         fi
         ;;
     update)
-        rm -f "$KERL_BASE_DIR/otp_releases"
-        check_releases
-        echo "The available releases are:"
-        list_print releases spaces
+        if [ $# -lt 2 ]; then
+            update_usage
+            exit 1
+        fi
+        case "$2" in
+            releases)
+                rm -f "$KERL_BASE_DIR/otp_releases"
+                check_releases
+                echo "The available releases are:"
+                list_print releases spaces
+                ;;
+            agner)
+                if [ $# -ne 3 ]; then
+                    echo "usage: $0 $1 $2 <build>"
+                    exit 1
+                fi
+                assert_valid_release $3
+                if agner_support $3; then
+                    echo "Updating agner for build $3..."
+                    if do_update_agner $3; then
+                        echo "agner has been updated successfully"
+                    else
+                        echo "failed to update agner"
+                        exit 1
+                    fi
+                fi
+                ;;
+            *)
+                update_usage
+                exit 1
+                ;;
+        esac
         ;;
     list)
         if [ $# -ne 2 ]; then
@@ -340,7 +408,7 @@ case "$1" in
             releases)
                 check_releases
                 list_print $2 space
-                echo "Run \"$0 update\" to update this list from erlang.org"
+                echo "Run \"$0 update releases\" to update this list from erlang.org"
                 ;;
             builds)
                 list_print $2
@@ -366,6 +434,7 @@ case "$1" in
                 if [ -d "$KERL_BUILD_DIR/otp_src_$3" ]; then
                     rm -Rf $KERL_BUILD_DIR/otp_src_$3 
                     rm -Rf $KERL_BUILD_DIR/agner_$3 
+                    rm -Rf $KERL_BUILD_DIR/release_$3 
                     list_remove $2s $3
                     echo "The $3 build has been deleted"
                 else
