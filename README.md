@@ -42,27 +42,39 @@ List the available releases (kerl ignores releases < 10):
 
 Pick your choice and build it:
 
-    $ kerl build R14B02
+    $ kerl build R14B02 r14b02
     Downloading otp_src_R14B02.tar.gz to /home/evax/.kerl/archives
     (curl progresses...)
     Verifying archive checksum...
     (curl progresses...)
     Checksum verified (229fb8f193b09ac04a57a9d7794349b7)
     Extracting source code
-    Building Erlang/OTP R14B02, please wait...
+    Building Erlang/OTP R14B02 (r14b02), please wait...
     Erlang/OTP R14B02 has been successfully built
     Fetching and building agner...
     Agner has been successfully built
 
-You can verify it's been registered:
+Note that named builds allow you to have different builds for the same Erlang/OTP release with different configure options:
+
+    $ KERL_CONFIGURE_OPTIONS=--disable-hipe kerl build R14B02 r14b02_nohipe
+    Verifying archive checksum...
+    Checksum verified (229fb8f193b09ac04a57a9d7794349b7)
+    Extracting source code
+    Building Erlang/OTP R14B02 (r14b02_nohipe), please wait...
+    Erlang/OTP R14B02 (r14b02_nohipe) has been successfully built
+    Fetching and building agner...
+    Agner has been successfully built
+
+You can verify your build has been registered:
 
     $ kerl list builds
-    R14B02
+    R14B02,r14b02
+    R14B02,r14b02_nohipe
 
-Now install it to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file):
+Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file):
    
-    $ kerl install R14B02 /path/to/install/dir/
-    Installing Erlang/OTP R14B02 in /path/to/install/dir...
+    $ kerl install r14b02 /path/to/install/dir/
+    Installing Erlang/OTP R14B02 (r14b02) in /path/to/install/dir...
     Installing agner in /path/to/install/dir...
     You can activate this installation running the following command:
     . /path/to/install/dir/activate
@@ -72,13 +84,13 @@ Now install it to some location (optionally you can disable agner support by add
 Here again you can check the installation's been registered:
 
     $ kerl list installations
-    R14B02 /path/to/install/dir
+    r14b02 /path/to/install/dir
 
 And at last activate it:
 
     $ . /path/to/install/dir/activate
 
-You're now ready to work with R14B02:
+You're now ready to work with your r14b02 installation:
 
     $ erl -version
     Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
@@ -113,10 +125,11 @@ You can get an overview of the current kerl state with:
 
     $ kerl status
     Available builds:
-    R14B02
+    R14B02,r14b02
+    R14B02,r14b02_nohipe
     ----------
     Available installations:
-    R14B02 /path/to/install/dir
+    r14b02 /path/to/install/dir
     ----------
     Currently active installation:
     The current active installation is:
@@ -124,16 +137,16 @@ You can get an overview of the current kerl state with:
 
 You can delete builds and installations with the following commands:
     
-    $ kerl delete build R14B02
-    The R14B02 build has been deleted
+    $ kerl delete build r14b02
+    The r14b02 build has been deleted
 
     $ kerl delete installation /path/to/install/dir
     The installation in /path/to/install/dir has been deleted
 
 You can update the agner version associated with a specific build (this will only affect installations made after that):
 
-    $ kerl update agner R14B02
-    Updating agner for build R14B02...
+    $ kerl update agner r14b02
+    Updating agner for build r14b02...
     agner has been updated successfully
 
 Tuning
