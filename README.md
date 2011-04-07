@@ -151,6 +151,15 @@ You can update the agner version associated with a specific build (this will onl
     Updating agner for build r14b02...
     agner has been updated successfully
 
+As an experimental feature, you can build Erlang directly from a git repository with a command of the form "kerl build git <git_url> <git_version> <build_name>" where <git_version> can be either a branch, a tag or a commit id as it will be passed to "git checkout":
+
+    $ kerl build git https://github.com/erlang/otp.git dev r14b02_dev
+    Checking Erlang/OTP git repositoy from https://github.com/erlang/otp.git...
+    Building Erlang/OTP r14b02_dev from git, please wait...
+    Erlang/OTP r14b02_dev from git has been successfully built
+    Fetching and building agner...
+    Agner has been successfully built
+
 Tuning
 ======
 

@@ -69,7 +69,7 @@ usage()
     echo "usage: $0 <command> [options ...]"
     echo "\n  <command>       Command to be executed\n"
     echo "Valid commands are:"
-    echo "  build    Build specified release"
+    echo "  build    Build specified release or git repository"
     echo "  install  Install the specified release at the given location"
     echo "  update   Update agner or the list of available releases from erlang.org"
     echo "  list     List releases, builds and installations"
@@ -189,18 +189,74 @@ do_update_agner()
     return 0
 }
 
-do_build()
+assert_build_name_unused()
 {
-    assert_valid_release $1
     if [ -f "$KERL_BASE_DIR/otp_builds" ]; then
         for l in `cat "$KERL_BASE_DIR/otp_builds"`; do
             name=`echo $l | cut -d "," -f 2`
-            if [ "$name" = "$2" ]; then
-                echo "There's already a build named $2"
+            if [ "$name" = "$1" ]; then
+                echo "There's already a build named $1"
                 exit 1
             fi
         done
     fi
+}
+
+do_git_build()
+{
+    assert_build_name_unused $3
+    mkdir -p "$KERL_BUILD_DIR/$3"
+    cd "$KERL_BUILD_DIR/$3"
+    echo "Checking Erlang/OTP git repository from $1..."
+    git clone $1 otp_src_git > /dev/null 2>&1
+    if [ "$?" -eq 1 ]; then
+        echo "Error retriving git repository"
+        exit 1
+    fi
+    if [ ! -x otp_src_git/otp_build ]; then
+        echo "Not a valid Erlang/OTP repository"
+        rm -Rf "$KERL_BUILD_DIR/$3"
+        exit 1
+    fi
+    cd otp_src_git
+    git checkout $2 > /dev/null 2>&1
+    if [ "$?" -eq 1 ]; then
+        echo "Couldn't checkout specified version"
+        rm -Rf "$KERL_BUILD_DIR/$3"
+        exit 1
+    fi
+    LOGFILE="$KERL_BUILD_DIR/$3/opt_build.log"
+    echo "Building Erlang/OTP $3 from git, please wait..."
+    ./otp_build setup -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+    if [ "$?" -eq 1 ]; then
+        echo "Build error, see $LOGFILE"
+        exit 1
+    fi
+    rm -f "$LOGFILE"
+    ./otp_build release -a "$KERL_BUILD_DIR/$3/release_git" > /dev/null 2>&1
+    cd "$KERL_BUILD_DIR/$3/release_git"
+    ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$3/release_git" > /dev/null 2>&1
+    echo "Erlang/OTP $3 from git has been successfully built"
+    list_add builds "git,$3"
+    if [ -z "$KERL_DISABLE_AGNER" ]; then
+        echo "Fetching and building agner..."
+        cd "$KERL_BUILD_DIR/$3" && \
+        git clone https://github.com/agner/agner.git agner_git > /dev/null 2>&1 && \
+            cd agner_git && \
+            PATH="$KERL_BUILD_DIR/$3/otp_src_git/bin:$PATH" make > /dev/null 2>&1 && \
+            do_update_agner $3
+        if [ "$?" -eq 1 ]; then
+            echo "Agner install failed"; exit 1
+        fi
+        echo "Agner has been successfully built"
+    fi
+}
+
+do_build()
+{
+    assert_valid_release $1
+    assert_build_name_unused $2
+        
     FILENAME=otp_src_$1.tar.gz
     if [ ! -f "$KERL_DOWNLOAD_DIR/$FILENAME" ]; then
         echo "Downloading $FILENAME to $KERL_DOWNLOAD_DIR"
@@ -411,11 +467,19 @@ do_active()
 
 case "$1" in
     build)
-        if [ $# -ne 3 ]; then
+        if [ $# -lt 3 ]; then
             echo "usage: $0 $1 <release> <build_name>"
             exit 1
         fi
-        do_build $2 $3
+        if [ "$2" = "git" ]; then
+            if [ $# -ne 5 ]; then
+                echo "usage: $0 $1 $2 <git_url> <git_version> <build_name>"
+                exit 1
+            fi
+            do_git_build $3 $4 $5
+        else
+            do_build $2 $3
+        fi
         ;;
     install)
         if [ $# -lt 2 ]; then
@@ -532,7 +596,6 @@ case "$1" in
         echo "Available installations:"
         list_print installations
         echo "----------"
-        echo "Currently active installation:"
         do_active
         exit 0
         ;;
