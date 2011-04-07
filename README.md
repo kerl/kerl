@@ -90,6 +90,8 @@ And at last activate it:
 
     $ . /path/to/install/dir/activate
 
+Activation will backup your $PATH, prepend it with the installation's bin/ directory and do the right thing with AGNER_* vars to constrain agner operations to the sandbox. Thus it's only valid for the current shell session, and until you activate another installation or call kerl_deactivate.
+
 You're now ready to work with your r14b02 installation:
 
     $ erl -version
