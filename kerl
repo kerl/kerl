@@ -194,7 +194,7 @@ do_build()
     assert_valid_release $1
     if [ -f "$KERL_BASE_DIR/otp_builds" ]; then
         for l in `cat "$KERL_BASE_DIR/otp_builds"`; do
-            name=`echo $l | cut -d " " -f 1`
+            name=`echo $l | cut -d "," -f 2`
             if [ "$name" = "$2" ]; then
                 echo "There's already a build named $2"
                 exit 1
