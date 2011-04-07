@@ -481,11 +481,9 @@ case "$1" in
         case "$2" in
             build)
                 rel=`get_release_from_name $3`
-                if [ -d "$KERL_BUILD_DIR/$3/otp_src_$rel" ]; then
-                    rm -Rf $KERL_BUILD_DIR/$3/otp_src_$rel
-                    rm -Rf $KERL_BUILD_DIR/$3/agner_$rel
-                    rm -Rf $KERL_BUILD_DIR/$3/release_$rel 
-                    list_remove $2s "$rel $3"
+                if [ -d "$KERL_BUILD_DIR/$3" ]; then
+                    rm -Rf "$KERL_BUILD_DIR/$3"
+                    list_remove $2s "$rel,$3"
                     echo "The $3 build has been deleted"
                 else
                     echo "No build named $3"
