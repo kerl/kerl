@@ -335,14 +335,16 @@ ACTIVATE
 list_print()
 {
     if [ -f $KERL_BASE_DIR/otp_$1 ]; then
-        if [ -z "$2" ]; then
-            cat $KERL_BASE_DIR/otp_$1
-        else
-            echo `cat $KERL_BASE_DIR/otp_$1`
+        if [ "`cat "$KERL_BASE_DIR/otp_$1" | wc -l`" != "0" ]; then
+            if [ -z "$2" ]; then
+                cat $KERL_BASE_DIR/otp_$1
+            else
+                echo `cat $KERL_BASE_DIR/otp_$1`
+            fi
+            return 0
         fi
-    else
-        echo "There are no $1 available"
     fi
+    echo "There are no $1 available"
 }
 
 list_add()
@@ -493,7 +495,7 @@ case "$1" in
             installation)
                 if is_valid_installation "$3"; then
                     rm -Rf "$3"
-                    escaped=`echo "$3" | sed $SED_OPT -e 's#\/#\\\/#g'`
+                    escaped=`echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g'`
                     list_remove $2s "$escaped"
                     echo "The installation in $3 has been deleted"
                 else
