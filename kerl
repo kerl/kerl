@@ -224,13 +224,19 @@ do_build()
     fi
     echo "Building Erlang/OTP $1 ($2), please wait..."
     cd "$KERL_BUILD_DIR/$2/otp_src_$1"
-    ./otp_build setup -a $KERL_CONFIGURE_OPTIONS > "$KERL_BUILD_DIR/$2/otp_build_$1.log" 2>&1
+    LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
+    if [ -n "$KERL_USE_AUTOCONF" ]; then
+        ./otp_build setup -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+    else
+        ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
+            ./otp_build boot -a > "$LOGFILE" 2>&1
+    fi
     if [ "$?" -eq 1 ]; then
-        echo "Build failed, see $KERL_BUILD_DIR/$2/otp_build_$1.log"
+        echo "Build failed, see $LOGFILE"
         list_remove builds "$1 $2"
         exit 1
     fi
-    rm -f "$KERL_BUILD_DIR/$2/otp_build_$1.log"
+    rm -f "$LOGFILE"
     ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
     cd "$KERL_BUILD_DIR/$2/release_$1"
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
@@ -349,11 +355,15 @@ list_print()
 
 list_add()
 {
-    if [ -f $KERL_BASE_DIR/otp_$1 ]; then
-        grep "$2" $KERL_BASE_DIR/otp_$1 > /dev/null 2>&1 || \
-            echo "$2" >> $KERL_BASE_DIR/otp_$1
+    if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
+        for l in `cat "$KERL_BASE_DIR/otp_$1"`; do
+            if [ "$l" = "$2" ]; then
+                return 1
+            fi
+        done
+        echo "$2" >> "$KERL_BASE_DIR/otp_$1"
     else
-        echo "$2" > $KERL_BASE_DIR/otp_$1
+        echo "$2" > "$KERL_BASE_DIR/otp_$1"
     fi
 }
 

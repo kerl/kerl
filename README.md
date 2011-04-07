@@ -7,7 +7,7 @@ Kerl aims to be shell agnostic and its only dependencies, excluding what's requi
 
 Unless explicitely disabled, agner is installed automatically in the sandboxes for supported Erlang/OTP versions.
 
-All done so that, once a specific release has been built, creating a new installation is as fast as possible.
+All is done so that, once a specific release has been built, creating a new installation is as fast as possible.
 
 Downloading
 ===========
@@ -16,7 +16,7 @@ You can download the script directly from github:
 
     $ curl -O https://github.com/evax/kerl/raw/master/kerl
 
-Then ensure its executable
+Then ensure it is executable
 
     $ chmod a+x kerl
 
@@ -162,4 +162,5 @@ You can set the following variables:
 - KERL_DISABLE_AGNER if non-empty will disable agner support
 - KERL_AGNER_AUTOINSTALL a list of packages to pre-install
 - KERL_SASL_STARTUP use SASL system startup instead of minimal
+- KERL_USE_AUTOCONF use autoconf in the builds process
 
