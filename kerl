@@ -391,7 +391,7 @@ do_active()
 {
     if [ -n "$_KERL_SAVED_PATH" ]; then
         echo "The current active installation is:"
-        echo `echo $PATH | cut -d ":" -f 1 | head -c -4`
+        echo `echo $PATH | cut -d ":" -f 1 | sed 's/\(.*\)..../\1/'`
         return 0
     else
         echo "No Erlang/OTP kerl installation is currently active"
