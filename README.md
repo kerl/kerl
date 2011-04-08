@@ -22,6 +22,8 @@ Then ensure it is executable
 
 and drop it in your $PATH
 
+Optionally download and install kerl's bash_completion file from https://github.com/evax/kerl/raw/master/bash_completion/kerl
+
 How it works
 ============
 
