@@ -246,7 +246,7 @@ You can auto-install agner packages listing them in the KERL_AGNER_AUTOINSTALL v
 
 #### SASL startup
 
-You can have SASL started automatically setting KERL_SASL_STARTUP=yes in your $HOME/.kerlrc file
+You can have SASL started automatically setting KERL_SASL_STARTUP=yes in your $HOME/.kerlrc file or prepending it to the command line
 
 update
 ------

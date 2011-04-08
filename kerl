@@ -29,6 +29,9 @@ KERL_BUILD_DIR=$KERL_BASE_DIR/builds
 if [ -n "$KERL_CONFIGURE_OPTIONS" ]; then
     _KCO="$KERL_CONFIGURE_OPTIONS"
 fi
+if [ -n "$KERL_SASL_STARTUP" ]; then
+    _KSS="$KERL_SASL_STARTUP"
+fi
 KERL_CONFIGURE_OPTIONS=
 KERL_DISABLE_AGNER=
 KERL_SASL_STARTUP=
@@ -41,6 +44,9 @@ if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 
 if [ -n "$_KCO" ]; then
     KERL_CONFIGURE_OPTIONS="$_KCO"
+fi
+if [ -n "$_KSS" ]; then
+    KERL_SASL_STARTUP="$_KSS"
 fi
 
 if [ -z "$KERL_SASL_STARTUP" ]; then
