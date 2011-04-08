@@ -1,11 +1,11 @@
 kerl
 ====
 
-Easy building and installing of Erlang/OTP instances
+Easy building and installing of [Erlang/OTP](http://www.erlang.org) instances
 
 Kerl aims to be shell agnostic and its only dependencies, excluding what's required to actually build Erlang/OTP, are curl and git.
 
-Unless explicitely disabled, agner is installed automatically in the sandboxes for supported Erlang/OTP versions.
+Unless explicitly disabled, [agner](http://erlagner.org) is installed automatically in the sandboxes for supported Erlang/OTP versions.
 
 All is done so that, once a specific release has been built, creating a new installation is as fast as possible.
 
@@ -33,7 +33,7 @@ Usage
 
 List the available releases (kerl ignores releases < 10):
 
-    $ ./kerl list releases
+    $ kerl list releases
     Getting the available releases from erlang.org...
     R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7 R10B-8 R10B-9 R11B-0 R11B-1
     R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1 R12B-2 R12B-3 R12B-4 R12B-5 R13A
@@ -174,4 +174,142 @@ You can set the following variables:
 - KERL_AGNER_AUTOINSTALL a list of packages to pre-install
 - KERL_SASL_STARTUP use SASL system startup instead of minimal
 - KERL_USE_AUTOCONF use autoconf in the builds process
+
+Glossary
+========
+
+Here are the abstractions kerl is handling:
+
+- **releases**: Erlang/OTP releases from [erlang.org](http://erlang.org)
+
+- **builds**: the result of configuring and compiling releases or git repositories
+
+- **installations**: the result of deploying builds to filesystem locations (also referred to as "sandboxes")
+
+Commands reference
+==================
+
+build
+-----
+
+Create a named build either from an official Erlang/OTP release or from a git repository
+
+### Syntax
+
+    kerl build <release_code> <build_name>
+    kerl build git <git_url> <git_version> <build_name>
+
+### Examples
+
+    $ kerl build R14B02 r14b02
+    $ kerl build git https://github.com/erlang/otp dev r14b02_dev
+
+### Tuning
+
+#### Disable agner
+
+You can disable agner support by setting KERL_DISABLE_AGNER=yes in your $HOME/.kerlrc file
+
+#### Configure options
+
+You can specify the configure options to use when building Erlang/OTP with the KERL_CONFIGURE_OPTIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
+
+    $ KERL_CONFIGURE_OPTIONS=--disable-hipe kerl build R14B02 r14b02_nohipe
+
+#### Enable autoconf
+
+You can enable the use of autoconf in the build process setting KERL_USE_AUTOCONF=yes in your $HOME/.kerlrc file
+
+*Note*: autoconf is always enabled for git builds
+
+
+install
+-------
+
+Install a named build to the specified filesystem location
+
+### Syntax
+
+    kerl install <build_name> [path]
+
+If path is ommited the current working directory will be used
+
+### Example
+
+    $ kerl install r14b02 /srv/otp/r14b02
+
+### Tuning
+
+#### Auto-installing packages
+
+You can auto-install agner packages listing them in the KERL_AGNER_AUTOINSTALL variable in your $HOME/.kerlrc file, e.g. KERL_AGNER_AUTOINSTALL="erlzmq cowboy"
+
+#### SASL startup
+
+You can have SASL started automatically setting KERL_SASL_STARTUP=yes in your $HOME/.kerlrc file
+
+update
+------
+
+Update the releases list or the agner version of the specified named build
+
+### Syntax
+
+    kerl update releases
+    kerl update agner <build_name>
+
+list
+----
+
+List the releases, builds or installations available
+
+### Syntax
+
+    kerl list <releases|builds|installations>
+
+delete
+------
+
+Delete the specified build or installation
+
+### Syntax
+
+    kerl delete build <build_name>
+    kerl delete installation <path>
+
+### Examples
+
+    $ kerl delete build r14b02
+    The r14b02 build has been deleted
+    $ kerl delete installation /srv/otp/r14b02
+    The installation in /srv/otp/r14b02 has been deleted
+
+active
+------
+
+Print the path of the currently active installation, if any
+
+### Example
+
+    $ kerl active
+    The current active installation is:
+    /srv/otp/r14b02
+
+status
+------
+
+Print the available builds and installations as well as the currently active installation
+
+### Example
+
+    $ kerl status
+    Available builds:
+    R14B02,r14b02
+    git,r14b02_dev
+    ----------
+    Available installations:
+    r14b02 /srv/otp/r14b02
+    r14b02 /srv/otp/r14b02_dev
+    ----------
+    No Erlang/OTP kerl installation is currently active
 
