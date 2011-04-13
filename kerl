@@ -32,6 +32,9 @@ fi
 if [ -n "$KERL_SASL_STARTUP" ]; then
     _KSS="$KERL_SASL_STARTUP"
 fi
+if [ -n "$KERL_AGNER_AUTOINSTALL" ]; then
+    _KAA="$KERL_AGNER_AUTOINSTALL"
+fi
 KERL_CONFIGURE_OPTIONS=
 KERL_DISABLE_AGNER=
 KERL_SASL_STARTUP=
@@ -47,6 +50,9 @@ if [ -n "$_KCO" ]; then
 fi
 if [ -n "$_KSS" ]; then
     KERL_SASL_STARTUP="$_KSS"
+fi
+if [ -n "$_KAA" ]; then
+    KERL_AGNER_AUTOINSTALL="$_KAA"
 fi
 
 if [ -z "$KERL_SASL_STARTUP" ]; then

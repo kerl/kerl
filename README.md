@@ -73,7 +73,7 @@ You can verify your build has been registered:
     R14B02,r14b02
     R14B02,r14b02_nohipe
 
-Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file):
+Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file or on the command line):
    
     $ kerl install r14b02 /path/to/install/dir/
     Installing Erlang/OTP R14B02 (r14b02) in /path/to/install/dir...
@@ -244,7 +244,7 @@ If path is ommited the current working directory will be used
 
 #### Auto-installing packages
 
-You can auto-install agner packages listing them in the KERL_AGNER_AUTOINSTALL variable in your $HOME/.kerlrc file, e.g. KERL_AGNER_AUTOINSTALL="erlzmq cowboy"
+You can auto-install agner packages listing them in the KERL_AGNER_AUTOINSTALL variable in your $HOME/.kerlrc file or on the command line, e.g. KERL_AGNER_AUTOINSTALL="erlzmq cowboy"
 
 #### SASL startup
 
