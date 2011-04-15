@@ -370,6 +370,11 @@ kerl_deactivate()
         export AGNER_EXACT_PREFIX
         unset _KERL_SAVED_AGNER_EXACT_PREFIX
     fi
+    if [ -n "\$_KERL_SAVED_REBAR_PLT_DIR" ]; then
+        REBAR_PLT_DIR="\$_KERL_SAVED_REBAR_PLT_DIR"
+        export REBAR_PLT_DIR
+        unset _KERL_SAVED_REBAR_PLT_DIR
+    fi
     if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
@@ -384,12 +389,16 @@ _KERL_SAVED_AGNER_BIN="\$AGNER_BIN"
 export _KERL_SAVED_AGNER_BIN
 _KERL_SAVED_AGNER_EXACT_PREFIX="\$AGNER_EXACT_PREFIX"
 export _KERL_SAVED_AGNER_EXACT_PREFIX
+_KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
+export _KERL_SAVED_REBAR_PLT_DIR
 PATH="$absdir/bin:\$PATH"
 export PATH
 AGNER_BIN="$absdir/bin"
 export AGNER_BIN
 AGNER_EXACT_PREFIX="$absdir/lib"
 export AGNER_EXACT_PREFIX
+REBAR_PLT_DIR="$absdir"
+export REBAR_PLT_DIR
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
