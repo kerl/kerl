@@ -58,20 +58,22 @@ Pick your choice and build it:
 
 Note that named builds allow you to have different builds for the same Erlang/OTP release with different configure options:
 
-    $ KERL_CONFIGURE_OPTIONS=--disable-hipe kerl build R14B02 r14b02_nohipe
+    $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build R14B02 r14b02_hipe
     Verifying archive checksum...
     Checksum verified (229fb8f193b09ac04a57a9d7794349b7)
     Extracting source code
-    Building Erlang/OTP R14B02 (r14b02_nohipe), please wait...
-    Erlang/OTP R14B02 (r14b02_nohipe) has been successfully built
+    Building Erlang/OTP R14B02 (r14b02_hipe), please wait...
+    Erlang/OTP R14B02 (r14b02_hipe) has been successfully built
     Fetching and building agner...
     Agner has been successfully built
+
+(Note that kerl uses the otp_build script internally, and './otp_build configure' disables HiPE on linux)
 
 You can verify your build has been registered:
 
     $ kerl list builds
     R14B02,r14b02
-    R14B02,r14b02_nohipe
+    R14B02,r14b02_hipe
 
 Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file or on the command line):
    
@@ -130,7 +132,7 @@ You can get an overview of the current kerl state with:
     $ kerl status
     Available builds:
     R14B02,r14b02
-    R14B02,r14b02_nohipe
+    R14B02,r14b02_hipe
     ----------
     Available installations:
     r14b02 /path/to/install/dir
@@ -216,7 +218,7 @@ You can disable agner support by setting KERL_DISABLE_AGNER=yes in your $HOME/.k
 
 You can specify the configure options to use when building Erlang/OTP with the KERL_CONFIGURE_OPTIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
 
-    $ KERL_CONFIGURE_OPTIONS=--disable-hipe kerl build R14B02 r14b02_nohipe
+    $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build R14B02 r14b02_hipe
 
 #### Enable autoconf
 

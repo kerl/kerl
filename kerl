@@ -102,7 +102,7 @@ get_releases()
 
 update_checksum_file()
 {
-    echo "Getting the checksum file from erlang.org..." 
+    echo "Getting the checksum file from erlang.org..."
     curl $ERLANG_DOWNLOAD_URL/MD5 > "$KERL_DOWNLOAD_DIR/MD5" || exit 1
 }
 
@@ -137,7 +137,7 @@ agner_support()
         done
         return 0
     fi
-    return 1 
+    return 1
 }
 
 
@@ -155,7 +155,7 @@ is_valid_release()
 assert_valid_release()
 {
     if ! is_valid_release $1; then
-        echo "$1 is not a valid Erlang/OTP release" 
+        echo "$1 is not a valid Erlang/OTP release"
         exit 1
     fi
     return 0
@@ -273,7 +273,7 @@ do_build()
 {
     assert_valid_release $1
     assert_build_name_unused $2
-        
+
     FILENAME=otp_src_$1.tar.gz
     if [ ! -f "$KERL_DOWNLOAD_DIR/$FILENAME" ]; then
         echo "Downloading $FILENAME to $KERL_DOWNLOAD_DIR"
@@ -512,7 +512,7 @@ case "$1" in
             echo "usage: $0 $1 <build_name> [directory]"
             exit 1
         fi
-        if [ $# -eq 3 ]; then 
+        if [ $# -eq 3 ]; then
             do_install $2 "$3"
         else
             do_install $2 .
