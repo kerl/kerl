@@ -238,6 +238,8 @@ Install a named build to the specified filesystem location
 
 If path is ommited the current working directory will be used
 
+*Note*: kerl assumes the specified directory is for its sole use. If you later delete it with the kerl delete command, the whole directory will be deleted, along with anything you may have added to it!
+
 ### Example
 
     $ kerl install r14b02 /srv/otp/r14b02
