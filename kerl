@@ -493,10 +493,6 @@ do_active()
 
 case "$1" in
     build)
-        if [ $# -lt 3 ]; then
-            echo "usage: $0 $1 <release> <build_name>"
-            exit 1
-        fi
         if [ "$2" = "git" ]; then
             if [ $# -ne 5 ]; then
                 echo "usage: $0 $1 $2 <git_url> <git_version> <build_name>"
@@ -504,6 +500,10 @@ case "$1" in
             fi
             do_git_build $3 $4 $5
         else
+            if [ $# -lt 3 ]; then
+                echo "usage: $0 $1 <release> <build_name>"
+                exit 1
+            fi
             do_build $2 $3
         fi
         ;;
