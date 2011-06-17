@@ -14,7 +14,7 @@ Downloading
 
 You can download the script directly from github:
 
-    $ curl -O https://github.com/evax/kerl/raw/master/kerl
+    $ curl -O https://raw.github.com/evax/kerl/master/kerl
 
 Then ensure it is executable
 
