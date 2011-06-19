@@ -193,6 +193,7 @@ do_update_agner()
     fi
     TARGET="$KERL_BUILD_DIR/$1/release_$rel"
     cd "$KERL_BUILD_DIR/$1/agner_$rel" && \
+        PATH="$KERL_BUILD_DIR/$1/otp_src_$rel/bin:$PATH" \
         AGNER_BIN="$TARGET/bin" AGNER_EXACT_PREFIX="$TARGET/lib" \
             ./agner install agner > /dev/null 2>&1
     if [ "$?" -eq 1 ]; then
