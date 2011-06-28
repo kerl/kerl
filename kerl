@@ -193,9 +193,9 @@ do_update_agner()
     fi
     TARGET="$KERL_BUILD_DIR/$1/release_$rel"
     cd "$KERL_BUILD_DIR/$1/agner_$rel" && \
+        git pull &&
         PATH="$KERL_BUILD_DIR/$1/otp_src_$rel/bin:$PATH" \
-        AGNER_BIN="$TARGET/bin" AGNER_EXACT_PREFIX="$TARGET/lib" \
-            ./agner install agner > /dev/null 2>&1
+            make > /dev/null 2>&1
     if [ "$?" -eq 1 ]; then
         return 1
     fi
@@ -262,7 +262,6 @@ do_git_build()
         git clone https://github.com/agner/agner.git agner_git > /dev/null 2>&1 && \
             cd agner_git && \
             PATH="$KERL_BUILD_DIR/$3/otp_src_git/bin:$PATH" make > /dev/null 2>&1 && \
-            do_update_agner $3
         if [ "$?" -eq 1 ]; then
             echo "Agner install failed"; exit 1
         fi
@@ -322,7 +321,6 @@ do_build()
         git clone https://github.com/agner/agner.git agner_$1 > /dev/null 2>&1 && \
             cd agner_$1 && \
             PATH="$KERL_BUILD_DIR/$2/otp_src_$1/bin:$PATH" make > /dev/null 2>&1 && \
-            do_update_agner $2
         if [ "$?" -eq 1 ]; then
             echo "Agner install failed"; exit 1
         fi
@@ -406,8 +404,11 @@ fi
 ACTIVATE
     if agner_support $1; then
         echo "Installing agner in $absdir..."
-        cp -R "$KERL_BUILD_DIR/$1/release_$rel/lib/agner-@master" "$absdir/lib/"
-        cd "$absdir/bin" && ln -s "$absdir/lib/agner-@master/bin/agner" agner
+        cp "$KERL_BUILD_DIR/$1/agner_$rel/agner" "$absdir/bin/"
+        if [ -n "$KERL_INSTALL_AGNERIZED_REBAR" ]; then
+            echo "Installing agnerized rebar in $absdir..."
+            cp "$KERL_BUILD_DIR/$1/agner_$rel/agner" "$absdir/bin/rebar"
+        fi
         if [ -n "$KERL_AGNER_AUTOINSTALL" ]; then
             for i in $KERL_AGNER_AUTOINSTALL; do
                 echo "Autoinstalling $i"

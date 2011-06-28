@@ -85,6 +85,8 @@ Now install a build to some location (optionally you can disable agner support b
     Later on, you can leave the installation typing:
     kerl_deactivate
 
+Note that you can install an agnerized version of rebar along with agner using KERL_INSTALL_AGNERIZED_REBAR in your .kerlrc file or on the command line.
+
 Here again you can check the installation's been registered:
 
     $ kerl list installations
