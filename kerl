@@ -140,14 +140,16 @@ R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B R13B01 R13B02 R13B03 R13B04"
 agner_support()
 {
     if [ -z "$KERL_DISABLE_AGNER" ]; then
-        for v in $KERL_NO_AGNER_SUPPORT; do
-            if [ "$v" = "$1" ]; then
-                return 1
-            fi
-        done
-        return 0
+        return 1;
     fi
-    return 1
+
+    for v in $KERL_NO_AGNER_SUPPORT; do
+        if [ "$v" = "$1" ]; then
+            return 1
+        fi
+    done
+
+    return 0
 }
 
 
