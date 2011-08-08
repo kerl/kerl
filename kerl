@@ -308,7 +308,8 @@ do_build()
         cd "$KERL_BUILD_DIR/$2" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
     fi
     echo "Building Erlang/OTP $1 ($2), please wait..."
-    cd "$KERL_BUILD_DIR/$2/otp_src_$1"
+    ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
+    cd "$ERL_TOP"
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         ./otp_build setup -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
@@ -322,7 +323,7 @@ do_build()
         exit 1
     fi
     rm -f "$LOGFILE"
-    ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
+    ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
     cd "$KERL_BUILD_DIR/$2/release_$1"
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
     echo "Erlang/OTP $1 ($2) has been successfully built"
@@ -354,8 +355,9 @@ do_install()
     fi
     absdir=`cd "$2" && pwd`
     echo "Installing Erlang/OTP $rel ($1) in $absdir..."
-    cd "$KERL_BUILD_DIR/$1/otp_src_$rel"
-    ./otp_build release -a "$absdir" > /dev/null 2>&1 &&
+    ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
+    cd "$ERL_TOP"
+    ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" > /dev/null 2>&1 &&
         cd "$absdir" && ./Install $INSTALL_OPT "$absdir" > /dev/null 2>&1
     if [ $? -eq 1 ]; then
         echo "Couldn't install Erlang/OTP $rel ($1) in $absdir"
