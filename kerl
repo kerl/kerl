@@ -70,10 +70,8 @@ case "$KERL_SYSTEM" in
         SED_OPT=-E
         if [ `gcc --version | grep llvm | wc -l` = "1" ]; then
             if [ -x `which gcc-4.2` ]; then
-                echo "Adjust compiler settings for OS X: using gcc-4.2"
                 KERL_CONFIGURE_OPTIONS="CC=gcc-4.2 $KERL_CONFIGURE_OPTIONS"
             else
-                echo "Adjust compiler settings for OS X: using -O0"
                 KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
             fi
         fi
