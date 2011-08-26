@@ -175,6 +175,7 @@ You can set the following variables:
 
 - KERL_DOWNLOAD_DIR where to put downloaded files, defaults to $HOME/.kerl/archives
 - KERL_BUILD_DIR where to hold the builds, defaults to $HOME/.kerl/builds
+- KERL_DEFAULT_INSTALL_DIR where to install builds to if no path is provided, defaults to $HOME/.kerl/installs
 - KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
 - KERL_DISABLE_AGNER if non-empty will disable agner support
 - KERL_AGNER_AUTOINSTALL a list of packages to pre-install
@@ -238,7 +239,7 @@ Install a named build to the specified filesystem location
 
     kerl install <build_name> [path]
 
-If path is ommited the current working directory will be used
+If path is ommited KERL_DEFAULT_INSTALL_DIR/<build-name> will be used
 
 *Note*: kerl assumes the specified directory is for its sole use. If you later delete it with the kerl delete command, the whole directory will be deleted, along with anything you may have added to it!
 
