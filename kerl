@@ -542,7 +542,11 @@ case "$1" in
         if [ $# -eq 3 ]; then
             do_install $2 "$3"
         else
-            do_install $2 .
+            if [ -z "$KERL_DEFAULT_INSTALL_DIR" ]; then
+              do_install $2 .
+            else
+              do_install $2 "$KERL_DEFAULT_INSTALL_DIR/$2"
+            fi
         fi
         ;;
     update)
