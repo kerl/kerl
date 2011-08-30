@@ -180,6 +180,7 @@ You can set the following variables:
 - KERL_AGNER_AUTOINSTALL a list of packages to pre-install
 - KERL_SASL_STARTUP use SASL system startup instead of minimal
 - KERL_USE_AUTOCONF use autoconf in the builds process
+- KERL_INSTALL_MANPAGES if non-empty will install manpages
 
 Glossary
 ========
@@ -255,6 +256,10 @@ You can auto-install agner packages listing them in the KERL_AGNER_AUTOINSTALL v
 #### SASL startup
 
 You can have SASL started automatically setting KERL_SASL_STARTUP=yes in your $HOME/.kerlrc file or prepending it to the command line
+
+#### Manpages installation
+
+You can have manpages installed automatically setting KERL_INSTALL_MANPAGES=yes in your $HOME/.kerlrc file or prepending it to the command line
 
 update
 ------
