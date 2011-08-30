@@ -39,6 +39,7 @@ fi
 KERL_CONFIGURE_OPTIONS=
 KERL_DISABLE_AGNER=
 KERL_SASL_STARTUP=
+KERL_INSTALL_MANPAGES=
 
 # ensure the base dir exsists
 mkdir -p "$KERL_BASE_DIR"
@@ -285,21 +286,7 @@ do_build()
     assert_build_name_unused $2
 
     FILENAME=otp_src_$1.tar.gz
-    if [ ! -f "$KERL_DOWNLOAD_DIR/$FILENAME" ]; then
-        echo "Downloading $FILENAME to $KERL_DOWNLOAD_DIR"
-        mkdir -p "$KERL_DOWNLOAD_DIR"
-        curl $ERLANG_DOWNLOAD_URL/$FILENAME > "$KERL_DOWNLOAD_DIR/$FILENAME"
-        update_checksum_file
-    fi
-    ensure_checksum_file
-    echo "Verifying archive checksum..."
-    SUM=`$MD5SUM "$KERL_DOWNLOAD_DIR/$FILENAME" | cut -d " " -f $MD5SUM_FIELD`
-    ORIG_SUM=`grep $FILENAME "$KERL_DOWNLOAD_DIR/MD5" | cut -d " " -f 2`
-    if [ "$SUM" != "$ORIG_SUM" ]; then
-        echo "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
-        exit 1
-    fi
-    echo "Checksum verified ($SUM)"
+    download "$FILENAME"
     mkdir -p "$KERL_BUILD_DIR/$2"
     if [ ! -d "$KERL_BUILD_DIR/$2/otp_src_$1" ]; then
         echo "Extracting source code"
@@ -428,6 +415,13 @@ ACTIVATE
             done
         fi
     fi
+    if [ "$rel" != "git" -a -n "$KERL_INSTALL_MANPAGES" ]; then
+        echo "Fetching and installing manpages..."
+        FILENAME=otp_doc_man_$rel.tar.gz
+        download "$FILENAME"
+        echo "Extracting manpages"
+        cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+    fi
     echo "You can activate this installation running the following command:"
     echo ". $absdir/activate"
     echo "Later on, you can leave the installation typing:"
@@ -503,6 +497,25 @@ do_active()
         echo "No Erlang/OTP kerl installation is currently active"
         return 1
     fi
+}
+
+download()
+{
+    if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
+        echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
+        mkdir -p "$KERL_DOWNLOAD_DIR"
+        curl "$ERLANG_DOWNLOAD_URL/$1" > "$KERL_DOWNLOAD_DIR/$1"
+        update_checksum_file
+    fi
+    ensure_checksum_file
+    echo "Verifying archive checksum..."
+    SUM=`$MD5SUM "$KERL_DOWNLOAD_DIR/$1" | cut -d " " -f $MD5SUM_FIELD`
+    ORIG_SUM=`grep -F "$1" "$KERL_DOWNLOAD_DIR/MD5" | cut -d " " -f 2`
+    if [ "$SUM" != "$ORIG_SUM" ]; then
+        echo "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
+        exit 1
+    fi
+    echo "Checksum verified ($SUM)"
 }
 
 case "$1" in
