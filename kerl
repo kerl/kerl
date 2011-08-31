@@ -97,6 +97,7 @@ usage()
     echo "  delete   Delete builds and installations"
     echo "  active   Print the path of the active installation"
     echo "  status   Print available builds and installations"
+    echo "  prompt   Print a string suitable for insertion in prompt"
     exit 1
 }
 
@@ -487,11 +488,28 @@ update_usage()
     echo "usage: $0 $1 <releases|agner>"
 }
 
-do_active()
+get_active_path()
 {
     if [ -n "$_KERL_SAVED_PATH" ]; then
+        echo $PATH | cut -d ":" -f 1 | sed 's/\(.*\)..../\1/'
+    fi
+    return 0
+}
+
+get_name_from_install_path()
+{
+    if [ -f "$KERL_BASE_DIR/otp_installations" ]; then
+        grep -F "$1" "$KERL_BASE_DIR/otp_installations" | cut -d ' ' -f 1
+    fi
+    return 0
+}
+
+do_active()
+{
+    ACTIVE_PATH=`get_active_path`
+    if [ -n "$ACTIVE_PATH" ]; then
         echo "The current active installation is:"
-        echo `echo $PATH | cut -d ":" -f 1 | sed 's/\(.*\)..../\1/'`
+        echo $ACTIVE_PATH
         return 0
     else
         echo "No Erlang/OTP kerl installation is currently active"
@@ -654,6 +672,23 @@ case "$1" in
         list_print installations
         echo "----------"
         do_active
+        exit 0
+        ;;
+    prompt)
+        FMT=" (%s)"
+        if [ -n "$2" ]; then
+            FMT="$2"
+        fi
+        ACTIVE_PATH=`get_active_path`
+        if [ -n "$ACTIVE_PATH" ]; then
+            ACTIVE_NAME=`get_name_from_install_path "$ACTIVE_PATH"`
+            if [ -z "$ACTIVE_NAME" ]; then
+                VALUE="`basename "$ACTIVE_PATH"`*"
+            else
+                VALUE="$ACTIVE_NAME"
+            fi
+            printf "$FMT" "$VALUE"
+        fi
         exit 0
         ;;
     *)
