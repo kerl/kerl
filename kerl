@@ -69,13 +69,6 @@ case "$KERL_SYSTEM" in
         MD5SUM="openssl md5"
         MD5SUM_FIELD=2
         SED_OPT=-E
-        if [ `gcc --version | grep llvm | wc -l` = "1" ]; then
-            if [ -x `which gcc-4.2` ]; then
-                KERL_CONFIGURE_OPTIONS="CC=gcc-4.2 $KERL_CONFIGURE_OPTIONS"
-            else
-                KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
-            fi
-        fi
         ;;
     *)
         MD5SUM=md5sum
@@ -137,6 +130,10 @@ KERL_NO_AGNER_SUPPORT="R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7
 R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1
 R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B R13B01 R13B02 R13B03 R13B04"
 
+KERL_NO_LION_SUPPORT="R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7
+R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1
+R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B R13B01 R13B02 R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03"
+
 agner_support()
 {
     if [ -n "$KERL_DISABLE_AGNER" ]; then
@@ -152,6 +149,14 @@ agner_support()
     return 0
 }
 
+lion_support() {
+    for v in $KERL_NO_LION_SUPPORT; do
+        if [ "$v" = "$1" ]; then
+           return 1
+        fi
+    done
+    return 0
+}
 
 is_valid_release()
 {
@@ -283,6 +288,24 @@ do_git_build()
 
 do_build()
 {
+    case "$KERL_SYSTEM" in
+        Darwin)
+            if [ `gcc --version | grep llvm | wc -l` = "1" ]; then
+                if lion_support $1; then
+                    true
+                else
+                    if [ -x `which gcc-4.2` ]; then
+                        KERL_CONFIGURE_OPTIONS="CC=gcc-4.2 $KERL_CONFIGURE_OPTIONS"
+                    else
+                        KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
+                    fi
+                fi
+            fi
+        ;;
+        *)
+        ;;
+    esac
+
     assert_valid_release $1
     assert_build_name_unused $2
 
