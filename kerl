@@ -297,7 +297,7 @@ do_build()
                     if [ -x `which gcc-4.2` ]; then
                         KERL_CONFIGURE_OPTIONS="CC=gcc-4.2 $KERL_CONFIGURE_OPTIONS"
                     else
-                        KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
+                        KERL_CONFIGURE_OPTIONS="CC=llvm-gcc-4.2 CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
                     fi
                 fi
             fi
