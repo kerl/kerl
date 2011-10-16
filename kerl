@@ -294,7 +294,7 @@ do_build()
                 if lion_support $1; then
                     true
                 else
-                    if [ -x `which gcc-4.2` ]; then
+                    if [ -x "`which gcc-4.2`" ]; then
                         KERL_CONFIGURE_OPTIONS="CC=gcc-4.2 $KERL_CONFIGURE_OPTIONS"
                     else
                         KERL_CONFIGURE_OPTIONS="CC=llvm-gcc-4.2 CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
