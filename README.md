@@ -182,6 +182,7 @@ You can set the following variables:
 - KERL_SASL_STARTUP use SASL system startup instead of minimal
 - KERL_USE_AUTOCONF use autoconf in the builds process
 - KERL_INSTALL_MANPAGES if non-empty will install manpages
+- KERL_INSTALL_HTMLDOCS if non-empty will install HTML docs
 
 Glossary
 ========
@@ -261,6 +262,11 @@ You can have SASL started automatically setting KERL_SASL_STARTUP=yes in your $H
 #### Manpages installation
 
 You can have manpages installed automatically setting KERL_INSTALL_MANPAGES=yes in your $HOME/.kerlrc file or prepending it to the command line
+
+#### HTML docs installation
+
+You can have HTML docs installed automatically setting KERL_INSTALL_HTMLDOCS=yes in your $HOME/.kerlrc file or prepending it to the command line
+
 
 update
 ------

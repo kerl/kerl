@@ -446,6 +446,16 @@ ACTIVATE
         echo "Extracting manpages"
         cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
     fi
+
+    if [ "$rel" != "git" -a -n "$KERL_INSTALL_HTMLDOCS" ]; then
+        echo "Fetching and installing HTML docs..."
+        FILENAME="otp_doc_html_$rel.tar.gz"
+        download "$FILENAME"
+        echo "Extracting HTML docs"
+        (cd "$absdir" && mkdir -p html && \
+         tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+    fi
+
     echo "You can activate this installation running the following command:"
     echo ". $absdir/activate"
     echo "Later on, you can leave the installation typing:"
