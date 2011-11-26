@@ -65,7 +65,7 @@ fi
 
 KERL_SYSTEM=`uname -s`
 case "$KERL_SYSTEM" in
-    Darwin)
+    Darwin|OpenBSD)
         MD5SUM="openssl md5"
         MD5SUM_FIELD=2
         SED_OPT=-E
