@@ -36,6 +36,12 @@ fi
 if [ -n "$KERL_AGNER_AUTOINSTALL" ]; then
     _KAA="$KERL_AGNER_AUTOINSTALL"
 fi
+if [ -n "$KERL_DEPLOY_SSH_OPTIONS" ]; then
+    _KDSSH="$KERL_DEPLOY_SSH_OPTIONS"
+fi
+if [ -n "$KERL_DEPLOY_RSYNC_OPTIONS" ]; then
+    _KDRSYNC="$KERL_DEPLOY_RSYNC_OPTIONS"
+fi
 KERL_CONFIGURE_OPTIONS=
 KERL_DISABLE_AGNER=
 KERL_SASL_STARTUP=
@@ -55,6 +61,12 @@ if [ -n "$_KSS" ]; then
 fi
 if [ -n "$_KAA" ]; then
     KERL_AGNER_AUTOINSTALL="$_KAA"
+fi
+if [ -n "$_KDSSH" ]; then
+    KERL_DEPLOY_SSH_OPTIONS="$_KDSSH"
+fi
+if [ -n "$_KDRSYNC" ]; then
+    KERL_DEPLOY_RSYNC_OPTIONS="$_KDRSYNC"
 fi
 
 if [ -z "$KERL_SASL_STARTUP" ]; then
@@ -85,6 +97,7 @@ usage()
     echo "Valid commands are:"
     echo "  build    Build specified release or git repository"
     echo "  install  Install the specified release at the given location"
+    echo "  deploy   Deploy the specified installation to the given host and location"
     echo "  update   Update agner or the list of available releases from erlang.org"
     echo "  list     List releases, builds and installations"
     echo "  delete   Delete builds and installations"
@@ -199,6 +212,15 @@ is_valid_installation()
         return 0
     fi
     return 1
+}
+
+assert_valid_installation()
+{
+    if ! is_valid_installation $1; then
+        echo "$1 is not a kerl-managed Erlang/OTP installation"
+        exit 1
+    fi
+    return 0
 }
 
 do_update_agner()
@@ -462,6 +484,55 @@ ACTIVATE
     echo "kerl_deactivate"
 }
 
+do_deploy()
+{
+    if [ -z "$1" ]; then
+        echo "No host given"
+        exit 1
+    fi
+    host=$1
+
+    assert_valid_installation "$2"
+    rel=`get_name_from_install_path "$2"`
+    path=$2
+    remotepath=$path
+
+    if [ ! -z "$3" ]; then
+        remotepath=$3
+    fi
+
+    ssh $KERL_DEPLOY_SSH_OPTIONS $host true > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Couldn't ssh to $host"
+        exit 1
+    fi
+
+    echo "Cloning Erlang/OTP $rel ($path) to $host ($remotepath) ..."
+
+    rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"
+    if [ $? -ne 0 ]; then
+        echo "Couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)"
+        exit 1
+    fi
+
+    ssh $KERL_DEPLOY_SSH_OPTIONS $host "cd \"$remotepath\" && env ERL_TOP=\`pwd\` ./Install $INSTALL_OPT \`pwd\` > /dev/null 2>&1"
+    if [ $? -ne 0 ]; then
+        echo "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
+        exit 1
+    fi
+
+    ssh $KERL_DEPLOY_SSH_OPTIONS $host "cd \"$remotepath\" && sed -i -e \"s#$path#\`pwd\`#g\" activate"
+    if [ $? -ne 0 ]; then
+        echo "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
+        exit 1
+    fi
+
+    echo "On $host, you can activate this installation running the following command:"
+    echo ". $remotepath/activate"
+    echo "Later on, you can leave the installation typing:"
+    echo "kerl_deactivate"
+}
+
 list_print()
 {
     if [ -f $KERL_BASE_DIR/otp_$1 ]; then
@@ -600,6 +671,21 @@ case "$1" in
             fi
         fi
         ;;
+    deploy)
+        if [ $# -lt 2 ]; then
+            echo "usage: $0 $1 <[user@]host> [directory] [remote_directory]"
+            exit 1
+        fi
+        if [ $# -eq 4 ]; then
+            do_deploy $2 "$3" "$4"
+        else
+            if [ $# -eq 3 ]; then
+                do_deploy $2 "$3"
+            else
+                do_deploy $2 .
+            fi
+        fi
+        ;;
     update)
         if [ $# -lt 2 ]; then
             update_usage
@@ -675,15 +761,11 @@ case "$1" in
                 fi
                 ;;
             installation)
-                if is_valid_installation "$3"; then
-                    rm -Rf "$3"
-                    escaped=`echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g'`
-                    list_remove $2s "$escaped"
-                    echo "The installation in $3 has been deleted"
-                else
-                    echo "$3 is not a kerl-managed Erlang/OTP installation"
-                    exit 1
-                fi
+                assert_valid_installation "$3"
+                rm -Rf "$3"
+                escaped=`echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g'`
+                list_remove $2s "$escaped"
+                echo "The installation in $3 has been deleted"
                 ;;
             *)
                 echo "Cannot delete $2"

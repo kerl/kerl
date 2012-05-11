@@ -18,9 +18,9 @@ _kerl()
                     RELEASES=`cat "$HOME/.kerl/otp_releases"`
                 fi
                 COMPREPLY=( $( compgen -W "git $RELEASES" -- "$cur") )
-            else 
+            else
                 if [ -f "$HOME/.kerl/otp_builds" ]; then
-                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2` 
+                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
                 fi
                 COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
             fi
@@ -33,9 +33,17 @@ _kerl()
             ;;
         install)
             if [ -f "$HOME/.kerl/otp_builds" ]; then
-                BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2` 
+                BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
             fi
             COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
+            ;;
+         deploy)
+            if [ "$COMP_CWORD" -eq 3 ]; then
+                if [ -f "$HOME/.kerl/otp_installations" ]; then
+                    PATHS=`cat "$HOME/.kerl/otp_installations" | cut -d " " -f 2`
+                fi
+            fi
+            COMPREPLY=( $( compgen -W "$PATHS" -- "$cur") )
             ;;
         delete)
             COMPREPLY=( $( compgen -W "build installation $words" -- "$cur") )
@@ -46,7 +54,7 @@ _kerl()
         agner)
             if [ "$COMP_CWORD" -eq 3 ]; then
                 if [ -f "$HOME/.kerl/otp_builds" ]; then
-                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2` 
+                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
                 fi
             fi
             COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
@@ -54,7 +62,7 @@ _kerl()
         *)
             if [ "$COMP_CWORD" -eq 3 ]; then
                 if [ -f "$HOME/.kerl/otp_builds" ]; then
-                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2` 
+                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
                 fi
                 if [ -n "$BUILDS" ]; then
                     for b in $BUILDS; do

@@ -76,7 +76,7 @@ You can verify your build has been registered:
     R14B02,r14b02_hipe
 
 Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file or on the command line):
-   
+
     $ kerl install r14b02 /path/to/install/dir/
     Installing Erlang/OTP R14B02 (r14b02) in /path/to/install/dir...
     Installing agner in /path/to/install/dir...
@@ -144,12 +144,22 @@ You can get an overview of the current kerl state with:
     /path/to/install/dir
 
 You can delete builds and installations with the following commands:
-    
+
     $ kerl delete build r14b02
     The r14b02 build has been deleted
 
     $ kerl delete installation /path/to/install/dir
     The installation in /path/to/install/dir has been deleted
+
+You can easily deploy an installation to another host having ssh and rsync access with the following command:
+
+    $ kerl deploy anotherhost /path/to/install/dir
+
+    Cloning Erlang/OTP r14b02 (/path/to/install/dir) to anotherhost (/path/to/install/dir) ...
+    On anotherhost, you can activate this installation running the following command:
+    . /path/to/install/dir/activate
+    Later on, you can leave the installation typing:
+    kerl_deactivate
 
 You can update the agner version associated with a specific build (this will only affect installations made after that):
 
@@ -183,6 +193,8 @@ You can set the following variables:
 - KERL_USE_AUTOCONF use autoconf in the builds process
 - KERL_INSTALL_MANPAGES if non-empty will install manpages
 - KERL_INSTALL_HTMLDOCS if non-empty will install HTML docs
+- KERL_DEPLOY_SSH_OPTIONS if additional options are required, e.g. "-qx -o PasswordAuthentication=no"
+- KERL_DEPLOY_RSYNC_OPTIONS if additional options are required, e.g. "--delete"
 
 Glossary
 ========
@@ -241,7 +253,7 @@ Install a named build to the specified filesystem location
 
     kerl install <build_name> [path]
 
-If path is ommited the current working directory will be used. However, if KERL_DEFAULT_INSTALL_DIR is defined in ~/.kerlrc, KERL_DEFAULT_INSTALL_DIR/<build-name> will be used instead.
+If path is omitted the current working directory will be used. However, if KERL_DEFAULT_INSTALL_DIR is defined in ~/.kerlrc, KERL_DEFAULT_INSTALL_DIR/<build-name> will be used instead.
 
 *Note*: kerl assumes the specified directory is for its sole use. If you later delete it with the kerl delete command, the whole directory will be deleted, along with anything you may have added to it!
 
@@ -267,6 +279,34 @@ You can have manpages installed automatically setting KERL_INSTALL_MANPAGES=yes 
 
 You can have HTML docs installed automatically setting KERL_INSTALL_HTMLDOCS=yes in your $HOME/.kerlrc file or prepending it to the command line
 
+deploy
+------
+
+Deploy the specified installation to the given host and location
+
+### Syntax
+
+    kerl deploy <[user@]host> [directory] [remote_directory]
+
+If remote_directory is omitted the specified directory will be used.
+
+If directory and remote_directory is omitted the current working directory will be used.
+
+*NOTE*: kerl assumes the specified host is accessible via ssh and rsync.
+
+### Example
+
+    $ kerl deploy anotherhost /path/to/install/dir
+
+### Tuning
+
+#### Additional SSH options
+
+You can have additional options given to SSH by setting them in the KERL_DEPLOY_SSH_OPTIONS variable in your $HOME/.kerlrc file or on the command line, e.g. KERL_DEPLOY_SSH_OPTIONS="-qx -o PasswordAuthentication=no"
+
+#### Additional RSYNC options
+
+You can have additional options given to RSYNC by setting them in the KERL_DEPLOY_RSYNC_OPTIONS variable in your $HOME/.kerlrc file or on the command line, e.g. KERL_DEPLOY_RSYNC_OPTIONS="--delete"
 
 update
 ------
