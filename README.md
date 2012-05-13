@@ -187,6 +187,7 @@ You can set the following variables:
 - KERL_BUILD_DIR where to hold the builds, defaults to $HOME/.kerl/builds
 - KERL_DEFAULT_INSTALL_DIR if set in ~/.kerlrc, install builds to this dir if no path is provided on installs, (recommend "$KERL_BASE_DIR/installs")
 - KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
+- KERL_CONFIGURE_APPLICATIONS if non-empty, subset of applications used in the builds (and subsequent installations) process, e.g. "kernel stdlib sasl"
 - KERL_DISABLE_AGNER if non-empty will disable agner support
 - KERL_AGNER_AUTOINSTALL a list of packages to pre-install
 - KERL_SASL_STARTUP use SASL system startup instead of minimal
@@ -236,6 +237,12 @@ You can disable agner support by setting KERL_DISABLE_AGNER=yes in your $HOME/.k
 You can specify the configure options to use when building Erlang/OTP with the KERL_CONFIGURE_OPTIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
 
     $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build R14B02 r14b02_hipe
+
+#### Configure applications
+
+If non-empty, you can specify the subset of applications to use when building (and subsequent installing) Erlang/OTOP with the KERL_CONFIGURE_APPLICATIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
+
+    $ KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl"
 
 #### Enable autoconf
 

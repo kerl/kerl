@@ -30,6 +30,9 @@ KERL_BUILD_DIR="$KERL_BASE_DIR/builds"
 if [ -n "$KERL_CONFIGURE_OPTIONS" ]; then
     _KCO="$KERL_CONFIGURE_OPTIONS"
 fi
+if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
+    _KCA="$KERL_CONFIGURE_APPLICATIONS"
+fi
 if [ -n "$KERL_SASL_STARTUP" ]; then
     _KSS="$KERL_SASL_STARTUP"
 fi
@@ -43,6 +46,7 @@ if [ -n "$KERL_DEPLOY_RSYNC_OPTIONS" ]; then
     _KDRSYNC="$KERL_DEPLOY_RSYNC_OPTIONS"
 fi
 KERL_CONFIGURE_OPTIONS=
+KERL_CONFIGURE_APPLICATIONS=
 KERL_DISABLE_AGNER=
 KERL_SASL_STARTUP=
 KERL_INSTALL_MANPAGES=
@@ -55,6 +59,9 @@ if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 
 if [ -n "$_KCO" ]; then
     KERL_CONFIGURE_OPTIONS="$_KCO"
+fi
+if [ -n "$_KCA" ]; then
+    KERL_CONFIGURE_APPLICATIONS="$_KCA"
 fi
 if [ -n "$_KSS" ]; then
     KERL_SASL_STARTUP="$_KSS"
@@ -284,7 +291,23 @@ do_git_build()
     fi
     LOGFILE="$KERL_BUILD_DIR/$3/opt_build.log"
     echo "Building Erlang/OTP $3 from git, please wait..."
-    ./otp_build setup -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+    ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
+        ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+    if [ "$?" -eq 1 ]; then
+        echo "Build error, see $LOGFILE"
+        exit 1
+    fi
+    if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
+        find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
+        for i in $KERL_CONFIGURE_APPLICATIONS; do
+            rm ./lib/$i/SKIP
+            if [ "$?" -eq 1 ]; then
+                echo "Couldn't prepare '$i' application for building"
+                exit 1
+            fi
+        done
+    fi
+    ./otp_build boot -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
     if [ "$?" -eq 1 ]; then
         echo "Build error, see $LOGFILE"
         exit 1
@@ -343,11 +366,29 @@ do_build()
     cd "$ERL_TOP"
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
     if [ -n "$KERL_USE_AUTOCONF" ]; then
-        ./otp_build setup -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+        ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
+            ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
     else
-        ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
-            ./otp_build boot -a > "$LOGFILE" 2>&1
+        ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+
     fi
+    if [ "$?" -eq 1 ]; then
+        echo "Build failed, see $LOGFILE"
+        list_remove builds "$1 $2"
+        exit 1
+    fi
+    if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
+        find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
+        for i in $KERL_CONFIGURE_APPLICATIONS; do
+            rm ./lib/$i/SKIP
+            if [ "$?" -eq 1 ]; then
+                echo "Couldn't prepare '$i' application for building"
+                list_remove builds "$1 $2"
+                exit 1
+            fi
+        done
+    fi
+    ./otp_build boot -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
     if [ "$?" -eq 1 ]; then
         echo "Build failed, see $LOGFILE"
         list_remove builds "$1 $2"
