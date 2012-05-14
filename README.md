@@ -242,7 +242,7 @@ You can specify the configure options to use when building Erlang/OTP with the K
 
 If non-empty, you can specify the subset of applications to use when building (and subsequent installing) Erlang/OTOP with the KERL_CONFIGURE_APPLICATIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
 
-    $ KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl"
+    $ KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl" kerl build R15B01 r15b01_minimal
 
 #### Enable autoconf
 
