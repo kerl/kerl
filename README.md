@@ -121,7 +121,7 @@ You can use agner to install packages in your activated installation, they'll be
 
 Note that you can also define a list of packages to be autoinstalled on agner enabled installations using the KERL_AGNER_AUTOINSTALL entry in you $HOME/.kerlrc file
 
-When your done just type:
+When you're done just type:
     $ kerl_deactivate
 
 Anytime you can check which installation, if any, is currently active with:
