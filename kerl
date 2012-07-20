@@ -233,7 +233,7 @@ assert_valid_installation()
 do_update_agner()
 {
     rel=`get_release_from_name $1`
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Unknown build name $1"
         exit 1
     fi
@@ -242,7 +242,7 @@ do_update_agner()
         git pull &&
         PATH="$KERL_BUILD_DIR/$1/otp_src_$rel/bin:$PATH" \
             make > /dev/null 2>&1
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         return 1
     fi
     return 0
@@ -268,7 +268,7 @@ do_git_build()
     cd "$KERL_BUILD_DIR/$3"
     echo "Checking Erlang/OTP git repository from $1..."
     git clone $1 otp_src_git > /dev/null 2>&1
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Error retriving git repository"
         exit 1
     fi
@@ -279,12 +279,12 @@ do_git_build()
     fi
     cd otp_src_git
     git branch -a | grep "$2" > /dev/null 2>&1
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         git checkout $2 > /dev/null 2>&1
     else
         git checkout -b $2 origin/$2 > /dev/null 2>&1
     fi
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Couldn't checkout specified version"
         rm -Rf "$KERL_BUILD_DIR/$3"
         exit 1
@@ -293,7 +293,7 @@ do_git_build()
     echo "Building Erlang/OTP $3 from git, please wait..."
     ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
         ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Build error, see $LOGFILE"
         exit 1
     fi
@@ -301,14 +301,14 @@ do_git_build()
         find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
         for i in $KERL_CONFIGURE_APPLICATIONS; do
             rm ./lib/$i/SKIP
-            if [ "$?" -eq 1 ]; then
+            if [ $? -ne 0 ]; then
                 echo "Couldn't prepare '$i' application for building"
                 exit 1
             fi
         done
     fi
     ./otp_build boot -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Build error, see $LOGFILE"
         exit 1
     fi
@@ -324,7 +324,7 @@ do_git_build()
         git clone https://github.com/agner/agner.git agner_git > /dev/null 2>&1 && \
             cd agner_git && \
             PATH="$KERL_BUILD_DIR/$3/otp_src_git/bin:$PATH" make > /dev/null 2>&1 && \
-        if [ "$?" -eq 1 ]; then
+        if [ $? -ne 0 ]; then
             echo "Agner install failed"; exit 1
         fi
         echo "Agner has been successfully built"
@@ -372,7 +372,7 @@ do_build()
         ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
 
     fi
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Build failed, see $LOGFILE"
         list_remove builds "$1 $2"
         exit 1
@@ -381,7 +381,7 @@ do_build()
         find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
         for i in $KERL_CONFIGURE_APPLICATIONS; do
             rm ./lib/$i/SKIP
-            if [ "$?" -eq 1 ]; then
+            if [ $? -ne 0 ]; then
                 echo "Couldn't prepare '$i' application for building"
                 list_remove builds "$1 $2"
                 exit 1
@@ -389,7 +389,7 @@ do_build()
         done
     fi
     ./otp_build boot -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Build failed, see $LOGFILE"
         list_remove builds "$1 $2"
         exit 1
@@ -406,7 +406,7 @@ do_build()
         git clone https://github.com/agner/agner.git agner_$1 > /dev/null 2>&1 && \
             cd agner_$1 && \
             PATH="$KERL_BUILD_DIR/$2/otp_src_$1/bin:$PATH" make > /dev/null 2>&1 && \
-        if [ "$?" -eq 1 ]; then
+        if [ $? -ne 0 ]; then
             echo "Agner install failed"; exit 1
         fi
         echo "Agner has been successfully built"
@@ -416,7 +416,7 @@ do_build()
 do_install()
 {
     rel=`get_release_from_name $1`
-    if [ "$?" -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "No build named $1"
         exit 1
     fi
@@ -431,7 +431,7 @@ do_install()
     cd "$ERL_TOP"
     ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" > /dev/null 2>&1 &&
         cd "$absdir" && ./Install $INSTALL_OPT "$absdir" > /dev/null 2>&1
-    if [ $? -eq 1 ]; then
+    if [ $? -ne 0 ]; then
         echo "Couldn't install Erlang/OTP $rel ($1) in $absdir"
         exit 1
     fi
