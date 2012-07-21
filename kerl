@@ -111,6 +111,7 @@ usage()
     echo "  active   Print the path of the active installation"
     echo "  status   Print available builds and installations"
     echo "  prompt   Print a string suitable for insertion in prompt"
+    echo "  cleanup  Remove compilation artifacts (use after installation)"
     exit 1
 }
 
@@ -628,6 +629,11 @@ delete_usage()
     echo "usage: $0 delete <build|installation> <build_name or path>"
 }
 
+cleanup_usage()
+{
+    echo "usage: $0 cleanup <build_name|all>"
+}
+
 update_usage()
 {
     echo "usage: $0 $1 <releases|agner>"
@@ -847,8 +853,26 @@ case "$1" in
         fi
         exit 0
         ;;
+    cleanup)
+        if [ $# -ne 2 ]; then
+            cleanup_usage
+            exit 1
+        fi
+        case "$2" in
+            all)
+                echo "Cleaning up compilation products for ALL builds"
+                rm -rf $KERL_BUILD_DIR/*
+                rm -rf $KERL_DOWNLOAD_DIR/*
+                echo "Cleaned up all compilation products under $KERL_BUILD_DIR"
+                ;;
+            *)
+                echo "Cleaning up compilation products for $3"
+                rm -rf $KERL_BUILD_DIR/$3
+                echo "Cleaned up all compilation products under $KERL_BUILD_DIR"
+                ;;
+        esac
+        ;;
     *)
         echo "unkwnown command: $1"; usage; exit 1
         ;;
 esac
-
