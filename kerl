@@ -27,6 +27,7 @@ KERL_BASE_DIR="$HOME/.kerl"
 KERL_CONFIG="$HOME/.kerlrc"
 KERL_DOWNLOAD_DIR="$KERL_BASE_DIR/archives"
 KERL_BUILD_DIR="$KERL_BASE_DIR/builds"
+KERL_GIT_DIR="$KERL_BASE_DIR/gits"
 if [ -n "$KERL_CONFIGURE_OPTIONS" ]; then
     _KCO="$KERL_CONFIGURE_OPTIONS"
 fi
@@ -265,10 +266,32 @@ assert_build_name_unused()
 do_git_build()
 {
     assert_build_name_unused $3
+
+    GIT=`echo -n "$1" | $MD5SUM | cut -d " " -f $MD5SUM_FIELD`
+    mkdir -p "$KERL_GIT_DIR"
+    cd "$KERL_GIT_DIR"
+    echo "Checking Erlang/OTP git repository from $1..."
+    if [ ! -d "$GIT" ]; then
+        git clone $1 $GIT > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Error retriving git repository"
+            exit 1
+        fi
+    fi
+    if [ ! -x "$GIT/otp_build" ]; then
+        echo "Not a valid Erlang/OTP repository"
+        rm -Rf "$KERL_GIT_DIR/$GIT"
+        exit 1
+    fi
+    cd $GIT
+    git clean -q -dfx
+    git reset -q --hard
+    git fetch -q --tags origin
+    git checkout -q --detach origin/master || true
+
     mkdir -p "$KERL_BUILD_DIR/$3"
     cd "$KERL_BUILD_DIR/$3"
-    echo "Checking Erlang/OTP git repository from $1..."
-    git clone $1 otp_src_git > /dev/null 2>&1
+    git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "Error retriving git repository"
         exit 1
@@ -863,6 +886,7 @@ case "$1" in
                 echo "Cleaning up compilation products for ALL builds"
                 rm -rf $KERL_BUILD_DIR/*
                 rm -rf $KERL_DOWNLOAD_DIR/*
+                rm -rf $KERL_GIT_DIR/*
                 echo "Cleaned up all compilation products under $KERL_BUILD_DIR"
                 ;;
             *)
