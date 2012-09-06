@@ -469,6 +469,11 @@ kerl_deactivate()
         export PATH
         unset _KERL_SAVED_PATH
     fi
+    if [ -n "\$_KERL_SAVED_MANPATH" ]; then
+        MANPATH="\$_KERL_SAVED_MANPATH"
+        export MANPATH
+        unset _KERL_SAVED_MANPATH
+    fi
     if [ -n "\$_KERL_SAVED_AGNER_BIN" ]; then
         AGNER_BIN="\$_KERL_SAVED_AGNER_BIN"
         export AGNER_BIN
@@ -494,6 +499,8 @@ kerl_deactivate()
 kerl_deactivate nondestructive
 _KERL_SAVED_PATH="\$PATH"
 export _KERL_SAVED_PATH
+_KERL_SAVED_MANPATH="\$MANPATH"
+export _KERL_SAVED_MANPATH
 _KERL_SAVED_AGNER_BIN="\$AGNER_BIN"
 export _KERL_SAVED_AGNER_BIN
 _KERL_SAVED_AGNER_EXACT_PREFIX="\$AGNER_EXACT_PREFIX"
@@ -502,6 +509,8 @@ _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 export _KERL_SAVED_REBAR_PLT_DIR
 PATH="$absdir/bin:\$PATH"
 export PATH
+MANPATH="$absdir/man:\$MANPATH"
+export MANPATH
 AGNER_BIN="$absdir/bin"
 export AGNER_BIN
 AGNER_EXACT_PREFIX="$absdir/lib"
