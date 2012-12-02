@@ -49,15 +49,7 @@ _kerl()
             COMPREPLY=( $( compgen -W "build installation $words" -- "$cur") )
             ;;
         update)
-            COMPREPLY=( $( compgen -W "releases agner" -- "$cur") )
-            ;;
-        agner)
-            if [ "$COMP_CWORD" -eq 3 ]; then
-                if [ -f "$HOME/.kerl/otp_builds" ]; then
-                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
-                fi
-            fi
-            COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
+            COMPREPLY=( $( compgen -W "releases" -- "$cur") )
             ;;
         *)
             if [ "$COMP_CWORD" -eq 3 ]; then

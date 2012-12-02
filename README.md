@@ -5,8 +5,6 @@ Easy building and installing of [Erlang/OTP](http://www.erlang.org) instances
 
 Kerl aims to be shell agnostic and its only dependencies, excluding what's required to actually build Erlang/OTP, are curl and git.
 
-Unless explicitly disabled, [agner](http://erlagner.org) is installed automatically in the sandboxes for supported Erlang/OTP versions.
-
 All is done so that, once a specific release has been built, creating a new installation is as fast as possible.
 
 Downloading
@@ -53,8 +51,6 @@ Pick your choice and build it:
     Extracting source code
     Building Erlang/OTP R14B02 (r14b02), please wait...
     Erlang/OTP R14B02 has been successfully built
-    Fetching and building agner...
-    Agner has been successfully built
 
 Note that named builds allow you to have different builds for the same Erlang/OTP release with different configure options:
 
@@ -64,8 +60,6 @@ Note that named builds allow you to have different builds for the same Erlang/OT
     Extracting source code
     Building Erlang/OTP R14B02 (r14b02_hipe), please wait...
     Erlang/OTP R14B02 (r14b02_hipe) has been successfully built
-    Fetching and building agner...
-    Agner has been successfully built
 
 (Note that kerl uses the otp_build script internally, and './otp_build configure' disables HiPE on linux)
 
@@ -75,17 +69,14 @@ You can verify your build has been registered:
     R14B02,r14b02
     R14B02,r14b02_hipe
 
-Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file or on the command line):
+Now install a build to some location:
 
     $ kerl install r14b02 /path/to/install/dir/
     Installing Erlang/OTP R14B02 (r14b02) in /path/to/install/dir...
-    Installing agner in /path/to/install/dir...
     You can activate this installation running the following command:
     . /path/to/install/dir/activate
     Later on, you can leave the installation typing:
     kerl_deactivate
-
-Note that you can install an agnerized version of rebar along with agner using KERL_INSTALL_AGNERIZED_REBAR in your .kerlrc file or on the command line.
 
 Here again you can check the installation's been registered:
 
@@ -96,30 +87,12 @@ And at last activate it:
 
     $ . /path/to/install/dir/activate
 
-Activation will backup your $PATH, prepend it with the installation's bin/ directory and do the right thing with AGNER_* vars to constrain agner operations to the sandbox. Thus it's only valid for the current shell session, and until you activate another installation or call kerl_deactivate.
+Activation will backup your $PATH, prepend it with the installation's bin/ directory. Thus it's only valid for the current shell session, and until you activate another installation or call kerl_deactivate.
 
 You're now ready to work with your r14b02 installation:
 
     $ erl -version
     Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
-
-    $ agner version
-    0.4.16
-
-You can use agner to install packages in your activated installation, they'll be directly available:
-
-    $ agner install cowboy
-    (...)
-    Installed to:
-    /path/to/install/dir/lib/cowboy-@master
-
-    $ erl
-    (...)
-    Eshell V5.8.3  (abort with ^G)
-    1> application:start(cowboy).
-    ok
-
-Note that you can also define a list of packages to be autoinstalled on agner enabled installations using the KERL_AGNER_AUTOINSTALL entry in you $HOME/.kerlrc file
 
 When you're done just type:
     $ kerl_deactivate
@@ -161,20 +134,12 @@ You can easily deploy an installation to another host having ssh and rsync acces
     Later on, you can leave the installation typing:
     kerl_deactivate
 
-You can update the agner version associated with a specific build (this will only affect installations made after that):
-
-    $ kerl update agner r14b02
-    Updating agner for build r14b02...
-    agner has been updated successfully
-
 As an experimental feature, you can build Erlang directly from a git repository with a command of the form "kerl build git <git_url> <git_version> <build_name>" where <git_version> can be either a branch, a tag or a commit id as it will be passed to "git checkout":
 
     $ kerl build git https://github.com/erlang/otp.git dev r14b02_dev
     Checking Erlang/OTP git repositoy from https://github.com/erlang/otp.git...
     Building Erlang/OTP r14b02_dev from git, please wait...
     Erlang/OTP r14b02_dev from git has been successfully built
-    Fetching and building agner...
-    Agner has been successfully built
 
 Tuning
 ======
@@ -188,8 +153,6 @@ You can set the following variables:
 - KERL_DEFAULT_INSTALL_DIR if set in ~/.kerlrc, install builds to this dir if no path is provided on installs, (recommend "$KERL_BASE_DIR/installs")
 - KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
 - KERL_CONFIGURE_APPLICATIONS if non-empty, subset of applications used in the builds (and subsequent installations) process, e.g. "kernel stdlib sasl"
-- KERL_DISABLE_AGNER if non-empty will disable agner support
-- KERL_AGNER_AUTOINSTALL a list of packages to pre-install
 - KERL_SASL_STARTUP use SASL system startup instead of minimal
 - KERL_USE_AUTOCONF use autoconf in the builds process
 - KERL_INSTALL_MANPAGES if non-empty will install manpages
@@ -228,10 +191,6 @@ Create a named build either from an official Erlang/OTP release or from a git re
 
 ### Tuning
 
-#### Disable agner
-
-You can disable agner support by setting KERL_DISABLE_AGNER=yes in your $HOME/.kerlrc file
-
 #### Configure options
 
 You can specify the configure options to use when building Erlang/OTP with the KERL_CONFIGURE_OPTIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
@@ -269,10 +228,6 @@ If path is omitted the current working directory will be used. However, if KERL_
     $ kerl install r14b02 /srv/otp/r14b02
 
 ### Tuning
-
-#### Auto-installing packages
-
-You can auto-install agner packages listing them in the KERL_AGNER_AUTOINSTALL variable in your $HOME/.kerlrc file or on the command line, e.g. KERL_AGNER_AUTOINSTALL="erlzmq cowboy"
 
 #### SASL startup
 
@@ -318,12 +273,11 @@ You can have additional options given to RSYNC by setting them in the KERL_DEPLO
 update
 ------
 
-Update the releases list or the agner version of the specified named build
+Update the list of releases
 
 ### Syntax
 
     kerl update releases
-    kerl update agner <build_name>
 
 list
 ----
