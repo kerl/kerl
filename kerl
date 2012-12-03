@@ -37,9 +37,6 @@ fi
 if [ -n "$KERL_SASL_STARTUP" ]; then
     _KSS="$KERL_SASL_STARTUP"
 fi
-if [ -n "$KERL_AGNER_AUTOINSTALL" ]; then
-    _KAA="$KERL_AGNER_AUTOINSTALL"
-fi
 if [ -n "$KERL_DEPLOY_SSH_OPTIONS" ]; then
     _KDSSH="$KERL_DEPLOY_SSH_OPTIONS"
 fi
@@ -48,7 +45,6 @@ if [ -n "$KERL_DEPLOY_RSYNC_OPTIONS" ]; then
 fi
 KERL_CONFIGURE_OPTIONS=
 KERL_CONFIGURE_APPLICATIONS=
-KERL_DISABLE_AGNER=
 KERL_SASL_STARTUP=
 KERL_INSTALL_MANPAGES=
 
@@ -66,9 +62,6 @@ if [ -n "$_KCA" ]; then
 fi
 if [ -n "$_KSS" ]; then
     KERL_SASL_STARTUP="$_KSS"
-fi
-if [ -n "$_KAA" ]; then
-    KERL_AGNER_AUTOINSTALL="$_KAA"
 fi
 if [ -n "$_KDSSH" ]; then
     KERL_DEPLOY_SSH_OPTIONS="$_KDSSH"
@@ -413,16 +406,6 @@ kerl_deactivate()
         export MANPATH
         unset _KERL_SAVED_MANPATH
     fi
-    if [ -n "\$_KERL_SAVED_AGNER_BIN" ]; then
-        AGNER_BIN="\$_KERL_SAVED_AGNER_BIN"
-        export AGNER_BIN
-        unset _KERL_SAVED_AGNER_BIN
-    fi
-    if [ -n "\$_KERL_SAVED_AGNER_EXACT_PREFIX" ]; then
-        AGNER_EXACT_PREFIX="\$_KERL_SAVED_AGNER_EXACT_PREFIX"
-        export AGNER_EXACT_PREFIX
-        unset _KERL_SAVED_AGNER_EXACT_PREFIX
-    fi
     if [ -n "\$_KERL_SAVED_REBAR_PLT_DIR" ]; then
         REBAR_PLT_DIR="\$_KERL_SAVED_REBAR_PLT_DIR"
         export REBAR_PLT_DIR
@@ -440,20 +423,12 @@ _KERL_SAVED_PATH="\$PATH"
 export _KERL_SAVED_PATH
 _KERL_SAVED_MANPATH="\$MANPATH"
 export _KERL_SAVED_MANPATH
-_KERL_SAVED_AGNER_BIN="\$AGNER_BIN"
-export _KERL_SAVED_AGNER_BIN
-_KERL_SAVED_AGNER_EXACT_PREFIX="\$AGNER_EXACT_PREFIX"
-export _KERL_SAVED_AGNER_EXACT_PREFIX
 _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 export _KERL_SAVED_REBAR_PLT_DIR
 PATH="$absdir/bin:\$PATH"
 export PATH
 MANPATH="$absdir/man:\$MANPATH"
 export MANPATH
-AGNER_BIN="$absdir/bin"
-export AGNER_BIN
-AGNER_EXACT_PREFIX="$absdir/lib"
-export AGNER_EXACT_PREFIX
 REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
