@@ -326,7 +326,11 @@ do_build()
     mkdir -p "$KERL_BUILD_DIR/$2"
     if [ ! -d "$KERL_BUILD_DIR/$2/otp_src_$1" ]; then
         echo "Extracting source code"
-        cd "$KERL_BUILD_DIR/$2" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+        UNTARDIRNAME="$KERL_BUILD_DIR/$2/otp_src_$1-kerluntar-$$"
+        rm -rf "$UNTARDIRNAME"
+        mkdir -p "$UNTARDIRNAME"
+        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME" && mv * "$KERL_BUILD_DIR/$2/otp_src_$1")
+        rm -rf "$UNTARDIRNAME"
     fi
     echo "Building Erlang/OTP $1 ($2), please wait..."
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
