@@ -114,7 +114,7 @@ if [ $# -eq 0 ]; then usage; fi
 get_releases()
 {
     curl -s $ERLANG_DOWNLOAD_URL/ | \
-        sed $SED_OPT -e 's/^.*>otp_src_(R1[-1234567890ABCD]+)\.tar\.gz<.*$/\1/' \
+        sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\/download\/otp_src_(R1[-1234567890ABCD]+)\.tar\.gz\">.*$/\1/' \
                      -e '/^R/!d'
 }
 
@@ -326,7 +326,11 @@ do_build()
     mkdir -p "$KERL_BUILD_DIR/$2"
     if [ ! -d "$KERL_BUILD_DIR/$2/otp_src_$1" ]; then
         echo "Extracting source code"
-        cd "$KERL_BUILD_DIR/$2" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+        UNTARDIRNAME="$KERL_BUILD_DIR/$2/otp_src_$1-kerluntar-$$"
+        rm -rf "$UNTARDIRNAME"
+        mkdir -p "$UNTARDIRNAME"
+        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME" && mv * "$KERL_BUILD_DIR/$2/otp_src_$1")
+        rm -rf "$UNTARDIRNAME"
     fi
     echo "Building Erlang/OTP $1 ($2), please wait..."
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
