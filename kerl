@@ -795,6 +795,6 @@ case "$1" in
         esac
         ;;
     *)
-        echo "unkwnown command: $1"; usage; exit 1
+        echo "unknown command: $1"; usage; exit 1
         ;;
 esac
