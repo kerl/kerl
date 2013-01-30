@@ -274,7 +274,7 @@ do_git_build()
         rm -Rf "$KERL_BUILD_DIR/$3"
         exit 1
     fi
-    LOGFILE="$KERL_BUILD_DIR/$3/opt_build.log"
+    LOGFILE="$KERL_BUILD_DIR/$3/otp_build.log"
     echo "Building Erlang/OTP $3 from git, please wait..."
     ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
         ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
