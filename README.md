@@ -237,9 +237,13 @@ You can have SASL started automatically setting KERL_SASL_STARTUP=yes in your $H
 
 You can have manpages installed automatically setting KERL_INSTALL_MANPAGES=yes in your $HOME/.kerlrc file or prepending it to the command line
 
+*Note*: for git-based builds, kerl downloads and installs the newest official manpages which may or may not correspond to the contents of your local build.
+
 #### HTML docs installation
 
 You can have HTML docs installed automatically setting KERL_INSTALL_HTMLDOCS=yes in your $HOME/.kerlrc file or prepending it to the command line
+
+*Note*: for git-based builds, kerl downloads and installs the newest official HTML docs which may or may not correspond to the contents of your local build.
 
 deploy
 ------

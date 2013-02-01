@@ -187,6 +187,18 @@ get_release_from_name()
     return 1
 }
 
+get_newest_valid_release()
+{
+    check_releases
+    for rel in `cat $KERL_BASE_DIR/otp_releases | tail -1`; do
+        if [ ! -z "$rel" ]; then
+            echo "$rel"
+            return 0
+        fi
+    done
+    return 1
+}
+
 is_valid_installation()
 {
     if [ -f "$1/activate" ]; then
@@ -226,40 +238,30 @@ do_git_build()
     cd "$KERL_GIT_DIR"
     echo "Checking Erlang/OTP git repository from $1..."
     if [ ! -d "$GIT" ]; then
-        git clone $1 $GIT > /dev/null 2>&1
+        git clone -q --mirror "$1" "$GIT" > /dev/null 2>&1
         if [ $? -ne 0 ]; then
-            echo "Error retriving git repository"
+            echo "Error mirroring remote git repository"
             exit 1
         fi
     fi
-    if [ ! -x "$GIT/otp_build" ]; then
-        echo "Not a valid Erlang/OTP repository"
-        rm -Rf "$KERL_GIT_DIR/$GIT"
+    cd "$GIT"
+    git remote update --prune > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error updating remote git repository"
         exit 1
     fi
-    cd $GIT
-    git clean -q -dfx
-    git reset -q --hard
-    git fetch -q --tags origin
-    git checkout -q --detach origin/master || true
 
+    rm -Rf "$KERL_BUILD_DIR/$3"
     mkdir -p "$KERL_BUILD_DIR/$3"
     cd "$KERL_BUILD_DIR/$3"
     git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        echo "Error retriving git repository"
-        exit 1
-    fi
-    if [ ! -x otp_src_git/otp_build ]; then
-        echo "Not a valid Erlang/OTP repository"
-        rm -Rf "$KERL_BUILD_DIR/$3"
+        echo "Error cloning local git repository"
         exit 1
     fi
     cd otp_src_git
-    git branch -a | grep "$2" > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        git checkout $2 > /dev/null 2>&1
-    else
+    git checkout $2 > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
         git checkout -b $2 $2 > /dev/null 2>&1
     fi
     if [ $? -ne 0 ]; then
@@ -267,7 +269,12 @@ do_git_build()
         rm -Rf "$KERL_BUILD_DIR/$3"
         exit 1
     fi
-    LOGFILE="$KERL_BUILD_DIR/$3/opt_build.log"
+    if [ ! -x otp_build ]; then
+        echo "Not a valid Erlang/OTP repository"
+        rm -Rf "$KERL_BUILD_DIR/$3"
+        exit 1
+    fi
+    LOGFILE="$KERL_BUILD_DIR/$3/otp_build.log"
     echo "Building Erlang/OTP $3 from git, please wait..."
     ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
         ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
@@ -439,21 +446,46 @@ if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
 ACTIVATE
-    if [ "$rel" != "git" -a -n "$KERL_INSTALL_MANPAGES" ]; then
-        echo "Fetching and installing manpages..."
-        FILENAME=otp_doc_man_$rel.tar.gz
-        download "$FILENAME"
-        echo "Extracting manpages"
-        cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
-    fi
+    if [ "$rel" != "git" ]; then
+        if [ -n "$KERL_INSTALL_MANPAGES" ]; then
+            echo "Fetching and installing manpages..."
+            FILENAME=otp_doc_man_$rel.tar.gz
+            download "$FILENAME"
+            echo "Extracting manpages"
+            cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+        fi
 
-    if [ "$rel" != "git" -a -n "$KERL_INSTALL_HTMLDOCS" ]; then
-        echo "Fetching and installing HTML docs..."
-        FILENAME="otp_doc_html_$rel.tar.gz"
-        download "$FILENAME"
-        echo "Extracting HTML docs"
-        (cd "$absdir" && mkdir -p html && \
-         tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+        if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
+            echo "Fetching and installing HTML docs..."
+            FILENAME="otp_doc_html_$rel.tar.gz"
+            download "$FILENAME"
+            echo "Extracting HTML docs"
+            (cd "$absdir" && mkdir -p html && \
+                tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+        fi
+    else
+        rel=`get_newest_valid_release`
+        if [ $? -ne 0 ]; then
+            echo "No newest valid release"
+            exit 1
+        fi
+
+        if [ -n "$KERL_INSTALL_MANPAGES" ]; then
+            echo "CAUTION: Fetching and installing newest ($rel) manpages..."
+            FILENAME=otp_doc_man_$rel.tar.gz
+            download "$FILENAME"
+            echo "Extracting manpages"
+            cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+        fi
+
+        if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
+            echo "CATION: Fetching and installing newest ($rel) HTML docs..."
+            FILENAME="otp_doc_html_$rel.tar.gz"
+            download "$FILENAME"
+            echo "Extracting HTML docs"
+            (cd "$absdir" && mkdir -p html && \
+                tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+        fi
     fi
 
     echo "You can activate this installation running the following command:"
