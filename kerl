@@ -422,6 +422,11 @@ kerl_deactivate()
         export REBAR_PLT_DIR
         unset _KERL_SAVED_REBAR_PLT_DIR
     fi
+    if [ -n "\$_KERL_SAVED_PS1" ]; then
+        PS1="\$_KERL_SAVED_PS1"
+        export PS1
+        unset _KERL_SAVED_PS1
+    fi
     if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
@@ -442,6 +447,13 @@ MANPATH="$absdir/man:\$MANPATH"
 export MANPATH
 REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
+if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
+if [ -n "\$KERL_ENABLE_PROMPT" ]; then
+    _KERL_SAVED_PS1="\$PS1"
+    export _KERL_SAVED_PS1
+    PS1="($1)\$PS1"
+    export PS1
+fi
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
