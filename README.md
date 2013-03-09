@@ -159,6 +159,7 @@ You can set the following variables:
 - KERL_INSTALL_HTMLDOCS if non-empty will install HTML docs
 - KERL_DEPLOY_SSH_OPTIONS if additional options are required, e.g. "-qx -o PasswordAuthentication=no"
 - KERL_DEPLOY_RSYNC_OPTIONS if additional options are required, e.g. "--delete"
+- KERL_ENABLE_PROMPT if set, the prompt will be prefixed with the name of the active build 
 
 Glossary
 ========
