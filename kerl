@@ -96,16 +96,17 @@ usage()
     echo "usage: $0 <command> [options ...]"
     echo "\n  <command>       Command to be executed\n"
     echo "Valid commands are:"
-    echo "  build    Build specified release or git repository"
-    echo "  install  Install the specified release at the given location"
-    echo "  deploy   Deploy the specified installation to the given host and location"
-    echo "  update   Update the list of available releases from erlang.org"
-    echo "  list     List releases, builds and installations"
-    echo "  delete   Delete builds and installations"
-    echo "  active   Print the path of the active installation"
-    echo "  status   Print available builds and installations"
-    echo "  prompt   Print a string suitable for insertion in prompt"
-    echo "  cleanup  Remove compilation artifacts (use after installation)"
+    echo "  build     Build specified release or git repository"
+    echo "  install   Install the specified release at the given location"
+    echo "  deploy    Deploy the specified installation to the given host and location"
+    echo "  update    Update the list of available releases from erlang.org"
+    echo "  list      List releases, builds and installations"
+    echo "  delete    Delete builds and installations"
+    echo "  activate  Activate specified installation"
+    echo "  active    Print the path of the active installation"
+    echo "  status    Print available builds and installations"
+    echo "  prompt    Print a string suitable for insertion in prompt"
+    echo "  cleanup   Remove compilation artifacts (use after installation)"
     exit 1
 }
 
@@ -648,6 +649,17 @@ do_active()
     fi
 }
 
+do_activate()
+{
+    INSTALLATION_PATH=`grep -F "$1" "$KERL_BASE_DIR/otp_installations" | cut -d ' ' -f 2`
+    if [ -z $INSTALLATION_PATH ]; then
+        echo "Installation $1 not found, please make sure installation exists"
+    else
+        source "$INSTALLATION_PATH/activate"
+        echo "Activated $1 from $INSTALLATION_PATH"
+    fi
+}
+
 download()
 {
     if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
@@ -697,6 +709,13 @@ case "$1" in
               do_install $2 "$KERL_DEFAULT_INSTALL_DIR/$2"
             fi
         fi
+        ;;
+    activate)
+        if [ $# -lt 2 ]; then
+            echo "usage: $0 $1 <installation_name>"
+            exit 1
+        fi
+        do_activate $2
         ;;
     deploy)
         if [ $# -lt 2 ]; then
