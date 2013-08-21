@@ -102,7 +102,7 @@ usage()
     echo "  update    Update the list of available releases from erlang.org"
     echo "  list      List releases, builds and installations"
     echo "  delete    Delete builds and installations"
-    echo "  activate  Activate specified installation"
+    echo "  activate  Activate specified build"
     echo "  active    Print the path of the active installation"
     echo "  status    Print available builds and installations"
     echo "  prompt    Print a string suitable for insertion in prompt"
@@ -712,7 +712,7 @@ case "$1" in
         ;;
     activate)
         if [ $# -lt 2 ]; then
-            echo "usage: $0 $1 <installation_name>"
+            echo "usage: $0 $1 <build_name>"
             exit 1
         fi
         do_activate $2
