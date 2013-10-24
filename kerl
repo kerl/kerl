@@ -34,6 +34,9 @@ fi
 if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
     _KCA="$KERL_CONFIGURE_APPLICATIONS"
 fi
+if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
+    _KCDA="$KERL_CONFIGURE_DISABLE_APPLICATIONS"
+fi
 if [ -n "$KERL_SASL_STARTUP" ]; then
     _KSS="$KERL_SASL_STARTUP"
 fi
@@ -45,6 +48,7 @@ if [ -n "$KERL_DEPLOY_RSYNC_OPTIONS" ]; then
 fi
 KERL_CONFIGURE_OPTIONS=
 KERL_CONFIGURE_APPLICATIONS=
+KERL_CONFIGURE_DISABLE_APPLICATIONS=
 KERL_SASL_STARTUP=
 KERL_INSTALL_MANPAGES=
 
@@ -59,6 +63,9 @@ if [ -n "$_KCO" ]; then
 fi
 if [ -n "$_KCA" ]; then
     KERL_CONFIGURE_APPLICATIONS="$_KCA"
+fi
+if [ -n "$_KCDA" ]; then
+    KERL_CONFIGURE_DISABLE_APPLICATIONS="$_KCDA"
 fi
 if [ -n "$_KSS" ]; then
     KERL_SASL_STARTUP="$_KSS"
@@ -292,6 +299,15 @@ do_git_build()
             fi
         done
     fi
+    if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
+        for i in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
+            touch -f ./lib/$i/SKIP
+            if [ $? -ne 0 ]; then
+                echo "Couldn't disable '$i' application for building"
+                exit 1
+            fi
+        done
+    fi
     ./otp_build boot -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
     if [ $? -ne 0 ]; then
         echo "Build error, see $LOGFILE"
@@ -362,6 +378,15 @@ do_build()
             if [ $? -ne 0 ]; then
                 echo "Couldn't prepare '$i' application for building"
                 list_remove builds "$1 $2"
+                exit 1
+            fi
+        done
+    fi
+    if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
+        for i in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
+            touch -f ./lib/$i/SKIP
+            if [ $? -ne 0 ]; then
+                echo "Couldn't disable '$i' application for building"
                 exit 1
             fi
         done

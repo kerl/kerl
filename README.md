@@ -153,6 +153,7 @@ You can set the following variables:
 - KERL_DEFAULT_INSTALL_DIR if set in ~/.kerlrc, install builds to this dir if no path is provided on installs, (recommend "$KERL_BASE_DIR/installs")
 - KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
 - KERL_CONFIGURE_APPLICATIONS if non-empty, subset of applications used in the builds (and subsequent installations) process, e.g. "kernel stdlib sasl"
+- KERL_CONFIGURE_DISABLE_APPLICATIONS if non-empty, subset of applications disabled in the builds (and subsequent installations) process, e.g. "odbc"
 - KERL_SASL_STARTUP use SASL system startup instead of minimal
 - KERL_USE_AUTOCONF use autoconf in the builds process
 - KERL_INSTALL_MANPAGES if non-empty will install manpages
@@ -203,6 +204,12 @@ You can specify the configure options to use when building Erlang/OTP with the K
 If non-empty, you can specify the subset of applications to use when building (and subsequent installing) Erlang/OTOP with the KERL_CONFIGURE_APPLICATIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
 
     $ KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl" kerl build R15B01 r15b01_minimal
+
+#### Configure disable applications
+
+If non-empty, you can specify the subset of applications to disable when building (and subsequent installing) Erlang/OTOP with the KERL_CONFIGURE_DISABLE_APPLICATIONS variable, either in your $HOME/.kerlrc file or prepending it to the command line.
+
+    $ KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc" kerl build R16B02 r16b02_no_odbc
 
 #### Enable autoconf
 
