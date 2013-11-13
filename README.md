@@ -162,6 +162,11 @@ You can set the following variables:
 - KERL_DEPLOY_RSYNC_OPTIONS if additional options are required, e.g. "--delete"
 - KERL_ENABLE_PROMPT if set, the prompt will be prefixed with the name of the active build 
 
+Note on .kerlrc
+===============
+
+Since .kerlrc is a dot file for /bin/sh, running shell commands inside the .kerlrc will affect the shell and environment variables for the commands being executed later. For example, the shell `export` commands in .kerlrc will affect *your login shell environment* when activating curl.  Use with care.
+
 Glossary
 ========
 
@@ -217,6 +222,14 @@ You can enable the use of autoconf in the build process setting KERL_USE_AUTOCON
 
 *Note*: autoconf is always enabled for git builds
 
+#### Using shell export command in .kerlrc
+
+Configure variables which includes spaces such as those in CFLAGS cannot be passed on with KERL_CONFIGURE_OPTIONS. In such a case you can use shell `export` command to define the environment variables for Configure. Note well: this method has a side effect to change your shell execution environment after activating a kerl installation of Erlang/OTP. Here is an example of .kerlrc for building Erlang/OTP for FreeBSD with clang compiler:
+
+    # for clang
+    export CC=clang CXX=clang CFLAGS="-g -O3 -fstack-protector" LDFLAGS="-fstack-protector"
+    # compilation options
+    KERL_CONFIGURE_OPTIONS="--disable-native-libs --enable-vm-probes --with-dynamic-trace=dtrace --with-ssl=/usr/local --with-javac --enable-hipe --enable-kernel-poll --with-wx-config=/usr/local/bin/wxgtk2u-2.8-config --without-odbc --enable-threads --enable-sctp --enable-smp-support"
 
 install
 -------
