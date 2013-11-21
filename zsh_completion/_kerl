@@ -86,6 +86,7 @@ case "$words[1]" in
       _arguments \
         '1: :->blds' \
         '2::location:_path_files -W "(~/kerl)"' && return 0
+        ## TODO: This path should not be hard-coded!
         
       if [[ "$state" == blds ]]; then
         _kerl_builds
