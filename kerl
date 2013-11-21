@@ -432,15 +432,15 @@ do_install()
 # credits to virtualenv
 kerl_deactivate()
 {
-    if [ -n "\$_KERL_SAVED_PATH" ]; then
-        PATH="\$_KERL_SAVED_PATH"
+    if [ -n "\$_KERL_PATH_REMOVABLE" ]; then
+        PATH=\${PATH//\${_KERL_PATH_REMOVABLE}:/}
         export PATH
-        unset _KERL_SAVED_PATH
+        unset _KERL_PATH_REMOVABLE
     fi
-    if [ -n "\$_KERL_SAVED_MANPATH" ]; then
-        MANPATH="\$_KERL_SAVED_MANPATH"
+    if [ -n "\$_KERL_MANPATH_REMOVABLE" ]; then
+        MANPATH=\${MANPATH//\${_KERL_MANPATH_REMOVABLE}:/}
         export MANPATH
-        unset _KERL_SAVED_MANPATH
+        unset _KERL_MANPATH_REMOVABLE
     fi
     if [ -n "\$_KERL_SAVED_REBAR_PLT_DIR" ]; then
         REBAR_PLT_DIR="\$_KERL_SAVED_REBAR_PLT_DIR"
@@ -460,16 +460,15 @@ kerl_deactivate()
     fi
 }
 kerl_deactivate nondestructive
-_KERL_SAVED_PATH="\$PATH"
-export _KERL_SAVED_PATH
-_KERL_SAVED_MANPATH="\$MANPATH"
-export _KERL_SAVED_MANPATH
+
 _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 export _KERL_SAVED_REBAR_PLT_DIR
-PATH="$absdir/bin:\$PATH"
-export PATH
-MANPATH="$absdir/man:\$MANPATH"
-export MANPATH
+_KERL_PATH_REMOVABLE="$absdir/bin"
+PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
+export PATH _KERL_PATH_REMOVABLE
+_KERL_MANPATH_REMOVABLE="$absdir/man"
+MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
+export MANPATH _KERL_MANPATH_REMOVABLE
 REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
