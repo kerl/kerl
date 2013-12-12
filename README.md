@@ -22,6 +22,9 @@ and drop it in your $PATH
 
 Optionally download and install kerl's bash_completion file from https://github.com/spawngrid/kerl/raw/master/bash_completion/kerl
 
+Optionally download and install kerl's zsh-completion file from https://github.com/spawngrid/kerl/raw/master/zsh_completion/_kerl
+
+
 How it works
 ============
 
