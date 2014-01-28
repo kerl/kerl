@@ -645,8 +645,8 @@ update_usage()
 
 get_active_path()
 {
-    if [ -n "$_KERL_SAVED_PATH" ]; then
-        echo $PATH | cut -d ":" -f 1 | sed 's/\(.*\)..../\1/'
+    if [ -n "$REBAR_PLT_DIR" ]; then
+        echo $REBAR_PLT_DIR
     fi
     return 0
 }
