@@ -121,8 +121,8 @@ if [ $# -eq 0 ]; then usage; fi
 get_releases()
 {
     curl -s $ERLANG_DOWNLOAD_URL/ | \
-        sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\/download\/otp_src_(R1[-0-9A-Za-z_]+)\.tar\.gz\">.*$/\1/' \
-                     -e '/^R/!d'
+        sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\/download\/otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
+                     -e '/^R1|^[0-9]/!d'
 }
 
 update_checksum_file()
