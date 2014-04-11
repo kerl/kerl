@@ -126,7 +126,7 @@ if [ $# -eq 0 ]; then usage; fi
 
 get_releases()
 {
-    curl -s $ERLANG_DOWNLOAD_URL/ | \
+    curl -L -s $ERLANG_DOWNLOAD_URL/ | \
         sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\/download\/otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
                      -e '/^R1|^[0-9]/!d'
 }
@@ -134,7 +134,7 @@ get_releases()
 update_checksum_file()
 {
     echo "Getting the checksum file from erlang.org..."
-    curl $ERLANG_DOWNLOAD_URL/MD5 > "$KERL_DOWNLOAD_DIR/MD5" || exit 1
+    curl -L $ERLANG_DOWNLOAD_URL/MD5 > "$KERL_DOWNLOAD_DIR/MD5" || exit 1
 }
 
 ensure_checksum_file()
@@ -688,7 +688,7 @@ download()
     if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
         echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
         mkdir -p "$KERL_DOWNLOAD_DIR"
-        curl "$ERLANG_DOWNLOAD_URL/$1" > "$KERL_DOWNLOAD_DIR/$1"
+        curl -L "$ERLANG_DOWNLOAD_URL/$1" > "$KERL_DOWNLOAD_DIR/$1"
         update_checksum_file
     fi
     ensure_checksum_file
