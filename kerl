@@ -129,8 +129,8 @@ get_releases()
     curl -L -s $ERLANG_DOWNLOAD_URL/ | \
         sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\/download\/otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
                      -e '/^R1|^[0-9]/!d' | \
-        sed -e "s/^R\(.*\)/\1:R\1/" | \
-        sed -e "s/\([^:]*\)/\1:\1/" | sort | cut -d':' -f2
+        sed -e "s/\([^:]*\)/\1:\1/" | \
+        sed -e "s/^R\(.*\)/\1:R\1/" | sort | cut -d':' -f2
 }
 
 update_checksum_file()
