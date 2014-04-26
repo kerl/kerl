@@ -652,7 +652,7 @@ cleanup_usage()
 
 update_usage()
 {
-    echo "usage: $0 $1 releases"
+    echo "usage: $0 update releases"
 }
 
 get_active_path()
@@ -751,7 +751,7 @@ case "$1" in
         ;;
     update)
         if [ $# -lt 2 ]; then
-            update_usage $1
+            update_usage
             exit 1
         fi
         case "$2" in
@@ -762,7 +762,7 @@ case "$1" in
                 list_print releases spaces
                 ;;
             *)
-                update_usage $1
+                update_usage
                 exit 1
                 ;;
         esac
