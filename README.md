@@ -12,7 +12,7 @@ Downloading
 
 You can download the script directly from github:
 
-    $ curl -O https://raw.github.com/spawngrid/kerl/master/kerl
+    $ curl -O https://raw.githubusercontent.com/spawngrid/kerl/master/kerl
 
 Then ensure it is executable
 
