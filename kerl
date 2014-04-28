@@ -652,7 +652,7 @@ cleanup_usage()
 
 update_usage()
 {
-    echo "usage: $0 $1 <releases>"
+    echo "usage: $0 update releases"
 }
 
 get_active_path()
