@@ -801,12 +801,14 @@ case "$1" in
                 rel=`get_release_from_name $3`
                 if [ -d "$KERL_BUILD_DIR/$3" ]; then
                     rm -Rf "$KERL_BUILD_DIR/$3"
-                    list_remove $2s "$rel,$3"
-                    echo "The $3 build has been deleted"
                 else
-                    echo "No build named $3"
-                    exit 1
+                    if [ -z "$rel" ]; then
+                      echo "No build named $3"
+                      exit 1
+                    fi
                 fi
+                list_remove $2s "$rel,$3"
+                echo "The $3 build has been deleted"
                 ;;
             installation)
                 assert_valid_installation "$3"
