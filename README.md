@@ -94,7 +94,7 @@ Activation will backup your $PATH, prepend it with the installation's bin/ direc
 
 You're now ready to work with your r14b02 installation:
 
-    $ erl -version
+    $ kerl -version
     Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
 
 When you're done just type:
