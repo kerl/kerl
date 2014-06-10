@@ -89,11 +89,16 @@ else
     INSTALL_OPT=-sasl
 fi
 
+SED="sed"
+
 KERL_SYSTEM=`uname -s`
 case "$KERL_SYSTEM" in
     Darwin|FreeBSD|OpenBSD)
         MD5SUM="openssl md5"
         MD5SUM_FIELD=2
+        if [ "$KERL_SYSTEM" = "OpenBSD" ]; then
+	    SED="gsed"
+        fi
         SED_OPT=-E
         ;;
     *)
@@ -127,9 +132,9 @@ if [ $# -eq 0 ]; then usage; fi
 get_releases()
 {
     curl -L -s $ERLANG_DOWNLOAD_URL/ | \
-        sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\/download\/otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
+        $SED $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\/download\/otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
                      -e '/^R1|^[0-9]/!d' | \
-        sed -e "s/^R\(.*\)/\1:R\1/" | sed -e "s/^\([^\:]*\)$/\1-z:\1/" | sort | cut -d':' -f2
+        $SED -e "s/^R\(.*\)/\1:R\1/" | $SED -e "s/^\([^\:]*\)$/\1-z:\1/" | sort | cut -d':' -f2
 }
 
 update_checksum_file()
@@ -579,7 +584,7 @@ do_deploy()
         exit 1
     fi
 
-    ssh $KERL_DEPLOY_SSH_OPTIONS $host "cd \"$remotepath\" && sed -i -e \"s#$path#\`pwd\`#g\" activate"
+    ssh $KERL_DEPLOY_SSH_OPTIONS $host "cd \"$remotepath\" && $SED -i -e \"s#$path#\`pwd\`#g\" activate"
     if [ $? -ne 0 ]; then
         echo "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
@@ -623,7 +628,7 @@ list_add()
 list_remove()
 {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        sed $SED_OPT -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
+        $SED $SED_OPT -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
     fi
 }
 
@@ -813,7 +818,7 @@ case "$1" in
             installation)
                 assert_valid_installation "$3"
                 rm -Rf "$3"
-                escaped=`echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g'`
+                escaped=`echo "$3" | $SED $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g'`
                 list_remove $2s "$escaped"
                 echo "The installation in $3 has been deleted"
                 ;;
