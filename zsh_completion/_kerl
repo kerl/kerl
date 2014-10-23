@@ -16,10 +16,12 @@
 #
 # ------------------------------------------------------------------------------
 
+[ -z "$KERL_BASE_DIR" ] && KERL_BASE_DIR="$HOME/.kerl"
+
 # TODO: These are naive and stupid
 _kerl_available_releases() {
   # we use the file directly as `kerl list releases` dumps extraneous data to stdout
-  releases=(${(f)"$(_call_program releases cat ~/.kerl/otp_releases)"})
+  releases=(${(f)"$(_call_program releases cat $KERL_BASE_DIR/otp_releases)"})
 }
 
 _kerl_builds() {
