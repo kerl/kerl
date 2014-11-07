@@ -725,12 +725,22 @@ case "$1" in
             exit 1
         fi
         if [ $# -eq 3 ]; then
-            do_install $2 "$3"
+            if [ "$3" = "$HOME" ]; then
+                echo "Refusing to install in $HOME, this is a bad idea."
+                exit 1
+            else
+                do_install $2 "$3"
+            fi
         else
             if [ -z "$KERL_DEFAULT_INSTALL_DIR" ]; then
-              do_install $2 .
+                if [ "$PWD" = "$HOME" ]; then
+                    echo "Refusing to install in $HOME, this is a bad idea."
+                    exit 1
+                else
+                    do_install $2 .
+                fi
             else
-              do_install $2 "$KERL_DEFAULT_INSTALL_DIR/$2"
+                do_install $2 "$KERL_DEFAULT_INSTALL_DIR/$2"
             fi
         fi
         ;;
