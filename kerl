@@ -456,7 +456,7 @@ kerl_deactivate()
     fi
     if [ -n "\$_KERL_ACTIVE_DIR" ]; then
         unset _KERL_ACTIVE_DIR
-    fi 
+    fi
     if [ -n "\$_KERL_SAVED_PS1" ]; then
         PS1="\$_KERL_SAVED_PS1"
         export PS1
