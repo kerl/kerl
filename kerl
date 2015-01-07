@@ -332,7 +332,7 @@ do_build()
 {
     case "$KERL_SYSTEM" in
         Darwin)
-            if [ `gcc --version | grep -i llvm | wc -l` = "1" ]; then
+            if [ `gcc --version 2>/dev/null | grep -i llvm | wc -l` = "1" ]; then
                 if lion_support $1; then
                     KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
                 else
