@@ -137,7 +137,7 @@ You can easily deploy an installation to another host having ssh and rsync acces
     Later on, you can leave the installation typing:
     kerl_deactivate
 
-As an experimental feature, you can build Erlang directly from a git repository with a command of the form "kerl build git <git_url> <git_version> <build_name>" where <git_version> can be either a branch, a tag or a commit id as it will be passed to "git checkout":
+As an experimental feature, you can build Erlang directly from a git repository with a command of the form "kerl build git `<git_url>` `<git_version>` `<build_name>`" where `<git_version>` can be either a branch, a tag or a commit id as it will be passed to "git checkout":
 
     $ kerl build git https://github.com/erlang/otp.git dev r14b02_dev
     Checking Erlang/OTP git repositoy from https://github.com/erlang/otp.git...
@@ -243,7 +243,7 @@ Install a named build to the specified filesystem location
 
     kerl install <build_name> [path]
 
-If path is omitted the current working directory will be used. However, if KERL_DEFAULT_INSTALL_DIR is defined in ~/.kerlrc, KERL_DEFAULT_INSTALL_DIR/<build-name> will be used instead.
+If path is omitted the current working directory will be used. However, if KERL_DEFAULT_INSTALL_DIR is defined in ~/.kerlrc, `KERL_DEFAULT_INSTALL_DIR/<build-name>` will be used instead.
 
 *Note*: kerl assumes the specified directory is for its sole use. If you later delete it with the kerl delete command, the whole directory will be deleted, along with anything you may have added to it!
 
