@@ -21,6 +21,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+#Grep fix for mac pcre errors
+GREP_OPTIONS=''
+
 ERLANG_DOWNLOAD_URL=http://www.erlang.org/download
 
 KERL_BASE_DIR="$HOME/.kerl"
