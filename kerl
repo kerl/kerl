@@ -497,19 +497,12 @@ ACTIVATE
     if [ "$rel" != "git" ]; then
         if [ -n "$KERL_INSTALL_MANPAGES" ]; then
             echo "Fetching and installing manpages..."
-            FILENAME=otp_doc_man_$rel.tar.gz
-            download "$FILENAME"
-            echo "Extracting manpages"
-            cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+            do_install_manpages "$rel"
         fi
 
         if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
             echo "Fetching and installing HTML docs..."
-            FILENAME="otp_doc_html_$rel.tar.gz"
-            download "$FILENAME"
-            echo "Extracting HTML docs"
-            (cd "$absdir" && mkdir -p html && \
-                tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+            do_install_htmldocs "$rel"
         fi
     else
         rel=`get_newest_valid_release`
@@ -520,19 +513,12 @@ ACTIVATE
 
         if [ -n "$KERL_INSTALL_MANPAGES" ]; then
             echo "CAUTION: Fetching and installing newest ($rel) manpages..."
-            FILENAME=otp_doc_man_$rel.tar.gz
-            download "$FILENAME"
-            echo "Extracting manpages"
-            cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+            do_install_manpages "$rel"
         fi
 
         if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
-            echo "CATION: Fetching and installing newest ($rel) HTML docs..."
-            FILENAME="otp_doc_html_$rel.tar.gz"
-            download "$FILENAME"
-            echo "Extracting HTML docs"
-            (cd "$absdir" && mkdir -p html && \
-                tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+            echo "CAUTION: Fetching and installing newest ($rel) HTML docs..."
+            do_install_htmldocs "$rel"
         fi
     fi
 
@@ -540,6 +526,23 @@ ACTIVATE
     echo ". $absdir/activate"
     echo "Later on, you can leave the installation typing:"
     echo "kerl_deactivate"
+}
+
+do_install_manpages()
+{
+    FILENAME=otp_doc_man_$1.tar.gz
+    download "$FILENAME"
+    echo "Extracting manpages"
+    cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
+}
+
+do_install_htmldocs()
+{
+    FILENAME="otp_doc_html_$1.tar.gz"
+    download "$FILENAME"
+    echo "Extracting HTML docs"
+    (cd "$absdir" && mkdir -p html && \
+        tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
 }
 
 do_deploy()
