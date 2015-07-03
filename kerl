@@ -123,6 +123,7 @@ usage()
     echo "  list     List releases, builds and installations"
     echo "  delete   Delete builds and installations"
     echo "  active   Print the path of the active installation"
+    echo "  plt      Print Dialyzer PLT path for the active installation"
     echo "  status   Print available builds and installations"
     echo "  prompt   Print a string suitable for insertion in prompt"
     echo "  cleanup  Remove compilation artifacts (use after installation)"
@@ -576,6 +577,25 @@ build_plt()
     fi
 }
 
+do_plt()
+{
+    ACTIVE_PATH=`get_active_path`
+    if [ -n "$ACTIVE_PATH" ]; then
+        plt=$ACTIVE_PATH/dialyzer/plt
+        if [ -f "$plt" ]; then
+            echo "Dialyzer PLT for the active installation is:"
+            echo $plt
+            return 0
+        else
+            echo "There's no Dialyzer PLT for the active installation"
+            return 1
+        fi
+    else
+        echo "No Erlang/OTP kerl installation is currently active"
+        return 2
+    fi
+}
+
 do_deploy()
 {
     if [ -z "$1" ]; then
@@ -873,6 +893,11 @@ case "$1" in
             exit 1;
         fi
         ;;
+    plt)
+        if ! do_plt; then
+            exit 1;
+        fi
+        ;;
     status)
         echo "Available builds:"
         list_print builds
@@ -880,7 +905,9 @@ case "$1" in
         echo "Available installations:"
         list_print installations
         echo "----------"
-        do_active
+        if do_active; then
+            do_plt
+        fi
         exit 0
         ;;
     prompt)
