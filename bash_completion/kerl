@@ -1,3 +1,4 @@
+#!/bin/bash
 # bash_completion for kerl
 
 _kerl()
@@ -14,33 +15,33 @@ _kerl()
             ;;
         build)
             if [ "$COMP_CWORD" -eq 2 ]; then
-                if [ -f "$HOME/.kerl/otp_releases" ]; then
-                    RELEASES=`cat "$HOME/.kerl/otp_releases"`
+                if [ -f "$HOME"/.kerl/otp_releases ]; then
+                    RELEASES=$(cat "$HOME"/.kerl/otp_releases)
                 fi
                 COMPREPLY=( $( compgen -W "git $RELEASES" -- "$cur") )
             else
-                if [ -f "$HOME/.kerl/otp_builds" ]; then
-                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
+                if [ -f "$HOME"/.kerl/otp_builds ]; then
+                    BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
                 fi
                 COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
             fi
             ;;
         installation)
-            if [ -f "$HOME/.kerl/otp_installations" ]; then
-                PATHS=`cat "$HOME/.kerl/otp_installations" | cut -d " " -f 2`
+            if [ -f "$HOME"/.kerl/otp_installations ]; then
+                PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
             fi
             COMPREPLY=( $( compgen -W "$PATHS" -- "$cur") )
             ;;
         install)
-            if [ -f "$HOME/.kerl/otp_builds" ]; then
-                BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
+            if [ -f "$HOME"/.kerl/otp_builds ]; then
+                BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
             fi
             COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
             ;;
          deploy)
             if [ "$COMP_CWORD" -eq 3 ]; then
-                if [ -f "$HOME/.kerl/otp_installations" ]; then
-                    PATHS=`cat "$HOME/.kerl/otp_installations" | cut -d " " -f 2`
+                if [ -f "$HOME"/.kerl/otp_installations ]; then
+                    PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
                 fi
             fi
             COMPREPLY=( $( compgen -W "$PATHS" -- "$cur") )
@@ -53,8 +54,8 @@ _kerl()
             ;;
         *)
             if [ "$COMP_CWORD" -eq 3 ]; then
-                if [ -f "$HOME/.kerl/otp_builds" ]; then
-                    BUILDS=`cat "$HOME/.kerl/otp_builds" | cut -d "," -f 2`
+                if [ -f "$HOME"/.kerl/otp_builds ]; then
+                    BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
                 fi
                 if [ -n "$BUILDS" ]; then
                     for b in $BUILDS; do
@@ -69,4 +70,3 @@ _kerl()
     esac
 }
 complete -F _kerl kerl
-
