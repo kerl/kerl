@@ -332,6 +332,16 @@ do_build()
 {
     case "$KERL_SYSTEM" in
         Darwin)
+            # Apple removed OpenSSL from El Capitan, but its still in this
+            # funky location, so set ssl headers to look here
+            RELVERSION=`uname -r`
+            case "$RELVERSION" in
+                15*)
+                    KERL_CONFIGURE_OPTIONS="--with-ssl=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr $KERL_CONFIGURE_OPTIONS"
+                ;;
+                *)
+                ;;
+            esac
             if [ `gcc --version 2>/dev/null | grep -i llvm | wc -l` = "1" ]; then
                 if lion_support $1; then
                     KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
