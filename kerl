@@ -348,7 +348,17 @@ do_build()
             RELVERSION=`uname -r`
             case "$RELVERSION" in
                 15*)
-                    KERL_CONFIGURE_OPTIONS="--with-ssl=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr $KERL_CONFIGURE_OPTIONS"
+                    echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1
+                    # Reminder to self: 0 from grep means the string was detected
+                    if [ $? -ne 0 ]; then
+                        if [ ! -d /usr/include/openssl -o ! -d /usr/local/include/openssl ]; then
+                            if [ -d /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr ]; then
+                                KERL_CONFIGURE_OPTIONS="--with-ssl=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr $KERL_CONFIGURE_OPTIONS"
+                            else
+                                echo "WARNING: No OpenSSL library was found in the usual places. Your Erlang will be built without crypto support!"
+                            fi
+                        fi
+                    fi
                 ;;
                 *)
                 ;;
