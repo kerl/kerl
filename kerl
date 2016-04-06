@@ -346,6 +346,10 @@ do_build()
                     fi
                 fi
             fi
+            ISA64=`(sysctl -n hw.optional.x86_64) 2>/dev/null`
+            if [ "$ISA64" = "1" ]; then
+                KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --enable-darwin-64bit"
+            fi
         ;;
         *)
         ;;
