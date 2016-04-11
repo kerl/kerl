@@ -66,7 +66,7 @@ KERL_BUILD_PLT=
 mkdir -p "$KERL_BASE_DIR" || exit 1
 
 # source the config file if available
-if [ -f "$KERL_CONFIG" ]; then source "$KERL_CONFIG"; fi
+if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 
 if [ -n "$_KCO" ]; then
     KERL_CONFIGURE_OPTIONS="$_KCO"
