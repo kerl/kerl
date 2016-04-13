@@ -339,12 +339,46 @@ do_git_build()
     list_add builds "git,$3"
 }
 
+get_otp_version()
+{
+    echo $1 | sed $SED_OPT -e 's/R?([0-9]{1,2})[.AB]?[0-9]*/\1/'
+}
+
 do_build()
 {
     case "$KERL_SYSTEM" in
         Darwin)
-            if [ "$(gcc --version 2>/dev/null | grep -i -c llvm)" = "1" ]; then
-                if lion_support "$1"; then
+            # Apple removed OpenSSL from El Capitan, but its still in this
+            # funky location, so set ssl headers to look here
+            OSVERSION=`uname -r`
+            RELVERSION=`get_otp_version "$1"`
+            case "$OSVERSION" in
+                15*)
+                    echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1
+                    # Reminder to self: 0 from grep means the string was detected
+                    if [ $? -ne 0 ]; then
+                        if [ ! -d /usr/include/openssl -o ! -d /usr/local/include/openssl ]; then
+                            xc_ssl='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr'
+                            if [ -d "$xc_ssl/include/openssl" ]
+                            then
+                                if [ $RELVERSION -ge 17 ]
+                                then
+                                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl --with-ssl-incl=$xc_ssl"
+                                else
+                                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$xc_ssl"
+                                fi
+                            else
+                                echo 'WARNING: No OpenSSL library was found in the usual places. Your Erlang will be built without crypto support!'
+                            fi
+                            unset xc_ssl
+                        fi
+                    fi
+                ;;
+                *)
+                ;;
+            esac
+            if [ `gcc --version 2>/dev/null | grep -i llvm | wc -l` = "1" ]; then
+                if lion_support $1; then
                     KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
                 else
                     if [ -x "$(which gcc-4.2)" ]; then
