@@ -4,7 +4,11 @@
 _kerl()
 {
     local cur prev
-    _get_comp_words_by_ref cur prev
+    if type _get_comp_words_by_ref &>/dev/null ; then
+        _get_comp_words_by_ref cur prev
+    else
+        cur=$2 prev=$3
+    fi
 
     case $prev in
         kerl)
