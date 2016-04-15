@@ -12,7 +12,7 @@ Downloading
 
 You can download the script directly from github:
 
-    $ curl -O https://raw.githubusercontent.com/yrashk/kerl/master/kerl
+    $ curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
 
 Then ensure it is executable
 
@@ -20,9 +20,9 @@ Then ensure it is executable
 
 and drop it in your $PATH
 
-Optionally download and install kerl's bash_completion file from https://github.com/yrashk/kerl/raw/master/bash_completion/kerl
+Optionally download and install kerl's bash_completion file from https://github.com/kerl/kerl/raw/master/bash_completion/kerl
 
-Optionally download and install kerl's zsh-completion file from https://github.com/yrashk/kerl/raw/master/zsh_completion/_kerl
+Optionally download and install kerl's zsh-completion file from https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl
 
 
 How it works
