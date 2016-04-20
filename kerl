@@ -367,12 +367,7 @@ do_build()
                             xc_ssl='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr'
                             if [ -d "$xc_ssl/include/openssl" ]
                             then
-                                if [ $RELVERSION -ge 17 ]
-                                then
-                                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl --with-ssl-incl=$xc_ssl"
-                                else
-                                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$xc_ssl"
-                                fi
+                                KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$xc_ssl"
                             else
                                 echo 'WARNING: No OpenSSL library was found in the usual places. Your Erlang will be built without crypto support!'
                             fi
