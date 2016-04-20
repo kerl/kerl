@@ -219,12 +219,14 @@ get_release_from_name()
 get_newest_valid_release()
 {
     check_releases
-    while read -r rel; do
-        if [ ! -z "$rel" ]; then
-            echo "$rel"
-            return 0
-        fi
-    done < "$KERL_BASE_DIR"/otp_releases | tail -1
+
+    rel=$(tail -1 "$KERL_BASE_DIR"/otp_releases)
+
+    if [ ! -z "$rel" ]; then
+        echo "$rel"
+        return 0
+    fi
+
     return 1
 }
 
@@ -365,12 +367,7 @@ do_build()
                             xc_ssl='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr'
                             if [ -d "$xc_ssl/include/openssl" ]
                             then
-                                if [ $RELVERSION -ge 17 ]
-                                then
-                                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl --with-ssl-incl=$xc_ssl"
-                                else
-                                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$xc_ssl"
-                                fi
+                                KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$xc_ssl"
                             else
                                 echo 'WARNING: No OpenSSL library was found in the usual places. Your Erlang will be built without crypto support!'
                             fi
@@ -424,7 +421,10 @@ do_build()
 
     fi
     if [ $? -ne 0 ]; then
-        echo "Build failed, see $LOGFILE"
+        echo "Build failed:"
+        tail "$LOGFILE"
+        echo
+        echo "Please see $LOGFILE for full details."
         list_remove builds "$1 $2"
         exit 1
     fi
