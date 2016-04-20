@@ -219,12 +219,14 @@ get_release_from_name()
 get_newest_valid_release()
 {
     check_releases
-    while read -r rel; do
-        if [ ! -z "$rel" ]; then
-            echo "$rel"
-            return 0
-        fi
-    done < "$KERL_BASE_DIR"/otp_releases | tail -1
+
+    rel=$(tail -1 "$KERL_BASE_DIR"/otp_releases)
+
+    if [ ! -z "$rel" ]; then
+        echo "$rel"
+        return 0
+    fi
+
     return 1
 }
 
