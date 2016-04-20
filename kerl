@@ -422,7 +422,7 @@ do_build()
     fi
     if [ $? -ne 0 ]; then
         echo "Build failed:"
-        tail $LOGFILE
+        tail "$LOGFILE"
         echo
         echo "Please see $LOGFILE for full details."
         list_remove builds "$1 $2"
