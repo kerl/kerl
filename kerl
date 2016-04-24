@@ -174,13 +174,6 @@ get_tarball_releases()
         sed -e "s/^R\(.*\)/\1:R\1/" | sed -e "s/^\([^\:]*\)$/\1-z:\1/" | sort | cut -d':' -f2
 }
 
-update_git_remote()
-{
-    cd "$KERL_GIT_BASE_SRC"
-    git checkout master || exit 1
-    git pull origin master || exit 1
-}
-
 update_checksum_file()
 {
     if [ "$KERL_BUILD_BACKEND" -eq "git" ];
@@ -436,16 +429,15 @@ do_build()
 
     assert_valid_release "$1"
     assert_build_name_unused "$2"
-
-    FILENAME=otp_src_$1.tar.gz
-    download "$FILENAME"
+    FILENAME=""
+    download $1
     mkdir -p "$KERL_BUILD_DIR/$2"
-    if [ ! -d "$KERL_BUILD_DIR/$2/otp_src_$1" ]; then
+    if [ ! -d "$KERL_BUILD_DIR/$2/$FILENAME" ]; then
         echo "Extracting source code"
-        UNTARDIRNAME="$KERL_BUILD_DIR/$2/otp_src_$1-kerluntar-$$"
+        UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
         rm -rf "$UNTARDIRNAME"
         mkdir -p "$UNTARDIRNAME"
-        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME" && mv ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
+        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME" && mv ./* "$KERL_BUILD_DIR/$2/$FILENAME")
         rm -rf "$UNTARDIRNAME"
     fi
     echo "Building Erlang/OTP $1 ($2), please wait..."
@@ -625,7 +617,7 @@ ACTIVATE
 do_install_manpages()
 {
     FILENAME=otp_doc_man_$1.tar.gz
-    download "$FILENAME"
+    tarball_download "$FILENAME"
     echo "Extracting manpages"
     cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
 }
@@ -633,7 +625,7 @@ do_install_manpages()
 do_install_htmldocs()
 {
     FILENAME="otp_doc_html_$1.tar.gz"
-    download "$FILENAME"
+    tarball_download "$FILENAME"
     echo "Extracting HTML docs"
     (cd "$absdir" && mkdir -p html && \
         tar -C "$absdir/html" -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
@@ -821,9 +813,27 @@ do_active()
 
 download()
 {
+    mkdir -p "$KERL_DOWNLOAD_DIR"
+    if [ "$KERL_BUILD_BACKEND" -eq "git" ]; then
+        FILENAME="OTP-$1"
+        github_download "$FILENAME.tar.gz"
+    else
+        FILENAME="otp_src_$1"
+        tarball_download "$FILENAME.tar.gz"
+    fi
+}
+
+github_download()
+{
     if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
         echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
-        mkdir -p "$KERL_DOWNLOAD_DIR"
+        curl -L "$GITHUB_OTP_URL/archive/$1" > "$KERL_DOWNLOAD_DIR/$1"
+    fi
+}
+
+tarball_download()
+{
+    if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
         curl -L "$ERLANG_DOWNLOAD_URL/$1" > "$KERL_DOWNLOAD_DIR/$1"
         update_checksum_file
     fi
