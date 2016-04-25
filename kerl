@@ -107,6 +107,7 @@ fi
 
 if [ -z "$KERL_BUILD_BACKEND" ]; then
     KERL_BUILD_BACKEND="git"
+    KERL_USE_AUTOCONF=1
 else
     KERL_BUILD_BACKEND="tarball"
 fi
@@ -149,7 +150,7 @@ if [ $# -eq 0 ]; then usage; fi
 
 get_releases()
 {
-    if [ "$KERL_BUILD_BACKEND" -eq "git" ]
+    if [ "$KERL_BUILD_BACKEND" == "git" ]
     then
         get_git_releases
     else
@@ -159,6 +160,7 @@ get_releases()
 
 get_git_releases()
 {
+    echo "Getting the available releases from github.com..."
     git ls-remote --tags "$OTP_GITHUB_URL" \
     | egrep -o 'OTP[_-][^^{}]+' \
     | sed $SED_OPT 's/OTP[_-]//' \
@@ -168,6 +170,7 @@ get_git_releases()
 
 get_tarball_releases()
 {
+    echo "Getting the available releases from erlang.org..."
     curl -L -s $ERLANG_DOWNLOAD_URL/ | \
         sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
                      -e '/^R1|^[0-9]/!d' | \
@@ -176,7 +179,7 @@ get_tarball_releases()
 
 update_checksum_file()
 {
-    if [ "$KERL_BUILD_BACKEND" -eq "git" ];
+    if [ "$KERL_BUILD_BACKEND" == "git" ];
     then
         return 0
     else
@@ -195,7 +198,6 @@ ensure_checksum_file()
 check_releases()
 {
     if [ ! -f "$KERL_BASE_DIR"/otp_releases ]; then
-        echo "Getting the available releases from erlang.org..."
         get_releases > "$KERL_BASE_DIR"/otp_releases
     fi
 }
@@ -437,7 +439,10 @@ do_build()
         UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
         rm -rf "$UNTARDIRNAME"
         mkdir -p "$UNTARDIRNAME"
-        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME" && mv ./* "$KERL_BUILD_DIR/$2/$FILENAME")
+        # github tarballs have a directory in the form of "otp-TAGNAME"
+        # Ericsson tarballs have the classic otp_src_RELEASE pattern
+        # Standardize on Ericsson format because that's what the rest of the script expects
+        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME.tar.gz" && mv ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
         rm -rf "$UNTARDIRNAME"
     fi
     echo "Building Erlang/OTP $1 ($2), please wait..."
@@ -814,7 +819,7 @@ do_active()
 download()
 {
     mkdir -p "$KERL_DOWNLOAD_DIR"
-    if [ "$KERL_BUILD_BACKEND" -eq "git" ]; then
+    if [ "$KERL_BUILD_BACKEND" == "git" ]; then
         FILENAME="OTP-$1"
         github_download "$FILENAME.tar.gz"
     else
@@ -827,7 +832,7 @@ github_download()
 {
     if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
         echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
-        curl -L "$GITHUB_OTP_URL/archive/$1" > "$KERL_DOWNLOAD_DIR/$1"
+        curl -L "$OTP_GITHUB_URL/archive/$1" > "$KERL_DOWNLOAD_DIR/$1"
     fi
 }
 
