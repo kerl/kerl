@@ -59,6 +59,9 @@ fi
 if [ -n "$KERL_BUILD_PLT" ]; then
     _KBPLT="$KERL_BUILD_PLT"
 fi
+if [ -n "$KERL_BUILD_DOCS" ]; then
+    _KBD="$KERL_BUILD_DOCS"
+fi
 KERL_CONFIGURE_OPTIONS=
 KERL_CONFIGURE_APPLICATIONS=
 KERL_CONFIGURE_DISABLE_APPLICATIONS=
@@ -67,6 +70,7 @@ KERL_DEPLOY_SSH_OPTIONS=
 KERL_DEPLOY_RSYNC_OPTIONS=
 KERL_INSTALL_MANPAGES=
 KERL_BUILD_PLT=
+KERL_BUILD_DOCS=
 
 # ensure the base dir exsists
 mkdir -p "$KERL_BASE_DIR" || exit 1
@@ -98,6 +102,9 @@ fi
 if [ -n "$_KBPLT" ]; then
     KERL_BUILD_PLT="$_KBPLT"
 fi
+if [ -n "$_KBD" ]; then
+    KERL_BUILD_DOCS="$_KBD"
+fi
 
 if [ -z "$KERL_SASL_STARTUP" ]; then
     INSTALL_OPT=-minimal
@@ -118,13 +125,16 @@ case "$KERL_SYSTEM" in
         MD5SUM="openssl md5"
         MD5SUM_FIELD=2
         SED_OPT=-E
+        CP_OPT=-a
         ;;
     *)
         MD5SUM=md5sum
         MD5SUM_FIELD=1
         SED_OPT=-r
+        CP_OPT=-pr
         ;;
 esac
+
 
 usage()
 {
@@ -152,25 +162,25 @@ get_releases()
 {
     if [ "$KERL_BUILD_BACKEND" == "git" ]
     then
+        echo "Getting the available releases from github.com..."
         get_git_releases
     else
+        echo "Getting the available releases from erlang.org..."
         get_tarball_releases
     fi
 }
 
 get_git_releases()
 {
-    echo "Getting the available releases from github.com..."
     git ls-remote --tags "$OTP_GITHUB_URL" \
     | egrep -o 'OTP[_-][^^{}]+' \
     | sed $SED_OPT 's/OTP[_-]//' \
-    | sort \
+    | sort -n \
     | uniq
 }
 
 get_tarball_releases()
 {
-    echo "Getting the available releases from erlang.org..."
     curl -L -s $ERLANG_DOWNLOAD_URL/ | \
         sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
                      -e '/^R1|^[0-9]/!d' | \
@@ -339,42 +349,11 @@ do_git_build()
         rm -Rf "${KERL_BUILD_DIR:?}/$3"
         exit 1
     fi
-    LOGFILE="$KERL_BUILD_DIR/$3"/otp_build.log
     echo "Building Erlang/OTP $3 from git, please wait..."
-    ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
-        ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
-    if [ $? -ne 0 ]; then
-        echo "Build error, see $LOGFILE"
-        exit 1
+    if [ -z "$KERL_BUILD_AUTOCONF" ]; then
+        KERL_USE_AUTOCONF=1
     fi
-    if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
-        find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
-        for i in $KERL_CONFIGURE_APPLICATIONS; do
-            rm ./lib/"$i"/SKIP
-            if [ $? -ne 0 ]; then
-                echo "Couldn't prepare '$i' application for building"
-                exit 1
-            fi
-        done
-    fi
-    if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
-        for i in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
-            touch -f ./lib/"$i"/SKIP
-            if [ $? -ne 0 ]; then
-                echo "Couldn't disable '$i' application for building"
-                exit 1
-            fi
-        done
-    fi
-    ./otp_build boot -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
-    if [ $? -ne 0 ]; then
-        echo "Build error, see $LOGFILE"
-        exit 1
-    fi
-    rm -f "$LOGFILE"
-    ./otp_build release -a "$KERL_BUILD_DIR/$3"/release_git > /dev/null 2>&1
-    cd "$KERL_BUILD_DIR/$3"/release_git || exit 1
-    ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$3"/release_git > /dev/null 2>&1
+    _do_build "git" "$3"
     echo "Erlang/OTP $3 from git has been successfully built"
     list_add builds "git,$3"
 }
@@ -384,7 +363,40 @@ get_otp_version()
     echo $1 | sed $SED_OPT -e 's/R?([0-9]{1,2})[.AB]?[0-9]*/\1/'
 }
 
-do_build()
+show_logfile()
+{
+    echo "$1"
+    tail "$2"
+    echo
+    echo "Please see $2 for full details."
+}
+
+do_normal_build()
+{
+    assert_valid_release "$1"
+    assert_build_name_unused "$2"
+    FILENAME=""
+    download $1
+    mkdir -p "$KERL_BUILD_DIR/$2"
+    if [ ! -d "$KERL_BUILD_DIR/$2/$FILENAME" ]; then
+        echo "Extracting source code"
+        UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
+        rm -rf "$UNTARDIRNAME"
+        mkdir -p "$UNTARDIRNAME"
+        # github tarballs have a directory in the form of "otp-TAGNAME"
+        # Ericsson tarballs have the classic otp_src_RELEASE pattern
+        # Standardize on Ericsson format because that's what the rest of the script expects
+        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME.tar.gz" && mv ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
+        rm -rf "$UNTARDIRNAME"
+    fi
+
+    echo "Building Erlang/OTP $1 ($2), please wait..."
+    _do_build "$1" "$2"
+    echo "Erlang/OTP $1 ($2) has been successfully built"
+    list_add builds "$1,$2"
+}
+
+_do_build()
 {
     case "$KERL_SYSTEM" in
         Darwin)
@@ -429,41 +441,29 @@ do_build()
         ;;
     esac
 
-    assert_valid_release "$1"
-    assert_build_name_unused "$2"
-    FILENAME=""
-    download $1
-    mkdir -p "$KERL_BUILD_DIR/$2"
-    if [ ! -d "$KERL_BUILD_DIR/$2/$FILENAME" ]; then
-        echo "Extracting source code"
-        UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
-        rm -rf "$UNTARDIRNAME"
-        mkdir -p "$UNTARDIRNAME"
-        # github tarballs have a directory in the form of "otp-TAGNAME"
-        # Ericsson tarballs have the classic otp_src_RELEASE pattern
-        # Standardize on Ericsson format because that's what the rest of the script expects
-        (cd "$UNTARDIRNAME" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME.tar.gz" && mv ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
-        rm -rf "$UNTARDIRNAME"
+    if [ -n "$KERL_BUILD_DOCS" ]; then
+        KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --prefix=$KERL_BUILD_DIR/$2/release_$1"
     fi
-    echo "Building Erlang/OTP $1 ($2), please wait..."
+
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
-            ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+            ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
     else
         ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
 
     fi
     if [ $? -ne 0 ]; then
-        echo "Build failed:"
-        tail "$LOGFILE"
-        echo
-        echo "Please see $LOGFILE for full details."
+        show_logfile "Configure failed." "$LOGFILE"
         list_remove builds "$1 $2"
         exit 1
     fi
+
+    # TODO: Check to see if we got any warnings from the configure
+    # step.
+
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
         find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
         for i in $KERL_CONFIGURE_APPLICATIONS; do
@@ -486,16 +486,29 @@ do_build()
     fi
     ./otp_build boot -a $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
     if [ $? -ne 0 ]; then
-        echo "Build failed, see $LOGFILE"
+        show_logfile "Build failed." "$LOGFILE"
         list_remove builds "$1 $2"
         exit 1
+    fi
+    if [ -n "$KERL_BUILD_DOCS" ]; then
+        echo "Building docs..."
+        make docs >> "$LOGFILE" 2>&1
+        if [ $? -ne 0 ]; then
+            show_logfile "Building docs failed." "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
+        make install-docs >> "$LOGFILE" 2>&1
+        if [ $? -ne 0 ]; then
+            show_logfile "Installing docs failed." "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
     fi
     rm -f "$LOGFILE"
     ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
     cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
-    echo "Erlang/OTP $1 ($2) has been successfully built"
-    list_add builds "$1,$2"
 }
 
 do_install()
@@ -562,7 +575,7 @@ export _KERL_SAVED_REBAR_PLT_DIR
 _KERL_PATH_REMOVABLE="$absdir/bin"
 PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
 export PATH _KERL_PATH_REMOVABLE
-_KERL_MANPATH_REMOVABLE="$absdir/man"
+_KERL_MANPATH_REMOVABLE="$absdir/lib/erlang/man:$absdir/man"
 MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 export MANPATH _KERL_MANPATH_REMOVABLE
 REBAR_PLT_DIR="$absdir"
@@ -580,34 +593,31 @@ if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
 ACTIVATE
-    if [ "$rel" != "git" ]; then
-        if [ -n "$KERL_INSTALL_MANPAGES" ]; then
-            echo "Fetching and installing manpages..."
-            do_install_manpages "$rel"
-        fi
-
-        if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
-            echo "Fetching and installing HTML docs..."
-            do_install_htmldocs "$rel"
+    if [ -n "$KERL_BUILD_DOCS" ]; then
+        DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel/lib/erlang"
+        if [ -d "$DOC_DIR" ]; then
+            echo "Installing docs..."
+            mkdir -p "$absdir/lib/erlang"
+            cp $CP_OPT "$DOC_DIR/" "$absdir/lib/erlang"
+            ln -s "$absdir/lib/erlang/man" "$absdir/man"
+            ln -s "$absdir/lib/erlang/doc" "$absdir/html"
         fi
     else
-        rel=$(get_newest_valid_release)
-        if [ $? -ne 0 ]; then
-            echo "No newest valid release"
-            exit 1
-        fi
+        if [ "$KERL_BUILD_BACKEND" == "tarball" ]; then
+            if [ "$rel" != "git" ]; then
+                if [ -n "$KERL_INSTALL_MANPAGES" ]; then
+                    echo "Fetching and installing manpages..."
+                    do_install_manpages "$rel"
+                fi
 
-        if [ -n "$KERL_INSTALL_MANPAGES" ]; then
-            echo "CAUTION: Fetching and installing newest ($rel) manpages..."
-            do_install_manpages "$rel"
-        fi
-
-        if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
-            echo "CAUTION: Fetching and installing newest ($rel) HTML docs..."
-            do_install_htmldocs "$rel"
+                if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
+                    echo "Fetching and installing HTML docs..."
+                    do_install_htmldocs "$rel"
+                fi
+            fi
         fi
     fi
-
+    
     if [ -n "$KERL_BUILD_PLT" ]; then
         echo "Building Dialyzer PLT..."
         build_plt "$absdir"
@@ -619,7 +629,7 @@ ACTIVATE
     echo "kerl_deactivate"
 }
 
-do_install_manpages()
+download_manpages()
 {
     FILENAME=otp_doc_man_$1.tar.gz
     tarball_download "$FILENAME"
@@ -627,7 +637,7 @@ do_install_manpages()
     cd "$absdir" && tar xfz "$KERL_DOWNLOAD_DIR/$FILENAME"
 }
 
-do_install_htmldocs()
+download_htmldocs()
 {
     FILENAME="otp_doc_html_$1.tar.gz"
     tarball_download "$FILENAME"
@@ -866,7 +876,7 @@ case "$1" in
                 echo "usage: $0 $1 <release> <build_name>"
                 exit 1
             fi
-            do_build "$2" "$3"
+            do_normal_build "$2" "$3"
         fi
         ;;
     install)
