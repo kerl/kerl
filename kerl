@@ -607,12 +607,12 @@ ACTIVATE
             if [ "$rel" != "git" ]; then
                 if [ -n "$KERL_INSTALL_MANPAGES" ]; then
                     echo "Fetching and installing manpages..."
-                    do_install_manpages "$rel"
+                    download_manpages "$rel"
                 fi
 
                 if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
                     echo "Fetching and installing HTML docs..."
-                    do_install_htmldocs "$rel"
+                    download_htmldocs "$rel"
                 fi
             fi
         fi
