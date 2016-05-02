@@ -113,10 +113,10 @@ else
 fi
 
 if [ -z "$KERL_BUILD_BACKEND" ]; then
+    KERL_BUILD_BACKEND="tarball"
+else
     KERL_BUILD_BACKEND="git"
     KERL_USE_AUTOCONF=1
-else
-    KERL_BUILD_BACKEND="tarball"
 fi
 
 KERL_SYSTEM=$(uname -s)
@@ -603,7 +603,7 @@ ACTIVATE
             ln -s "$absdir/lib/erlang/doc" "$absdir/html"
         fi
     else
-        if [ "$KERL_BUILD_BACKEND" == "tarball" ]; then
+        if [ "$KERL_BUILD_BACKEND" = "tarball" ]; then
             if [ "$rel" != "git" ]; then
                 if [ -n "$KERL_INSTALL_MANPAGES" ]; then
                     echo "Fetching and installing manpages..."
