@@ -160,7 +160,7 @@ if [ $# -eq 0 ]; then usage; fi
 
 get_releases()
 {
-    if [ "$KERL_BUILD_BACKEND" == "git" ]
+    if [ "$KERL_BUILD_BACKEND" = "git" ]
     then
         echo "Getting the available releases from github.com..."
         get_git_releases
@@ -189,7 +189,7 @@ get_tarball_releases()
 
 update_checksum_file()
 {
-    if [ "$KERL_BUILD_BACKEND" == "git" ];
+    if [ "$KERL_BUILD_BACKEND" = "git" ];
     then
         return 0
     else
@@ -829,7 +829,7 @@ do_active()
 download()
 {
     mkdir -p "$KERL_DOWNLOAD_DIR"
-    if [ "$KERL_BUILD_BACKEND" == "git" ]; then
+    if [ "$KERL_BUILD_BACKEND" = "git" ]; then
         FILENAME="OTP-$1"
         github_download "$FILENAME.tar.gz"
     else
