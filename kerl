@@ -519,8 +519,7 @@ do_install()
         exit 1
     fi
     mkdir -p "$2"
-    if [ ! -d "$2" ]; then
-        echo "Destination is not a directory"
+    if ! is_valid_install_path "$2"; then
         exit 1
     fi
     absdir=$(cd "$2" && pwd)
@@ -617,7 +616,7 @@ ACTIVATE
             fi
         fi
     fi
-    
+
     if [ -n "$KERL_BUILD_PLT" ]; then
         echo "Building Dialyzer PLT..."
         build_plt "$absdir"
@@ -693,6 +692,9 @@ do_deploy()
     host="$1"
 
     assert_valid_installation "$2"
+    if ! is_valid_install_path "$2"; then
+        exit 1
+    fi
     rel="$(get_name_from_install_path "$2")"
     path="$2"
     remotepath="$path"
@@ -731,6 +733,53 @@ do_deploy()
     echo ". $remotepath/activate"
     echo "Later on, you can leave the installation typing:"
     echo "kerl_deactivate"
+}
+
+is_valid_install_path()
+{
+    if [ ! -d "$1" ]; then
+        echo "ERROR: $1 is not a directory."
+        return 1
+    fi
+
+    # don't allow installs into home directory
+    if [ "$1" = "$HOME" ]; then
+        echo "ERROR: You cannot install a build into $HOME. It's a really bad idea."
+        return 1
+    fi
+
+    # don't allow installs into .erlang because
+    # it's a special configuration file location
+    # for OTP
+    if [ "$1" = "$HOME/.erlang" ]; then
+        echo "ERROR: You cannot install a build into $HOME/.erlang. (It's a special configuration file location for OTP.)"
+        return 1
+    fi
+
+    if [ "$1" = "$HOME/.kerl" ]; then
+        echo "ERROR: You cannot install a build into $HOME/.kerl."
+        return 1
+    fi
+
+    # do not allow installs into directories
+    # that are non-empty
+    count=$(ls -l "$1" | wc -l)
+    if [ $count -ne 3 ]; then
+        echo "ERROR: $1 does not appear to be an empty directory."
+        return 1
+    fi
+
+    return 0
+}
+
+maybe_remove()
+{
+    if [ "$1" = "$HOME" ]; then
+        echo "WARNING: You cannot remove an install from $HOME; it's your home directory."
+        return 0
+    fi
+
+    rm -Rf "$1"
 }
 
 list_print()
@@ -970,7 +1019,7 @@ case "$1" in
             build)
                 rel="$(get_release_from_name "$3")"
                 if [ -d "${KERL_BUILD_DIR:?}/$3" ]; then
-                    rm -Rf "${KERL_BUILD_DIR:?}/$3"
+                    maybe_remove "${KERL_BUILD_DIR:?}/$3"
                 else
                     if [ -z "$rel" ]; then
                       echo "No build named $3"
@@ -982,7 +1031,7 @@ case "$1" in
                 ;;
             installation)
                 assert_valid_installation "$3"
-                rm -Rf "$3"
+                maybe_remove "$3"
                 escaped="$(echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
                 list_remove "$2"s "$escaped"
                 echo "The installation in $3 has been deleted"
@@ -1049,7 +1098,7 @@ case "$1" in
             *)
                 echo "Cleaning up compilation products for $3"
                 rm -rf "${KERL_BUILD_DIR:?}/$3"
-                echo "Cleaned up all compilation products under $KERL_BUILD_DIR"
+                echo "Cleaned up compilation products for $3 under $KERL_BUILD_DIR"
                 ;;
         esac
         ;;
