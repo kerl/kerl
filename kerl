@@ -145,7 +145,7 @@ usage()
     echo "  build    Build specified release or git repository"
     echo "  install  Install the specified release at the given location"
     echo "  deploy   Deploy the specified installation to the given host and location"
-    echo "  update   Update the list of available releases from erlang.org"
+    echo "  update   Update the list of available releases from your source provider"
     echo "  list     List releases, builds and installations"
     echo "  delete   Delete builds and installations"
     echo "  active   Print the path of the active installation"
