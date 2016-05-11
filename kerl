@@ -830,6 +830,7 @@ is_valid_install_path()
 
     candidate=$(realpath "$1")
     canonical_home=$(realpath "$HOME")
+    canonical_base_dir=$(realpath "$KERL_BASE_DIR")
 
     # don't allow installs into home directory
     if [ "$candidate" = "$canonical_home" ]; then
@@ -837,9 +838,9 @@ is_valid_install_path()
         return 1
     fi
 
-    # don't install into .kerl either.
-    if [ "$candidate" = "$canonical_home/.kerl" ]; then
-        echo "ERROR: You cannot install a build into $HOME/.kerl."
+    # don't install into our base directory either.
+    if [ "$candidate" = "$canonical_base_dir" ]; then
+        echo "ERROR: You cannot install a build into $KERL_BASE_DIR."
         return 1
     fi
 
