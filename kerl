@@ -864,13 +864,16 @@ is_valid_install_path()
 
 maybe_remove()
 {
-    if [ "$1" = "$HOME" ]; then
+    candidate=$(realpath "$1")
+    canonical_home=$(realpath "$HOME")
+
+    if [ "$candidate" = "$canonical_home" ]; then
         echo "WARNING: You cannot remove an install from $HOME; it's your home directory."
         return 0
     fi
 
     ACTIVE_PATH="$(get_active_path)"
-    if [ "$1" = "$ACTIVE_PATH" ]; then
+    if [ "$candidate" = "$ACTIVE_PATH" ]; then
 	echo "ERROR: You cannot delete the active installation. Deactivate it first."
 	exit 1
     fi
