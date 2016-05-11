@@ -743,24 +743,102 @@ do_deploy()
     echo "kerl_deactivate"
 }
 
+
+# Quoted from https://github.com/mkropat/sh-realpath
+# LICENSE: MIT
+
+realpath() {
+    canonicalize_path "$(resolve_symlinks "$1")"
+}
+
+resolve_symlinks() {
+    _resolve_symlinks "$1"
+}
+
+_resolve_symlinks() {
+    _assert_no_path_cycles "$@" || return
+
+    local dir_context path
+    path=$(readlink -- "$1")
+    if [ $? -eq 0 ]; then
+        dir_context=$(dirname -- "$1")
+        _resolve_symlinks "$(_prepend_dir_context_if_necessary "$dir_context" "$path")" "$@"
+    else
+        printf '%s\n' "$1"
+    fi
+}
+
+_prepend_dir_context_if_necessary() {
+    if [ "$1" = . ]; then
+        printf '%s\n' "$2"
+    else
+        _prepend_path_if_relative "$1" "$2"
+    fi
+}
+
+_prepend_path_if_relative() {
+    case "$2" in
+        /* ) printf '%s\n' "$2" ;;
+         * ) printf '%s\n' "$1/$2" ;;
+    esac
+}
+
+_assert_no_path_cycles() {
+    local target path
+
+    target=$1
+    shift
+
+    for path in "$@"; do
+        if [ "$path" = "$target" ]; then
+            return 1
+        fi
+    done
+}
+
+canonicalize_path() {
+    if [ -d "$1" ]; then
+        _canonicalize_dir_path "$1"
+    else
+        _canonicalize_file_path "$1"
+    fi
+}
+
+_canonicalize_dir_path() {
+    (cd "$1" 2>/dev/null && pwd -P)
+}
+
+_canonicalize_file_path() {
+    local dir file
+    dir=$(dirname -- "$1")
+    file=$(basename -- "$1")
+    (cd "$dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$file")
+}
+
+# END QUOTE
+
 is_valid_install_path()
 {
-    # don't allow installs into home directory
-    if [ "$1" = "$HOME" ]; then
-        echo "ERROR: You cannot install a build into $HOME. It's a really bad idea."
-        return 1
-    fi
 
     # don't allow installs into .erlang because
     # it's a special configuration file location
     # for OTP
-    if [ "$1" = "$HOME/.erlang" ]; then
-        echo "ERROR: You cannot install a build into $HOME/.erlang. (It's a special configuration file location for OTP.)"
+    if [ $(basename -- "$1") = ".erlang" ]; then
+        echo "ERROR: You cannot install a build into '.erlang'. (It's a special configuration file location for OTP.)"
+        return 1
+    fi
+
+    candidate=$(realpath "$1")
+    canonical_home=$(realpath "$HOME")
+
+    # don't allow installs into home directory
+    if [ "$candidate" = "$canonical_home" ]; then
+        echo "ERROR: You cannot install a build into $HOME. It's a really bad idea."
         return 1
     fi
 
     # don't install into .kerl either.
-    if [ "$1" = "$HOME/.kerl" ]; then
+    if [ "$candidate" = "$canonical_home/.kerl" ]; then
         echo "ERROR: You cannot install a build into $HOME/.kerl."
         return 1
     fi
