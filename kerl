@@ -65,6 +65,9 @@ fi
 if [ -n "$KERL_BUILD_DOCS" ]; then
     _KBD="$KERL_BUILD_DOCS"
 fi
+if [ -n "$KERL_BUILD_BACKEND" ]; then
+    _KBB="$KERL_BUILD_BACKEND"
+fi
 OTP_GITHUB_URL=
 KERL_CONFIGURE_OPTIONS=
 KERL_CONFIGURE_APPLICATIONS=
@@ -75,6 +78,7 @@ KERL_DEPLOY_RSYNC_OPTIONS=
 KERL_INSTALL_MANPAGES=
 KERL_BUILD_PLT=
 KERL_BUILD_DOCS=
+KERL_BUILD_BACKEND=
 
 # ensure the base dir exists
 mkdir -p "$KERL_BASE_DIR" || exit 1
@@ -111,6 +115,9 @@ if [ -n "$_KBPLT" ]; then
 fi
 if [ -n "$_KBD" ]; then
     KERL_BUILD_DOCS="$_KBD"
+fi
+if [ -n "$_KBB" ]; then
+    KERL_BUILD_BACKEND="$_KBB"
 fi
 
 if [ -z "$KERL_SASL_STARTUP" ]; then
