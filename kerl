@@ -176,10 +176,8 @@ get_releases()
 {
     if [ "$KERL_BUILD_BACKEND" = "git" ]
     then
-        echo "Getting the available releases from github.com..."
         get_git_releases
     else
-        echo "Getting the available releases from erlang.org..."
         get_tarball_releases
     fi
 }
