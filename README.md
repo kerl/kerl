@@ -285,9 +285,21 @@ Installs a named build to the specified filesystem location.
 
     $ kerl install r14b02 /srv/otp/r14b02
 
-If path is omitted the current working directory will be used. However, if `KERL_DEFAULT_INSTALL_DIR` is defined in ~/.kerlrc, `KERL_DEFAULT_INSTALL_DIR/<build-name>` will be used instead.
+If path is omitted the current working directory will be used. However, if
+`KERL_DEFAULT_INSTALL_DIR` is defined in ~/.kerlrc,
+`KERL_DEFAULT_INSTALL_DIR/<build-name>` will be used instead.
 
-*Note*: kerl assumes the specified directory is for its sole use. If you later delete it with the kerl delete command, the whole directory will be deleted, along with anything you may have added to it!
+#### Install location restrictions
+
+**WARNING**: kerl assumes the given installation directory is for its sole use.
+If you later delete it with the `kerl delete` command, the whole directory will
+be deleted, along with anything you may have added to it!
+
+So please only install kerl in an empty (or non-existant) directory.  
+
+If you attempt to install kerl in `$HOME` or `.erlang` or `$KERL_BASE_DIR`,
+then kerl will give you an error and refuse to proceed. If you try to install
+kerl in a directory that exists and is not empty, kerl will give you an error.
 
 #### Tuning
 
