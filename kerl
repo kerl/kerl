@@ -72,7 +72,7 @@ KERL_INSTALL_MANPAGES=
 KERL_BUILD_PLT=
 KERL_BUILD_DOCS=
 
-# ensure the base dir exsists
+# ensure the base dir exists
 mkdir -p "$KERL_BASE_DIR" || exit 1
 
 # source the config file if available
@@ -276,8 +276,16 @@ get_newest_valid_release()
 
 is_valid_installation()
 {
-    if [ -f "$1"/activate ]; then
-        return 0
+    if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
+        while read -r l; do
+            name=$(echo "$l" | cut -d " " -f 1)
+            path=$(echo "$l" | cut -d " " -f 2)
+            if [ "$name" = "$1" -o "$path" = "$1" ]; then
+                if [ -f "$1"/activate ]; then
+                    return 0
+                fi
+            fi
+        done < "$KERL_BASE_DIR"/otp_installations
     fi
     return 1
 }
@@ -309,7 +317,7 @@ do_git_build()
     assert_build_name_unused "$3"
 
     GIT=$(echo -n "$1" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
-    mkdir -p "$KERL_GIT_DIR"
+    mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
     echo "Checking Erlang/OTP git repository from $1..."
     if [ ! -d "$GIT" ]; then
@@ -327,7 +335,7 @@ do_git_build()
     fi
 
     rm -Rf "${KERL_BUILD_DIR:?}/$3"
-    mkdir -p "$KERL_BUILD_DIR/$3"
+    mkdir -p "$KERL_BUILD_DIR/$3" || exit 1
     cd "$KERL_BUILD_DIR/$3" || exit 1
     git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git > /dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -377,12 +385,12 @@ do_normal_build()
     assert_build_name_unused "$2"
     FILENAME=""
     download $1
-    mkdir -p "$KERL_BUILD_DIR/$2"
+    mkdir -p "$KERL_BUILD_DIR/$2" || exit 1
     if [ ! -d "$KERL_BUILD_DIR/$2/$FILENAME" ]; then
         echo "Extracting source code"
         UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
         rm -rf "$UNTARDIRNAME"
-        mkdir -p "$UNTARDIRNAME"
+        mkdir -p "$UNTARDIRNAME" || exit 1
         # github tarballs have a directory in the form of "otp-TAGNAME"
         # Ericsson tarballs have the classic otp_src_RELEASE pattern
         # Standardize on Ericsson format because that's what the rest of the script expects
@@ -518,11 +526,10 @@ do_install()
         echo "No build named $1"
         exit 1
     fi
-    mkdir -p "$2"
-    if [ ! -d "$2" ]; then
-        echo "Destination is not a directory"
+    if ! is_valid_install_path "$2"; then
         exit 1
     fi
+    mkdir -p "$2" || exit 1
     absdir=$(cd "$2" && pwd)
     echo "Installing Erlang/OTP $rel ($1) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
@@ -597,7 +604,7 @@ ACTIVATE
         DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel/lib/erlang"
         if [ -d "$DOC_DIR" ]; then
             echo "Installing docs..."
-            mkdir -p "$absdir/lib/erlang"
+            mkdir -p "$absdir/lib/erlang" || exit 1
             cp $CP_OPT "$DOC_DIR/" "$absdir/lib/erlang"
             ln -s "$absdir/lib/erlang/man" "$absdir/man"
             ln -s "$absdir/lib/erlang/doc" "$absdir/html"
@@ -617,7 +624,7 @@ ACTIVATE
             fi
         fi
     fi
-    
+
     if [ -n "$KERL_BUILD_PLT" ]; then
         echo "Building Dialyzer PLT..."
         build_plt "$absdir"
@@ -649,7 +656,7 @@ download_htmldocs()
 build_plt()
 {
     dialyzerd=$1/dialyzer
-    mkdir -p $dialyzerd
+    mkdir -p $dialyzerd || exit 1
     plt=$dialyzerd/plt
     build_log=$dialyzerd/build.log
     dialyzer=$1/bin/dialyzer
@@ -693,6 +700,9 @@ do_deploy()
     host="$1"
 
     assert_valid_installation "$2"
+    if ! is_valid_install_path "$2"; then
+        exit 1
+    fi
     rel="$(get_name_from_install_path "$2")"
     path="$2"
     remotepath="$path"
@@ -731,6 +741,145 @@ do_deploy()
     echo ". $remotepath/activate"
     echo "Later on, you can leave the installation typing:"
     echo "kerl_deactivate"
+}
+
+
+# Quoted from https://github.com/mkropat/sh-realpath
+# LICENSE: MIT
+
+realpath() {
+    canonicalize_path "$(resolve_symlinks "$1")"
+}
+
+resolve_symlinks() {
+    _resolve_symlinks "$1"
+}
+
+_resolve_symlinks() {
+    _assert_no_path_cycles "$@" || return
+
+    local dir_context path
+    path=$(readlink -- "$1")
+    if [ $? -eq 0 ]; then
+        dir_context=$(dirname -- "$1")
+        _resolve_symlinks "$(_prepend_dir_context_if_necessary "$dir_context" "$path")" "$@"
+    else
+        printf '%s\n' "$1"
+    fi
+}
+
+_prepend_dir_context_if_necessary() {
+    if [ "$1" = . ]; then
+        printf '%s\n' "$2"
+    else
+        _prepend_path_if_relative "$1" "$2"
+    fi
+}
+
+_prepend_path_if_relative() {
+    case "$2" in
+        /* ) printf '%s\n' "$2" ;;
+         * ) printf '%s\n' "$1/$2" ;;
+    esac
+}
+
+_assert_no_path_cycles() {
+    local target path
+
+    target=$1
+    shift
+
+    for path in "$@"; do
+        if [ "$path" = "$target" ]; then
+            return 1
+        fi
+    done
+}
+
+canonicalize_path() {
+    if [ -d "$1" ]; then
+        _canonicalize_dir_path "$1"
+    else
+        _canonicalize_file_path "$1"
+    fi
+}
+
+_canonicalize_dir_path() {
+    (cd "$1" 2>/dev/null && pwd -P)
+}
+
+_canonicalize_file_path() {
+    local dir file
+    dir=$(dirname -- "$1")
+    file=$(basename -- "$1")
+    (cd "$dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$file")
+}
+
+# END QUOTE
+
+is_valid_install_path()
+{
+
+    # don't allow installs into .erlang because
+    # it's a special configuration file location
+    # for OTP
+    if [ $(basename -- "$1") = ".erlang" ]; then
+        echo "ERROR: You cannot install a build into '.erlang'. (It's a special configuration file location for OTP.)"
+        return 1
+    fi
+
+    candidate=$(realpath "$1")
+    canonical_home=$(realpath "$HOME")
+    canonical_base_dir=$(realpath "$KERL_BASE_DIR")
+
+    # don't allow installs into home directory
+    if [ "$candidate" = "$canonical_home" ]; then
+        echo "ERROR: You cannot install a build into $HOME. It's a really bad idea."
+        return 1
+    fi
+
+    # don't install into our base directory either.
+    if [ "$candidate" = "$canonical_base_dir" ]; then
+        echo "ERROR: You cannot install a build into $KERL_BASE_DIR."
+        return 1
+    fi
+
+    # if the install directory exists,
+    # do not allow installs into a directory
+    # that is not empty
+    if [ -e "$1" ]; then
+	if [ -d "$1" ]; then
+	    count=$(ls -la "$1" | wc -l)
+	    if [ $count -ne 3 ]; then
+		echo "ERROR: $1 does not appear to be an empty directory."
+		return 1
+	    fi
+	else
+	    echo "ERROR: $1 is not a directory."
+	    return 1
+	fi
+    fi
+
+    return 0
+}
+
+maybe_remove()
+{
+    candidate=$(realpath "$1")
+    canonical_home=$(realpath "$HOME")
+
+    if [ "$candidate" = "$canonical_home" ]; then
+        echo "WARNING: You cannot remove an install from $HOME; it's your home directory."
+        return 0
+    fi
+
+    ACTIVE_PATH="$(get_active_path)"
+    if [ "$candidate" = "$ACTIVE_PATH" ]; then
+	echo "ERROR: You cannot delete the active installation. Deactivate it first."
+	exit 1
+    fi
+
+    rm -Rf "$1"
 }
 
 list_print()
@@ -828,7 +977,7 @@ do_active()
 
 download()
 {
-    mkdir -p "$KERL_DOWNLOAD_DIR"
+    mkdir -p "$KERL_DOWNLOAD_DIR" || exit 1
     if [ "$KERL_BUILD_BACKEND" = "git" ]; then
         FILENAME="OTP-$1"
         github_download "$FILENAME.tar.gz"
@@ -885,20 +1034,10 @@ case "$1" in
             exit 1
         fi
         if [ $# -eq 3 ]; then
-            if [ "$3" = "$HOME" ]; then
-                echo "Refusing to install in $HOME, this is a bad idea."
-                exit 1
-            else
-                do_install "$2" "$3"
-            fi
+            do_install "$2" "$3"
         else
             if [ -z "$KERL_DEFAULT_INSTALL_DIR" ]; then
-                if [ "$PWD" = "$HOME" ]; then
-                    echo "Refusing to install in $HOME, this is a bad idea."
-                    exit 1
-                else
-                    do_install "$2" .
-                fi
+                do_install "$2" "$PWD"
             else
                 do_install "$2" "$KERL_DEFAULT_INSTALL_DIR/$2"
             fi
@@ -970,7 +1109,7 @@ case "$1" in
             build)
                 rel="$(get_release_from_name "$3")"
                 if [ -d "${KERL_BUILD_DIR:?}/$3" ]; then
-                    rm -Rf "${KERL_BUILD_DIR:?}/$3"
+                    maybe_remove "${KERL_BUILD_DIR:?}/$3"
                 else
                     if [ -z "$rel" ]; then
                       echo "No build named $3"
@@ -982,7 +1121,7 @@ case "$1" in
                 ;;
             installation)
                 assert_valid_installation "$3"
-                rm -Rf "$3"
+                maybe_remove "$3"
                 escaped="$(echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
                 list_remove "$2"s "$escaped"
                 echo "The installation in $3 has been deleted"
@@ -1049,7 +1188,7 @@ case "$1" in
             *)
                 echo "Cleaning up compilation products for $3"
                 rm -rf "${KERL_BUILD_DIR:?}/$3"
-                echo "Cleaned up all compilation products under $KERL_BUILD_DIR"
+                echo "Cleaned up compilation products for $3 under $KERL_BUILD_DIR"
                 ;;
         esac
         ;;
