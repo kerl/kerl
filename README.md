@@ -423,7 +423,18 @@ Prints the available builds and installations as well as the currently active in
 
 Changelog
 ---------
+
+14 May 2016 - 1.1.0
+
+  - Remove support for Mac OS X Lion. Stop setting CFLAGS for better compiler
+    optimizations. (#132)
+
+14 May 2016 - 1.0.1
+
+  - Be much more careful about installing into and removing directories. (#127)
+  - Make `OTP_GITHUB_URL` and `KERL_BUILD_BACKEND` controllable from .kerlrc (#130)
+
 2 May 2016 - 1.0
 
-  - Support builds from git tags
-  - Support documentation builds/installs from source code
+  - Support builds from git tags (#122)
+  - Support documentation builds/installs from source code (#126)
