@@ -224,19 +224,6 @@ check_releases()
     fi
 }
 
-KERL_NO_LION_SUPPORT="R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7
-R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1
-R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B R13B01 R13B02 R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03"
-
-lion_support() {
-    for v in $KERL_NO_LION_SUPPORT; do
-        if [ "$v" = "$1" ]; then
-           return 1
-        fi
-    done
-    return 0
-}
-
 is_valid_release()
 {
     check_releases
@@ -444,18 +431,6 @@ _do_build()
                 *)
                 ;;
             esac
-
-            if [ "$(gcc --version 2>/dev/null | grep -i -c llvm)" = "1" ]; then
-                if lion_support "$1"; then
-                    KERL_CONFIGURE_OPTIONS="CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
-                else
-                    if [ -x "$(which gcc-4.2)" ]; then
-                        KERL_CONFIGURE_OPTIONS="CC=gcc-4.2 $KERL_CONFIGURE_OPTIONS"
-                    else
-                        KERL_CONFIGURE_OPTIONS="CC=llvm-gcc-4.2 CFLAGS=-O0 $KERL_CONFIGURE_OPTIONS"
-                    fi
-                fi
-            fi
         ;;
         *)
         ;;
