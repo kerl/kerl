@@ -378,6 +378,73 @@ show_logfile()
     echo "Please see $2 for full details."
 }
 
+download_patch()
+{
+    TMPFILE=$(mktemp) || exit 1
+    curl -sL "$OTP_GITHUB_URL/commit/$1" > "$TMPFILE"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Couldn't download patch $OTP_GITHUB_URL/commit/$1"
+        rm "$TMPFILE"
+        exit 1
+    fi
+    echo "$TMPFILE"
+}
+
+apply_patch()
+{
+    patch -p1 < "$1" >> "$LOGFILE"
+}
+
+maybe_patch()
+{
+    # $1 = OS platform e.g., Darwin, etc
+    # $2 = OTP release
+
+    case "$1" in
+        Darwin)
+            maybe_patch_darwin "$2"
+            maybe_patch_all "$2"
+            ;;
+        SunOS)
+            maybe_patch_sunos "$2"
+            maybe_patch_all "$2"
+            ;;
+        *)
+            maybe_patch_all "$2"
+            ;;
+    esac
+}
+
+maybe_patch_darwin()
+{
+    release=$(get_otp_version "$1")
+    if [ "$release" -le 14 ]; then
+        filename=$(download_patch "687dfb57c61ef9a777f706b73b14da93aa3ea448.patch")
+        apply_patch "$filename"
+        rm "$filename"
+    fi
+}
+
+maybe_patch_sunos()
+{
+    release=$(get_otp_version "$1")
+    if [ "$release" -le 14 ]; then
+        filename=$(download_patch "8e5ef86ee21cb6491287710606a7525f45cc50fc.patch")
+        apply_patch "$filename"
+        rm "$filename"
+    fi
+}
+
+maybe_patch_all()
+{
+    release=$(get_otp_version "$1")
+    if [ "$release" -le 16 ]; then
+        filename=$(download_patch "21ca6d3a137034f19862db769a5b7f1c5528dbc4.patch")
+        apply_patch "$filename"
+        rm "$filename"
+    fi
+}
+
 do_normal_build()
 {
     assert_valid_release "$1"
@@ -443,6 +510,11 @@ _do_build()
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
+    # Don't apply patches to "custom" git builds. We have no idea if they will apply
+    # cleanly or not.
+    if [ "$1" != "git" ]; then
+        maybe_patch "$KERL_SYSTEM" "$1"
+    fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
             ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
