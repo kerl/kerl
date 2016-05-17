@@ -687,9 +687,6 @@ do_deploy()
     host="$1"
 
     assert_valid_installation "$2"
-    if ! is_valid_install_path "$2"; then
-        exit 1
-    fi
     rel="$(get_name_from_install_path "$2")"
     path="$2"
     remotepath="$path"
