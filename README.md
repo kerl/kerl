@@ -424,6 +424,11 @@ Prints the available builds and installations as well as the currently active in
 Changelog
 ---------
 
+20 May 2016 - 1.1.1
+
+  - Remove valid directory check when doing a remote deployment.
+  - Various get_otp_version() regex cleanup/fixes
+
 14 May 2016 - 1.1.0
 
   - Remove support for Mac OS X Lion. Stop setting CFLAGS for better compiler
