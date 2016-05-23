@@ -206,7 +206,7 @@ update_checksum_file()
         return 0
     else
         echo "Getting the checksum file from erlang.org..."
-        curl -L $ERLANG_DOWNLOAD_URL/MD5 > "$KERL_DOWNLOAD_DIR"/MD5 || exit 1
+        curl -L -o "$KERL_DOWNLOAD_DIR/MD5" "$ERLANG_DOWNLOAD_URL/MD5" || exit 1
     fi
 }
 
@@ -985,14 +985,14 @@ github_download()
 {
     if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
         echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
-        curl -L "$OTP_GITHUB_URL/archive/$1" > "$KERL_DOWNLOAD_DIR/$1"
+        curl -L -o "$KERL_DOWNLOAD_DIR/$1" "$OTP_GITHUB_URL/archive/$1"
     fi
 }
 
 tarball_download()
 {
     if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
-        curl -L "$ERLANG_DOWNLOAD_URL/$1" > "$KERL_DOWNLOAD_DIR/$1"
+        curl -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1"
         update_checksum_file
     fi
     ensure_checksum_file
