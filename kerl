@@ -376,6 +376,12 @@ get_javac_version()
     echo "$javaout" | cut -d' ' -f2 | cut -d'.' -f2
 }
 
+get_javac_version()
+{
+    javaout=$(javac -version 2>&1)
+    echo "$javaout" | cut -d' ' -f2 | cut -d'.' -f2
+}
+
 show_logfile()
 {
     echo "$1"
