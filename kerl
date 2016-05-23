@@ -370,6 +370,12 @@ get_otp_version()
     echo $1 | sed $SED_OPT -e 's/R?([0-9]{1,2})[.AB]?[-.0-9rc]*/\1/'
 }
 
+get_javac_version()
+{
+    javaout=$(javac -version 2>&1)
+    echo "$javaout" | cut -d' ' -f2 | cut -d'.' -f2
+}
+
 show_logfile()
 {
     echo "$1"
@@ -383,30 +389,45 @@ maybe_patch()
     # $1 = OS platform e.g., Darwin, etc
     # $2 = OTP release
 
+    release=$(get_otp_version "$2")
     case "$1" in
         Darwin)
-            maybe_patch_darwin "$2"
+            maybe_patch_darwin "$release"
             ;;
         SunOS)
-            maybe_patch_sunos "$2"
+            maybe_patch_sunos "$release"
             ;;
         *)
             ;;
     esac
+
+    maybe_patch_all "$release"
+}
+
+maybe_patch_all()
+{
+    # Are we building docs?
+    if [ "$KERL_BUILD_DOCS" ]; then
+        if [ "$1" -le 16 ]; then
+            javaver=$(get_javac_version)
+            if [ "$javaver" -ge 8 ]; then
+                apply_javadoc_linting_patch >> "$LOGFILE"
+            fi
+        fi
+    fi
 }
 
 maybe_patch_darwin()
 {
-    release=$(get_otp_version "$1")
-    if [ "$release" -le 14 ]; then
-        apply_darwin_patch >> "$LOGFILE"
+    if [ "$1" -le 14 ]; then
+        CFLAGS="-DERTS_DO_INCL_GLB_INLINE_FUNC_DEF"
+        apply_darwin_compiler_patch >> "$LOGFILE"
     fi
 }
 
 maybe_patch_sunos()
 {
-    release=$(get_otp_version "$1")
-    if [ "$release" -le 14 ]; then
+    if [ "$1" -le 14 ]; then
         apply_solaris_networking_patch >> "$LOGFILE"
     fi
 }
@@ -482,10 +503,10 @@ _do_build()
         maybe_patch "$KERL_SYSTEM" "$1"
     fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
-        ./otp_build autoconf $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1 && \
-            ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+        ./otp_build autoconf $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1 && \
+           CFLAGS="$CFLAGS" ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
     else
-        ./otp_build configure $KERL_CONFIGURE_OPTIONS > "$LOGFILE" 2>&1
+        CFLAGS="$CFLAGS" ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
 
     fi
     if [ $? -ne 0 ]; then
@@ -517,7 +538,7 @@ _do_build()
             fi
         done
     fi
-    ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+    CFLAGS="$CFLAGS" ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
     if [ $? -ne 0 ]; then
         show_logfile "Build failed." "$LOGFILE"
         list_remove builds "$1 $2"
@@ -1070,14 +1091,14 @@ apply_solaris_networking_patch()
 _END_PATCH
 }
 
-apply_darwin_patch()
+apply_darwin_compiler_patch()
 {
     patch -p0 <<_END_PATCH
 --- erts/emulator/beam/beam_bp.c.orig	2011-10-03 13:12:07.000000000 -0500
 +++ erts/emulator/beam/beam_bp.c	2013-10-04 13:42:03.000000000 -0500
 @@ -496,7 +496,8 @@
  }
-
+ 
  /* bp_hash */
 -ERTS_INLINE Uint bp_sched2ix() {
 +#ifndef ERTS_DO_INCL_GLB_INLINE_FUNC_DEF
@@ -1098,7 +1119,7 @@ apply_darwin_patch()
 @@ -144,7 +144,19 @@
  #define ErtsSmpBPUnlock(BDC)
  #endif
-
+ 
 -ERTS_INLINE Uint bp_sched2ix(void);
 +ERTS_GLB_INLINE Uint bp_sched2ix(void);
 +
@@ -1113,9 +1134,29 @@ apply_darwin_patch()
 +#endif
 +}
 +#endif
-
+ 
  #ifdef ERTS_SMP
  #define bp_sched2ix_proc(p) ((p)->scheduler_data->no - 1)
+_END_PATCH
+}
+
+# javadoc 8 includes always-enabled document linting which causes
+# documentation builds to fail on older OTP releases.
+apply_javadoc_linting_patch()
+{
+    # The _END_PATCH token is quoted below to disable parameter substitution
+    patch -p0 <<'_END_PATCH'
+--- lib/jinterface/doc/src/Makefile.orig	2016-05-23 14:34:48.000000000 -0500
++++ lib/jinterface/doc/src/Makefile	2016-05-23 14:35:48.000000000 -0500
+@@ -142,7 +142,7 @@
+ 	rm -f errs core *~
+ 
+ jdoc:$(JAVA_SRC_FILES)
+-	(cd ../../java_src;$(JAVADOC) -sourcepath . -d $(JAVADOC_DEST) \
++	(cd ../../java_src;$(JAVADOC) -Xdoclint:none -sourcepath . -d $(JAVADOC_DEST) \
+ 		-windowtitle $(JAVADOC_TITLE) $(JAVADOC_PKGS))
+ 
+ man: 
 _END_PATCH
 }
 
