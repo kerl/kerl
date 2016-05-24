@@ -370,10 +370,9 @@ get_otp_version()
     echo $1 | sed $SED_OPT -e 's/R?([0-9]{1,2})[.AB]?[-.0-9rc]*/\1/'
 }
 
-get_javac_version()
+get_perl_version()
 {
-    javaout=$(javac -version 2>&1)
-    echo "$javaout" | cut -d' ' -f2 | cut -d'.' -f2
+    perl -v | grep version | sed $SED_OPT -e 's/.*v5\.([0-9]+)\.[0-9].*/\1/'
 }
 
 get_javac_version()
@@ -412,8 +411,22 @@ maybe_patch()
 
 maybe_patch_all()
 {
+    perlver=$(get_perl_version)
+    if [ "$perlver" -ge 24 ]; then
+        case "$1" in
+            14)
+                apply_r14_beam_makeops_patch >> "$LOGFILE"
+                ;;
+            15)
+                apply_r15_beam_makeops_patch >> "$LOGFILE"
+                ;;
+            *)
+                ;;
+        esac
+    fi
+
     # Are we building docs?
-    if [ "$KERL_BUILD_DOCS" ]; then
+    if [ -n "$KERL_BUILD_DOCS" ]; then
         if [ "$1" -le 16 ]; then
             javaver=$(get_javac_version)
             if [ "$javaver" -ge 8 ]; then
@@ -1163,6 +1176,41 @@ apply_javadoc_linting_patch()
  		-windowtitle $(JAVADOC_TITLE) $(JAVADOC_PKGS))
  
  man: 
+_END_PATCH
+}
+
+# perl 5.24 fatalizes the warning this causes
+apply_r14_beam_makeops_patch()
+{
+    patch -p0 <<'_END_PATCH'
+--- erts/emulator/utils/beam_makeops.orig	2016-05-23 21:40:42.000000000 -0500
++++ erts/emulator/utils/beam_makeops	2016-05-23 21:41:08.000000000 -0500
+@@ -1576,7 +1576,7 @@
+ 	if $min_window{$key} > $min_window;
+ 
+     pop(@{$gen_transform{$key}})
+-	if defined @{$gen_transform{$key}}; # Fail
++	if defined $gen_transform{$key}; # Fail
+     my(@prefix) = (&make_op($comment), &make_op('', 'try_me_else', &tr_code_len(@code)));
+     unshift(@code, @prefix);
+     push(@{$gen_transform{$key}}, @code, &make_op('', 'fail'));
+_END_PATCH
+}
+
+# https://github.com/erlang/otp/commit/21ca6d3a137034f19862db769a5b7f1c5528dbc4.diff
+apply_r15_beam_makeops_patch()
+{
+    patch -p1 <<'_END_PATCH'
+--- a/erts/emulator/utils/beam_makeops
++++ b/erts/emulator/utils/beam_makeops
+@@ -1711,7 +1711,7 @@ sub tr_gen_to {
+     my $prev_last;
+     $prev_last = pop(@{$gen_transform{$key}})
+-	if defined @{$gen_transform{$key}}; # Fail
++	if defined $gen_transform{$key}; # Fail
+ 
+     if ($prev_last && !is_instr($prev_last, 'fail')) {
+ 	error("Line $line: A previous transformation shadows '$orig_transform'");
 _END_PATCH
 }
 
