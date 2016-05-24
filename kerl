@@ -22,6 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+KERL_VERSION="1.1.1"
+
 #Grep fix for mac pcre errors
 GREP_OPTIONS=''
 
@@ -167,6 +169,8 @@ usage()
     echo "  status   Print available builds and installations"
     echo "  prompt   Print a string suitable for insertion in prompt"
     echo "  cleanup  Remove compilation artifacts (use after installation)"
+    echo
+    echo "version: $KERL_VERSION"
     exit 1
 }
 
@@ -1007,6 +1011,10 @@ tarball_download()
 }
 
 case "$1" in
+    version)
+        echo "$KERL_VERSION"
+        exit 0
+        ;;
     build)
         if [ "$2" = "git" ]; then
             if [ $# -ne 5 ]; then
