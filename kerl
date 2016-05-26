@@ -889,16 +889,16 @@ list_add()
                 return 1
             fi
         done < "$KERL_BASE_DIR/otp_$1"
-        echo "$2" >> "$KERL_BASE_DIR/otp_$1"
+        echo "$2" >> "$KERL_BASE_DIR/otp_$1" || exit 1
     else
-        echo "$2" > "$KERL_BASE_DIR/otp_$1"
+        echo "$2" > "$KERL_BASE_DIR/otp_$1" || exit 1
     fi
 }
 
 list_remove()
 {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        sed $SED_OPT -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
+        sed $SED_OPT -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1" || exit 1
     fi
 }
 
