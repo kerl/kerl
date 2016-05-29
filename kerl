@@ -870,11 +870,15 @@ list_print()
 {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
         if [ "$(wc -l "$KERL_BASE_DIR/otp_$1")" != "0" ]; then
-            if [ -z "$2" ]; then
+            if [ "$2" = "spaces" ]; then
                 cat "$KERL_BASE_DIR/otp_$1"
-            else
-                echo `cat "$KERL_BASE_DIR/otp_$1"`
+                return 0
             fi
+            if [ "$2" = "columns" ]; then
+                cat "$KERL_BASE_DIR/otp_$1" | column
+                return 0
+            fi
+            echo `cat "$KERL_BASE_DIR/otp_$1"`
             return 0
         fi
     fi
@@ -1062,7 +1066,7 @@ case "$1" in
                 rm -f "${KERL_BASE_DIR:?}"/otp_releases
                 check_releases
                 echo "The available releases are:"
-                list_print releases spaces
+                list_print releases columns
                 ;;
             *)
                 update_usage
@@ -1078,14 +1082,15 @@ case "$1" in
         case "$2" in
             releases)
                 check_releases
-                list_print "$2" space
+                echo "The available releases are:"
+                list_print releases columns
                 echo "Run '$0 update releases' to update this list from erlang.org"
                 ;;
             builds)
-                list_print "$2"
+                list_print builds
                 ;;
             installations)
-                list_print "$2"
+                list_print installations
                 ;;
             *)
                 echo "Cannot list $2"
