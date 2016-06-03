@@ -871,14 +871,14 @@ list_print()
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
         if [ "$(wc -l "$KERL_BASE_DIR/otp_$1")" != "0" ]; then
             if [ "$2" = "spaces" ]; then
-                cat "$KERL_BASE_DIR/otp_$1"
+                echo `cat "$KERL_BASE_DIR/otp_$1"`
                 return 0
             fi
             if [ "$2" = "columns" ]; then
                 cat "$KERL_BASE_DIR/otp_$1" | column
                 return 0
             fi
-            echo `cat "$KERL_BASE_DIR/otp_$1"`
+            cat "$KERL_BASE_DIR/otp_$1"
             return 0
         fi
     fi
@@ -916,7 +916,7 @@ list_has()
 
 list_usage()
 {
-    echo "usage: $0 list <releases|builds|installations>"
+    echo "usage: $0 list <releases [columns]|builds|installations>"
 }
 
 delete_usage()
@@ -931,7 +931,7 @@ cleanup_usage()
 
 update_usage()
 {
-    echo "usage: $0 update releases"
+    echo "usage: $0 update releases [columns]"
 }
 
 get_active_path()
@@ -1066,7 +1066,11 @@ case "$1" in
                 rm -f "${KERL_BASE_DIR:?}"/otp_releases
                 check_releases
                 echo "The available releases are:"
-                list_print releases columns
+		if [ "$3" = "columns" ]; then
+                  list_print "$2" columns
+                else
+                  list_print "$2" spaces
+                fi
                 ;;
             *)
                 update_usage
@@ -1075,7 +1079,7 @@ case "$1" in
         esac
         ;;
     list)
-        if [ $# -ne 2 ]; then
+        if [ $# -lt 2 ]; then
             list_usage
             exit 1
         fi
@@ -1083,14 +1087,18 @@ case "$1" in
             releases)
                 check_releases
                 echo "The available releases are:"
-                list_print releases columns
+		if [ "$3" = "columns" ]; then
+                    list_print "$2" columns
+                else
+                    list_print "$2" spaces
+                fi
                 echo "Run '$0 update releases' to update this list from erlang.org"
                 ;;
             builds)
-                list_print builds
+                list_print "$2"
                 ;;
             installations)
-                list_print installations
+                list_print "$2"
                 ;;
             *)
                 echo "Cannot list $2"
