@@ -169,8 +169,7 @@ usage()
     echo "  status   Print available builds and installations"
     echo "  prompt   Print a string suitable for insertion in prompt"
     echo "  cleanup  Remove compilation artifacts (use after installation)"
-    echo
-    echo "version: $KERL_VERSION"
+    echo "  version  Print current version (current: $KERL_VERSION)"
     exit 1
 }
 
