@@ -208,7 +208,7 @@ update_checksum_file()
     then
         return 0
     else
-        echo "Getting the checksum file from erlang.org..."
+        echo "Getting checksum file from erlang.org..."
         curl -L -o "$KERL_DOWNLOAD_DIR/MD5" "$ERLANG_DOWNLOAD_URL/MD5" || exit 1
     fi
 }
