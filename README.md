@@ -424,6 +424,14 @@ Prints the available builds and installations as well as the currently active in
 Changelog
 ---------
 
+28 June 2016 - 1.2.0
+
+  - Make curl output more robust if using a .curlrc (#137)
+  - Apply patches to build older Erlangs (#138) 
+  - Add a command to output a version string (#140)
+  - Do not assume success for metadata file writes (#142)
+  - Fix a grammar problem (#145)
+
 20 May 2016 - 1.1.1
 
   - Remove valid directory check when doing a remote deployment.
