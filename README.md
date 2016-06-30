@@ -196,6 +196,22 @@ Since .kerlrc is a dot file for `/bin/sh`, running shell commands inside the
 executed later. For example, the shell `export` commands in .kerlrc will affect
 *your login shell environment* when activating `curl`.  Use with care.
 
+Fish shell support
+------------------
+
+kerl has basic support for the fish shell.
+
+To activate an installation:
+
+    source /path/to/install/dir/activate.fish
+
+Deactivation is the same as in other shells:
+
+    kerl_deactivate
+
+Please note: if you've installed a build with an older version of kerl
+(1.2 or older) it won't have the `activate.fish` script.
+
 Glossary
 --------
 
