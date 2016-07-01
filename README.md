@@ -210,7 +210,7 @@ Deactivation is the same as in other shells:
     kerl_deactivate
 
 Please note: if you've installed a build with an older version of kerl
-(1.2 or older) it won't have the `activate.fish` script.
+(1.2.0 older) it won't have the `activate.fish` script.
 
 Glossary
 --------
@@ -439,6 +439,9 @@ Prints the available builds and installations as well as the currently active in
 
 Changelog
 ---------
+1 July 2016 - 1.3.0
+
+  - basic fish shell support (#91)
 
 28 June 2016 - 1.2.0
 
