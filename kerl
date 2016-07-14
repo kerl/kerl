@@ -384,6 +384,26 @@ get_javac_version()
     echo "$javaout" | cut -d' ' -f2 | cut -d'.' -f2
 }
 
+show_configuration_warnings()
+{
+    # $1 is logfile
+    # $2 is section header (E.g. "APPLICATIONS DISABLED")
+    # Find the row number for the section we are looking for
+    INDEX=$(grep -n -m1 "$2" $1 | cut -d: -f1)
+
+    # If there are no warnings, the section won't appear in the log
+    if [ -n "$INDEX" ]; then
+        # Skip the section header, find the end line and skip it
+        # then print the results indented
+        tail -n +$(($INDEX+3)) $1 | \
+            sed -n '1,/\*/p' | \
+            awk -F: -v logfile="$1" -v section="$2" \
+                'BEGIN { printf "%s (See: %s)\n", section, logfile }
+                 /^[^\*]/ { print " *", $0 }
+                 END { print "" } '
+    fi
+}
+
 show_logfile()
 {
     echo "$1"
@@ -537,8 +557,11 @@ _do_build()
         exit 1
     fi
 
-    # TODO: Check to see if we got any warnings from the configure
-    # step.
+    for SECTION in "APPLICATIONS DISABLED" \
+                   "APPLICATIONS INFORMATION" \
+                   "DOCUMENTATION INFORMATION"; do
+        show_configuration_warnings "$LOGFILE" "$SECTION"
+    done
 
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
         find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
