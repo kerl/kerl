@@ -173,6 +173,9 @@ You can set the following variables:
 - `KERL_DEPLOY_SSH_OPTIONS` if additional options are required, e.g. `-qx -o PasswordAuthentication=no`
 - `KERL_DEPLOY_RSYNC_OPTIONS` if additional options are required, e.g. `--delete`
 - `KERL_ENABLE_PROMPT` if set, the prompt will be prefixed with the name of the active build 
+- `KERL_PROMPT_FORMAT` if set, will be used to determine how the prompt will look like. Escape sequences (for color formatting) is supported if the shell supports it. The character `^` is not allowed to be used in the format string. The default format is `(%BUILDNAME%)`, `$PS1` is always appended. The following variables are available from `kerl`.
+  - `%RELEASE%` The active release (e.g. `18.0` or `R16B02`)
+  - `%BUILDNAME` The active buildname (e.g. `my_test_build_18.0`)
 - `KERL_BUILD_DOCS` if set, will build documentation from source code repository
 - `KERL_USE_AUTOCONF` use autoconf in the builds process (**note**: implied by the `git` build backend)
 
