@@ -439,6 +439,11 @@ Prints the available builds and installations as well as the currently active in
 
 Changelog
 ---------
+16 July 2016 - 1.3.1
+
+  - Fix argument order in archive unpacking (#146)
+  - When building, show output of unmet dependencies or other build prerequisites (#148)
+
 1 July 2016 - 1.3.0
 
   - basic fish shell support (#91)
