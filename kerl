@@ -1122,7 +1122,7 @@ get_active_path()
 get_name_from_install_path()
 {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
-        grep -F "$1" "$KERL_BASE_DIR"/otp_installations | cut -d ' ' -f 1
+        grep -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
     fi
     return 0
 }
