@@ -665,6 +665,8 @@ kerl_deactivate()
     if [ ! "\$1" = "nondestructive" ]; then
         unset -f kerl_deactivate
     fi
+    unset KERL_ENABLE_PROMPT
+    unset KERL_PROMPT_FORMAT
 }
 kerl_deactivate nondestructive
 
@@ -684,7 +686,13 @@ if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     _KERL_SAVED_PS1="\$PS1"
     export _KERL_SAVED_PS1
-    PS1="($1)\$PS1"
+    if [ -n "\$KERL_PROMPT_FORMAT" ]; then
+        FRMT="\$KERL_PROMPT_FORMAT"
+    else
+        FRMT="(%BUILDNAME%)"
+    fi
+    PROMPT=\$(echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^')
+    PS1="\$PROMPT\$PS1"
     export PS1
 fi
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
