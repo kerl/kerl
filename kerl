@@ -29,6 +29,11 @@ GREP_OPTIONS=''
 
 ERLANG_DOWNLOAD_URL="http://www.erlang.org/download"
 
+if [ -z "$HOME" ]; then
+    echo "Error: \$HOME is empty or not set." 1>&2
+    exit 1
+fi
+
 # Default values
 : ${OTP_GITHUB_URL:="https://github.com/erlang/otp"}
 : ${KERL_BASE_DIR:="$HOME"/.kerl}
