@@ -172,7 +172,10 @@ You can set the following variables:
 - `KERL_SASL_STARTUP` use SASL system startup instead of minimal
 - `KERL_DEPLOY_SSH_OPTIONS` if additional options are required, e.g. `-qx -o PasswordAuthentication=no`
 - `KERL_DEPLOY_RSYNC_OPTIONS` if additional options are required, e.g. `--delete`
-- `KERL_ENABLE_PROMPT` if set, the prompt will be prefixed with the name of the active build 
+- `KERL_ENABLE_PROMPT` if set, will enable the prompt to be prefixed with what is set in `KERL_PROMPT_FORMAT`.
+- `KERL_PROMPT_FORMAT` the format string to use as a prefix for the prompt. If not set (or empty) will default to `(%BUILDNAME%)`. The following variables are available for use in the format string.
+  - `%RELEASE%` The active release (e.g. `18.0` or `R16B02`)
+  - `%BUILDNAME%` The active buildname (e.g. `my_test_build_18.0`)
 - `KERL_BUILD_DOCS` if set, will build documentation from source code repository
 - `KERL_USE_AUTOCONF` use autoconf in the builds process (**note**: implied by the `git` build backend)
 
