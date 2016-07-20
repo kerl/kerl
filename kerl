@@ -1009,20 +1009,26 @@ is_valid_install_path()
         return 1
     fi
 
+    INSTALLED_NAME=$(get_name_from_install_path $candidate)
+    if [ -n "$INSTALLED_NAME" ]; then
+        echo "ERROR: Installation ($INSTALLED_NAME) already registered for this location ($1)"
+        return 1
+    fi
+
     # if the install directory exists,
     # do not allow installs into a directory
     # that is not empty
     if [ -e "$1" ]; then
-	if [ -d "$1" ]; then
-	    count=$(ls -la "$1" | wc -l)
-	    if [ $count -ne 3 ]; then
-		echo "ERROR: $1 does not appear to be an empty directory."
-		return 1
-	    fi
-	else
-	    echo "ERROR: $1 is not a directory."
-	    return 1
-	fi
+        if [ -d "$1" ]; then
+            count=$(ls -la "$1" | wc -l)
+            if [ $count -ne 3 ]; then
+                echo "ERROR: $1 does not appear to be an empty directory."
+                return 1
+            fi
+        else
+            echo "ERROR: $1 is not a directory."
+            return 1
+        fi
     fi
 
     return 0
@@ -1122,7 +1128,7 @@ get_active_path()
 get_name_from_install_path()
 {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
-        grep -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
+        grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
     fi
     return 0
 }
