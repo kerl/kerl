@@ -442,6 +442,13 @@ Prints the available builds and installations as well as the currently active in
 
 Changelog
 ---------
+20 July 2016 - 1.3.2
+
+  - Optionally enhance the activation prompt (#149)
+  - Do not permit installation into a location that's already installed (#150)
+  - Fix duplicate response from `kerl prompt` (fix #88) (#150)
+  - Do not run if $HOME is not set. (fix #22) (#151)
+
 16 July 2016 - 1.3.1
 
   - Fix argument order in archive unpacking (#146)
