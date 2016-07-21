@@ -752,7 +752,7 @@ kerl_deactivate nondestructive
 
 set -x _KERL_SAVED_REBAR_PLT_DIR "\$REBAR_PLT_DIR"
 set -x _KERL_PATH_REMOVABLE "$absdir/bin"
-set -x PATH \$PATH "\$_KERL_PATH_REMOVABLE"
+set -x PATH "\$_KERL_PATH_REMOVABLE" \$PATH
 set -x _KERL_MANPATH_REMOVABLE "$absdir/lib/erlang/man" "$absdir/man"
 set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
 set -x REBAR_PLT_DIR "$absdir"
