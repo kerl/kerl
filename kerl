@@ -772,8 +772,7 @@ ACTIVATE_FISH
         DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel/lib/erlang"
         if [ -d "$DOC_DIR" ]; then
             echo "Installing docs..."
-            mkdir -p "$absdir/lib/erlang" || exit 1
-            cp $CP_OPT "$DOC_DIR/" "$absdir/lib/erlang"
+            cp $CP_OPT "$DOC_DIR/" "$absdir/lib"
             ln -s "$absdir/lib/erlang/man" "$absdir/man"
             ln -s "$absdir/lib/erlang/doc" "$absdir/html"
         fi
