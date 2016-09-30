@@ -768,6 +768,56 @@ if set --query KERL_ENABLE_PROMPT
     end
 end
 ACTIVATE_FISH
+
+    cat <<ACTIVATE_CSH > "$absdir/activate.csh"
+# This file must be used with "source bin/activate.csh" *from csh*.
+# You cannot run it directly.
+
+alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_SAVED_PROMP != 0 && set prompt="\$_KERL_SAVED_PROMP" && unset _KERL_SAVED_PROMP; test "\!:*" != "nondestructive" && unalias deactivate'
+
+# Unset irrelevant variables.
+kerl_deactivate nondestructive
+
+if ( \$?REBAR_PLT_DIR ) then
+    set _KERL_SAVED_REBAR_PLT_DIR = "\$REBAR_PLT_DIR"
+else
+    set _KERL_SAVED_REBAR_PLT_DIR=""
+endif
+
+set _KERL_PATH_REMOVABLE = "$absdir/bin"
+set _KERL_SAVED_PATH = "\$PATH"
+setenv PATH "\${_KERL_PATH_REMOVABLE}:\$PATH"
+
+if ( ! \$?MANPATH ) then
+    set MANPATH = ""
+endif
+set _KERL_MANPATH_REMOVABLE = "$absdir/lib/erlang/man:$absdir/man"
+set _KERL_SAVED_MANPATH = "\$MANPATH"
+setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
+
+setenv REBAR_PLT_DIR "$absdir"
+
+set _KERL_ACTIVE_DIR = "$absdir"
+
+if ( -f "$KERL_CONFIG.csh" ) then
+    source "$KERL_CONFIG.csh"
+endif
+
+if ( \$?KERL_ENABLE_PROMPT ) then
+    set _KERL_SAVED_PROMP = "\$prompt"
+
+    if ( \$?KERL_PROMPT_FORMAT ) then
+        set FRMT = "\$KERL_PROMPT_FORMAT"
+    else
+        set FRMT = "(%BUILDNAME%)"
+    endif
+
+    set PROMPT = \`echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^'\`
+    set prompt = "\$PROMPT\$prompt"
+endif
+
+rehash
+ACTIVATE_CSH
     if [ -n "$KERL_BUILD_DOCS" ]; then
         DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel/lib/erlang"
         if [ -d "$DOC_DIR" ]; then

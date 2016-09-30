@@ -215,6 +215,24 @@ Deactivation is the same as in other shells:
 Please note: if you've installed a build with an older version of kerl
 (1.2.0 older) it won't have the `activate.fish` script.
 
+C shell support
+---------------
+
+kerl has basic support for the C shells (csh/tcsh/etc.).
+
+To activate an installation:
+
+    source /path/to/install/dir/activate.csh
+
+The activation script sources file .kerlrc.csh instead of .kerlrc.
+
+Deactivation is the same as in other shells:
+
+    kerl_deactivate
+
+Please note: if you've installed a build with an older version of kerl
+it won't have the `activate.csh` script.
+
 Glossary
 --------
 
