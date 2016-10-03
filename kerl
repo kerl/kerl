@@ -556,6 +556,11 @@ _do_build()
         CFLAGS="$CFLAGS" ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
 
     fi
+    echo -n $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" 1>/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        make clean >> "$LOGFILE" 2>&1
+        CFLAGS="$CFLAGS" ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+    fi
     if [ $? -ne 0 ]; then
         show_logfile "Configure failed." "$LOGFILE"
         list_remove builds "$1 $2"
