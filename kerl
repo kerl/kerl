@@ -515,18 +515,18 @@ _do_build()
                     echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1
                     # Reminder to self: 0 from grep means the string was detected
                     if [ $? -ne 0 ]; then
-                        brew_prefix=$(brew --prefix openssl)
-                        if [ -n "$brew_prefix" -a -d "$brew_prefix" ]; then
-                            KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$brew_prefix"
+                        whichbrew=$(which brew)
+                        if [ -n "$whichbrew" -a -x "$whichbrew" ]; then
+                            brew_prefix=$(brew --prefix openssl)
+                            if [ -n "$brew_prefix" -a -d "$brew_prefix" ]; then
+                                KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$brew_prefix"
+                            fi
                         elif [ ! -d /usr/include/openssl -o ! -d /usr/local/include/openssl ]; then
                             # Apple removed OpenSSL from El Capitan, but its still in this
                             # funky location, so set ssl headers to look here
                             xc_ssl='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr'
-                            if [ -d "$xc_ssl/include/openssl" ]
-                            then
+                            if [ -d "$xc_ssl/include/openssl" ]; then
                                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$xc_ssl"
-                            else
-                                echo 'WARNING: No OpenSSL library was found in the usual places. Your Erlang will be built without crypto support!'
                             fi
                             unset xc_ssl
                         fi
