@@ -448,9 +448,10 @@ own SSL library. That makes using homebrew the most convenient way to install
 openssl on macOS 10.12 (Sierra) or El Capitan. Recently, homebrew [decided to
 stop creating](https://github.com/Homebrew/brew/pull/612) symlinks from the
 homebrew installation directory to `/usr/local`, so in response to this, *if*
-you running El Capitan or Sierra, *and* you have homebrew installed, *and* you
-used it to install openssl, kerl will ask homebrew for the openssl installation
-prefix and configure Erlang to build with that location automatically.
+you're running El Capitan or Sierra, *and* you have homebrew installed, *and*
+you used it to install openssl, kerl will ask homebrew for the openssl
+installation prefix and configure Erlang to build with that location
+automatically.
 
 **Important**: If you already have `--with-ssl` in your .kerlrc, kerl
 will honor that instead, and will not do any automatic configuration.
