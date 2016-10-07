@@ -458,8 +458,25 @@ Prints the available builds and installations as well as the currently active in
     ----------
     No Erlang/OTP kerl installation is currently active
 
+
+Compiling crypto on Macs
+------------------------
+Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
+own SSL library. That makes using homebrew the most convenient way to install
+openssl on macOS 10.12 (Sierra) or El Capitan. Recently, homebrew [decided to
+stop creating](https://github.com/Homebrew/brew/pull/612) symlinks from the
+homebrew installation directory to `/usr/local`, so in response to this, *if*
+you're running El Capitan or Sierra, *and* you have homebrew installed, *and*
+you used it to install openssl, kerl will ask homebrew for the openssl
+installation prefix and configure Erlang to build with that location
+automatically.
+
+**Important**: If you already have `--with-ssl` in your .kerlrc, kerl
+will honor that instead, and will not do any automatic configuration.
+
 Changelog
 ---------
+
 20 July 2016 - 1.3.2
 
   - Optionally enhance the activation prompt (#149)
