@@ -477,6 +477,12 @@ will honor that instead, and will not do any automatic configuration.
 Changelog
 ---------
 
+07 October 2016 - 1.3.3
+
+  - Add support for (T)CSH (#155)
+  - If homebrew is installed, make kerl check for a homebrew OpenSSL library path (#161)
+  - If `--enable-native-libs` is active, make, clean and make again. (#163)
+
 20 July 2016 - 1.3.2
 
   - Optionally enhance the activation prompt (#149)
