@@ -650,12 +650,12 @@ do_install()
 kerl_deactivate()
 {
     if [ -n "\$_KERL_PATH_REMOVABLE" ]; then
-        PATH=\${PATH//\${_KERL_PATH_REMOVABLE}:/}
+        PATH=\`echo \${PATH} | sed -e "s#\${_KERL_PATH_REMOVABLE}:##"\`
         export PATH
         unset _KERL_PATH_REMOVABLE
     fi
     if [ -n "\$_KERL_MANPATH_REMOVABLE" ]; then
-        MANPATH=\${MANPATH//\${_KERL_MANPATH_REMOVABLE}:/}
+        MANPATH=\`echo \${MANPATH} | sed -e "s#\${_KERL_MANPATH_REMOVABLE}:##"\`
         export MANPATH
         unset _KERL_MANPATH_REMOVABLE
     fi
