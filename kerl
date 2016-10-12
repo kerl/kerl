@@ -201,7 +201,7 @@ get_git_releases()
 
 get_tarball_releases()
 {
-    curl -q -L -s $ERLANG_DOWNLOAD_URL/ | \
+    curl -f -q -L -s $ERLANG_DOWNLOAD_URL/ | \
         sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"\otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
                      -e '/^R1|^[0-9]/!d' | \
         sed -e "s/^R\(.*\)/\1:R\1/" | sed -e "s/^\([^\:]*\)$/\1-z:\1/" | sort | cut -d':' -f2
@@ -214,13 +214,13 @@ update_checksum_file()
         return 0
     else
         echo "Getting checksum file from erlang.org..."
-        curl -L -o "$KERL_DOWNLOAD_DIR/MD5" "$ERLANG_DOWNLOAD_URL/MD5" || exit 1
+        curl -f -L -o "$KERL_DOWNLOAD_DIR/MD5" "$ERLANG_DOWNLOAD_URL/MD5" || exit 1
     fi
 }
 
 ensure_checksum_file()
 {
-    if [ ! -f "$KERL_DOWNLOAD_DIR"/MD5 ]; then
+    if [ ! -s "$KERL_DOWNLOAD_DIR"/MD5 ]; then
         update_checksum_file
     fi
 }
@@ -1227,16 +1227,18 @@ download()
 
 github_download()
 {
-    if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
+    # if the file doesn't exist or the file has no size
+    if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
         echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
-        curl -L -o "$KERL_DOWNLOAD_DIR/$1" "$OTP_GITHUB_URL/archive/$1"
+        curl -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$OTP_GITHUB_URL/archive/$1" || exit 1
     fi
 }
 
 tarball_download()
 {
-    if [ ! -f "$KERL_DOWNLOAD_DIR/$1" ]; then
-        curl -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1"
+    if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
+        echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
+        curl -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || exit 1
         update_checksum_file
     fi
     ensure_checksum_file
