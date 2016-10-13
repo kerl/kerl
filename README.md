@@ -477,6 +477,11 @@ will honor that instead, and will not do any automatic configuration.
 Changelog
 ---------
 
+13 October 2016 - 1.3.4
+
+  - Use a more portable way to restore PATH (#165)
+  - Exit if curl fails. Download files if they are 0 length. (#166)
+
 07 October 2016 - 1.3.3
 
   - Add support for (T)CSH (#155)
