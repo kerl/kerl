@@ -1497,7 +1497,7 @@ case "$1" in
                 assert_valid_installation "$3"
                 maybe_remove "$3"
                 escaped="$(echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
-                list_remove "$2"s "$escaped"
+                list_remove "$2" "$escaped"
                 echo "The installation in $3 has been deleted"
                 ;;
             *)
