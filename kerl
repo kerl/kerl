@@ -375,7 +375,7 @@ do_git_build()
 
 get_otp_version()
 {
-    echo $1 | sed $SED_OPT -e 's/R?([0-9]{1,2})[.AB]?[-.0-9rc]*/\1/'
+    echo $1 | sed $SED_OPT -e 's/R?([0-9]{1,2}).+/\1/'
 }
 
 get_perl_version()
