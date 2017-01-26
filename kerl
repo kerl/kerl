@@ -382,7 +382,7 @@ get_otp_version()
 
 get_perl_version()
 {
-    perl -v | grep version | sed $SED_OPT -e 's/.*v5\.([0-9]+)\.[0-9].*/\1/'
+    SED_OPT=$(perl -v | grep This\ is | perl -pe 's/.*v5\.([0-9]+)\.[0-9].*/\1/')
 }
 
 get_javac_version()
