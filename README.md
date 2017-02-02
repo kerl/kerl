@@ -101,7 +101,7 @@ activate another installation or call `kerl_deactivate`.
 
 You're now ready to work with your r14b02 installation:
 
-    $ erl -version
+    $ kerl -version
     Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
 
 When you're done just call the shell function:
