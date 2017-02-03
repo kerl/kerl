@@ -30,6 +30,7 @@ KERL_VERSION="1.3.4"
 GREP_OPTIONS=''
 
 ERLANG_DOWNLOAD_URL="http://www.erlang.org/download"
+KERL_CONFIG_STORAGE_FILENAME=".kerl_config"
 
 if [ -z "$HOME" ]; then
     echo "Error: \$HOME is empty or not set." 1>&2
@@ -549,6 +550,31 @@ _do_build()
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
+
+    # Check to see if configuration options need to be stored or have changed
+    TMPOPT="/tmp/kerloptions.$$"
+    echo "$CFLAGS" > "$TMPOPT"
+    echo "$KERL_CONFIGURE_OPTIONS" >> "$TMPOPT"
+    SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f $MD5SUM_FIELD)
+    # Check for a .kerl_config.md5 file
+    if [ -e "./$KERL_CONFIG_STORAGE_FILENAME.md5" ]; then
+        # Compare our current options to the saved ones
+        OLD_SUM=read -r < "./$KERL_CONFIG_STORAGE_FILENAME.md5"
+        if [ "$SUM" -ne "$OLD_SUM" ]; then
+            echo "Configure options have changed. Reconfiguring..."
+            rm -f configure
+            mv "$TMPOPT" "./$KERL_CONFIG_STORAGE_FILENAME"
+            echo "$SUM" > "./$KERL_CONFIG_STORAGE_FILENAME.md5"
+        else
+            # configure options are the same
+            rm -f "$TMPOPT"
+        fi
+    else
+	# no file exists, so write one
+	mv "$TMPOPT" ./.kerl_config
+	echo "$SUM" > ./.kerl_config.md5
+    fi
+
     # Don't apply patches to "custom" git builds. We have no idea if they will apply
     # cleanly or not.
     if [ "$1" != "git" ]; then
@@ -598,6 +624,7 @@ _do_build()
             fi
         done
     fi
+
     CFLAGS="$CFLAGS" ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
     if [ $? -ne 0 ]; then
         show_logfile "Build failed." "$LOGFILE"
@@ -851,6 +878,9 @@ ACTIVATE_CSH
             fi
         fi
     fi
+
+    KERL_CONFIG_STORAGE_PATH="$KERL_BUILD_DIR/$1/otp_src_$rel/$KERL_CONFIG_STORAGE_FILENAME"
+    [ -e "$KERL_CONFIG_STORAGE_PATH" ] && cp "$KERL_CONFIG_STORAGE_PATH" "$absdir/$KERL_CONFIG_STORAGE_FILENAME"
 
     if [ -n "$KERL_BUILD_PLT" ]; then
         echo "Building Dialyzer PLT..."
