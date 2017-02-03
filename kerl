@@ -382,13 +382,35 @@ get_otp_version()
 
 get_perl_version()
 {
-    perl -v | grep version | sed $SED_OPT -e 's/.*v5\.([0-9]+)\.[0-9].*/\1/'
+    if assert_perl; then
+        perl -v | grep version | sed $SED_OPT -e 's/.*v5\.([0-9]+)\.[0-9].*/\1/'
+    else
+        echo "FATAL: I couldn't find perl which is required to compile Erlang."
+        exit 1
+    fi
+}
+
+assert_perl()
+{
+    perl_loc=$(which perl)
+    if [ -z "$perl_loc" ]; then
+        return 1
+    else
+        # 0 to bash is "true" because of Unix exit code conventions
+        return 0
+    fi
 }
 
 get_javac_version()
 {
-    javaout=$(javac -version 2>&1)
-    echo "$javaout" | cut -d' ' -f2 | cut -d'.' -f2
+    java_loc=$(which javac)
+    if [ -z "$java_loc" ]; then
+        # Java's not installed, so just return 0
+        0
+    else
+        javaout=$(javac -version 2>&1)
+        echo "$javaout" | cut -d' ' -f2 | cut -d'.' -f2
+    fi
 }
 
 show_configuration_warnings()
