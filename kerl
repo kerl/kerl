@@ -69,6 +69,9 @@ fi
 if [ -n "$KERL_INSTALL_MANPAGES" ]; then
     _KIM="$KERL_INSTALL_MANPAGES"
 fi
+if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
+    _KIHD="$KERL_INSTALL_HTMLDOCS"
+fi
 if [ -n "$KERL_BUILD_PLT" ]; then
     _KBPLT="$KERL_BUILD_PLT"
 fi
@@ -86,6 +89,7 @@ KERL_SASL_STARTUP=
 KERL_DEPLOY_SSH_OPTIONS=
 KERL_DEPLOY_RSYNC_OPTIONS=
 KERL_INSTALL_MANPAGES=
+KERL_INSTALL_HTMLDOCS=
 KERL_BUILD_PLT=
 KERL_BUILD_DOCS=
 KERL_BUILD_BACKEND=
@@ -119,6 +123,9 @@ if [ -n "$_KDRSYNC" ]; then
 fi
 if [ -n "$_KIM" ]; then
     KERL_INSTALL_MANPAGES="$_KIM"
+fi
+if [ -n "$_KIHD" ]; then
+    KERL_INSTALL_HTMLDOCS="$_KIHD"
 fi
 if [ -n "$_KBPLT" ]; then
     KERL_BUILD_PLT="$_KBPLT"
@@ -841,7 +848,7 @@ if ( -f "$KERL_CONFIG.csh" ) then
 endif
 
 if ( \$?KERL_ENABLE_PROMPT ) then
-    set _KERL_SAVED_PROMP = "\$prompt"
+    set _KERL_SAVED_PROMPT = "\$prompt"
 
     if ( \$?KERL_PROMPT_FORMAT ) then
         set FRMT = "\$KERL_PROMPT_FORMAT"
