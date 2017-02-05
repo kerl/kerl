@@ -598,6 +598,14 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+5 February 2017 - 1.4.0
+
+  - Fix environment variable handling and a typo (#179)
+  - Overhaul the README; document all environment variables (#178)
+  - Store build configuration in a file. Enables detecting if configuration has 
+    changed from build to build and also allows outputing build time options
+    in `kerl status` (#177)
+  - Assert perl exists before attempting build (#176); fixes issue #170
 
 13 October 2016 - 1.3.4
 
