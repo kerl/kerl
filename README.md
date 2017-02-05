@@ -7,10 +7,16 @@ Kerl aims to be shell agnostic and its only dependencies, excluding what's requi
 
 All is done so that, once a specific release has been built, creating a new installation is as fast as possible.
 
+
 Downloading
 -----------
 
-You can download the script directly from github:
+If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew), you can install kerl, along with shell completion, by running:
+
+    $ brew install kerl
+
+
+Alternatively, you can download the script directly from github:
 
     $ curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
 
@@ -36,60 +42,58 @@ By default, kerl downloads source tarballs from the [official Erlang website](ht
 you can tell kerl to download tarballs of Erlang source code from the tags
 pushed to the [official source code](https://github.com/erlang/otp) by setting `KERL_BUILD_BACKEND=git`
 
+You can also install directly from a raw git repository by using the `kerl build git <git_url> <git_version> <build_name>` syntax.
+
+
 Usage
 -----
 
 List the available releases (kerl ignores releases < 10):
 
     $ kerl list releases
-    Getting the available releases from erlang.org...
-    R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7 R10B-8 R10B-9 R11B-0 R11B-1
-    R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1 R12B-2 R12B-3 R12B-4 R12B-5 R13A
-    R13B R13B01 R13B02 R13B03 R13B04 R14A R14B R14B01 R14B02
-    Run "./kerl update releases" to update this list from erlang.org
+    R10B-0 R10B-10 R10B-1a R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7 R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1 R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B01 R13B02-1 R13B02 R13B03 R13B04 R13B R14A R14B01 R14B02 R14B03 R14B04 R14B R14B_erts-5.8.1.1 R15B01 R15B02 R15B02_with_MSVCR100_installer_fix R15B03-1 R15B03 R15B R16A_RELEASE_CANDIDATE R16B01 R16B02 R16B03-1 R16B03 R16B 17.0-rc1 17.0-rc2 17.0 17.1 17.3 17.4 17.5 18.0 18.1 18.2 18.2.1 18.3 19.0 19.1 19.2
+    Run '/usr/local/bin/kerl update releases' to update this list from erlang.org
 
 Pick your choice and build it:
 
-    $ kerl build R14B02 r14b02
-    Downloading otp_src_R14B02.tar.gz to /home/evax/.kerl/archives
-    (curl progresses...)
+    $ kerl build 19.2 19.2
     Verifying archive checksum...
-    (curl progresses...)
-    Checksum verified (229fb8f193b09ac04a57a9d7794349b7)
+    Checksum verified (7cdd18a826dd7bda0ca46d1c3b2efca6)
     Extracting source code
-    Building Erlang/OTP R14B02 (r14b02), please wait...
-    Erlang/OTP R14B02 has been successfully built
+    Building Erlang/OTP 19.2 (19.2), please wait...
+    Erlang/OTP 19.2 (19.2) has been successfully built
 
 Note that named builds allow you to have different builds for the same Erlang/OTP release with different configure options:
 
-    $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build R14B02 r14b02_hipe
+    $ KERL_BUILD_DOCS=yes kerl build 19.2 19.2-builtdocs
     Verifying archive checksum...
-    Checksum verified (229fb8f193b09ac04a57a9d7794349b7)
+    Checksum verified (7cdd18a826dd7bda0ca46d1c3b2efca6)
     Extracting source code
-    Building Erlang/OTP R14B02 (r14b02_hipe), please wait...
-    Erlang/OTP R14B02 (r14b02_hipe) has been successfully built
+    Building Erlang/OTP 19.2 (19.2-builtdocs), please wait...
+    Building docs...
+    Erlang/OTP 19.2 (19.2-builtdocs) has been successfully built
 
 (Note that kerl uses the otp_build script internally, and `./otp_build configure` disables HiPE on linux)
 
 You can verify your build has been registered:
 
     $ kerl list builds
-    R14B02,r14b02
-    R14B02,r14b02_hipe
+    19.2,19.2
+    19.2,19.2-builtdocs
 
 Now install a build to some location:
 
-    $ kerl install r14b02 /path/to/install/dir/
-    Installing Erlang/OTP R14B02 (r14b02) in /path/to/install/dir...
+    $ kerl install 19.2 ~/kerl/19.2
+    Installing Erlang/OTP 19.2 (19.2) in /Users/sanmiguel/kerl/19.2...
     You can activate this installation running the following command:
-    . /path/to/install/dir/activate
+    . /Users/sanmiguel/kerl/19.2/activate
     Later on, you can leave the installation typing:
     kerl_deactivate
 
 Here again you can check the installation's been registered:
 
     $ kerl list installations
-    r14b02 /path/to/install/dir
+    19.2 /Users/sanmiguel/kerl/19.2
 
 And at last activate it:
 
@@ -99,10 +103,10 @@ Activation will backup your $PATH, prepend it with the installation's bin/
 directory. Thus it's only valid for the current shell session, and until you
 activate another installation or call `kerl_deactivate`.
 
-You're now ready to work with your r14b02 installation:
+You're now ready to work with your 19.2 installation:
 
     $ erl -version
-    Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
+    Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 8.2
 
 When you're done just call the shell function:
 
@@ -111,37 +115,55 @@ When you're done just call the shell function:
 Anytime you can check which installation, if any, is currently active with:
 
     $ kerl active
-    No Erlang/OTP kerl installation is currently active
+    The current active installation is:
+    /Users/sanmiguel/kerl/19.2
 
 You can get an overview of the current kerl state with:
 
     $ kerl status
     Available builds:
-    R14B02,r14b02
-    R14B02,r14b02_hipe
+    19.2,19.2
     ----------
     Available installations:
-    r14b02 /path/to/install/dir
+    19.2 /Users/sanmiguel/kerl/19.2
     ----------
-    Currently active installation:
     The current active installation is:
-    /path/to/install/dir
+    /Users/sanmiguel/kerl/19.2
+    There's no Dialyzer PLT for the active installation
 
 You can delete builds and installations with the following commands:
 
-    $ kerl delete build r14b02
-    The r14b02 build has been deleted
+    $ kerl delete build 19.2
+    The 19.2 build has been deleted
     $ kerl delete installation /path/to/install/dir
     The installation in /path/to/install/dir has been deleted
 
 You can easily deploy an installation to another host having `ssh` and `rsync` access with the following command:
 
     $ kerl deploy anotherhost /path/to/install/dir
-    Cloning Erlang/OTP r14b02 (/path/to/install/dir) to anotherhost (/path/to/install/dir) ...
+    Cloning Erlang/OTP 19.2 (/path/to/install/dir) to anotherhost (/path/to/install/dir) ...
     On anotherhost, you can activate this installation running the following command:
     . /path/to/install/dir/activate
     Later on, you can leave the installation typing:
     kerl_deactivate
+
+
+Building from a github fork
+---------------------------
+
+It is possible to build Erlang from a github fork, by using the `KERL_BUILD_BACKEND=git` and setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build Basho's OTP fork:
+
+    $ export KERL_BUILD_BACKEND=git
+    $ export OTP_GITHUB_URL="https://github.com/basho/otp"
+    $ kerl update releases
+    The available releases are:
+    R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03 R14B04 R15A R15B R15B01 R15B01_basho1 R15B01p R15B02 R15B03 R15B03-1 R16A_RELEASE_CANDIDATE R16B R16B01 R16B01_RC1 R16B02 R16B02_basho R16B02_basho10 R16B02_basho10rc1 R16B02_basho10rc2 R16B02_basho10rc3 R16B02_basho2 R16B02_basho3 R16B02_basho4 R16B02_basho5 R16B02_basho6 R16B02_basho7 R16B02_basho8 R16B02_basho9 R16B02_basho9rc1 R16B03 R16B03-1 R16B03_yielding_binary_to_term 17.0 17.0-rc1 17.0-rc2 17.0.1 17.0.2 17.1 17.1.1 17.1.2 17.2 17.2.1 17.2.2 17.3 17.3.1 17.3.2 17.3.3 17.3.4 17.4 17.4.1 17.5 17.5.1 17.5.2 17.5.3 17.5.4 17.5.5 17.5.6 17.5.6.1 17.5.6.2 17.5.6.3 17.5.6.4 17.5.6.5 17.5.6.6 17.5.6.7 17.5.6.8 17.5.6.9 18.0 18.0-rc1 18.0-rc2 18.0.1 18.0.2 18.0.3 18.1 18.1.1 18.1.2 18.1.3 18.1.4 18.1.5 18.2 18.2.1 18.2.2 18.2.3 18.2.4 18.2.4.1 18.3 18.3.1 18.3.2 18.3.3 18.3.4 18.3.4.1 19.0 19.0-rc1 19.0-rc2 19.0.2
+
+
+From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is possible to use kerl as normal:
+
+    $ kerl build R16B02_basho10 16b02-basho10
+
 
 Building from a git source
 --------------------------
@@ -150,46 +172,147 @@ You can build Erlang directly from a git repository with a command of the form
 `kerl build git <git_url> <git_version> <build_name>` where `<git_version>` can
 be either a branch, a tag or a commit id that will be passed to `git checkout`:
 
-    $ kerl build git https://github.com/erlang/otp.git dev r14b02_dev
-    Checking Erlang/OTP git repositoy from https://github.com/erlang/otp.git...
-    Building Erlang/OTP r14b02_dev from git, please wait...
-    Erlang/OTP r14b02_dev from git has been successfully built
+    $ kerl build git https://github.com/erlang/otp.git dev 19.2_dev
+    Checking Erlang/OTP git repository from https://github.com/erlang/otp.git...
+    Building Erlang/OTP 19.2_dev from git, please wait...
+    Erlang/OTP 19.2_dev from git has been successfully built
+
 
 Tuning
 ------
 
 You can tune kerl using the .kerlrc file in your $HOME directory.
 
-You can set the following variables:
+## Locations on disk
 
-- `KERL_BUILD_BACKEND` which source code download provider to use - (`tarball` - default) erlang.org or github (`git`)
-- `KERL_DOWNLOAD_DIR` where to put downloaded files, defaults to $HOME/.kerl/archives
-- `KERL_BUILD_DIR` where to hold the builds, defaults to $HOME/.kerl/builds
-- `KERL_DEFAULT_INSTALL_DIR` if set in ~/.kerlrc, install builds to this dir if no path is provided on installs, (recommend `$KERL_BASE_DIR/installs`)
-- `KERL_CONFIGURE_OPTIONS` options to pass to Erlang's `./configure` script, e.g. `--without-termcap`
-- `KERL_CONFIGURE_APPLICATIONS` if non-empty, subset of applications used in the builds (and subsequent installations) process, e.g. `kernel stdlib sasl`
-- `KERL_CONFIGURE_DISABLE_APPLICATIONS` if non-empty, subset of applications disabled in the builds (and subsequent installations) process, e.g. `odbc`
-- `KERL_SASL_STARTUP` use SASL system startup instead of minimal
-- `KERL_DEPLOY_SSH_OPTIONS` if additional options are required, e.g. `-qx -o PasswordAuthentication=no`
-- `KERL_DEPLOY_RSYNC_OPTIONS` if additional options are required, e.g. `--delete`
-- `KERL_ENABLE_PROMPT` if set, will enable the prompt to be prefixed with what is set in `KERL_PROMPT_FORMAT`.
-- `KERL_PROMPT_FORMAT` the format string to use as a prefix for the prompt. If not set (or empty) will default to `(%BUILDNAME%)`. The following variables are available for use in the format string.
-  - `%RELEASE%` The active release (e.g. `18.0` or `R16B02`)
-  - `%BUILDNAME%` The active buildname (e.g. `my_test_build_18.0`)
-- `KERL_BUILD_DOCS` if set, will build documentation from source code repository
-- `KERL_USE_AUTOCONF` use autoconf in the builds process (**note**: implied by the `git` build backend)
+### KERL_BASE_DIR
 
-### Options for tarball builds only ###
+Default: `"$HOME"/.kerl`
+Directory in which kerl will cache artefacts for building and installing.
 
-These options only work when `KERL_BUILD_BACKEND=tarball` (the default) **and**
-if `KERL_BUILD_DOCS` is not set. That is, they are *strictly* for backward
-compatibility. They will probably be removed in a future release.
 
-- `KERL_INSTALL_MANPAGES` if non-empty will install manpages into `/install/path/man`
-- `KERL_INSTALL_HTMLDOCS` if non-empty will install HTML docs into `/install/path/html`
+### KERL_CONFIG
 
-If you want documentation for git based builds, set `KERL_BUILD_DOCS=yes` - and if
-you don't want to download 120MB of docs from erlang.org, also set `KERL_BUILD_DOCS=yes`
+Default: `"$HOME"/.kerlrc`
+File from which to source kerl configuration
+
+
+### KERL_DOWNLOAD_DIR
+
+Default: `${KERL_BASE_DIR}/archives`
+Directory in which to place downloaded artefacts
+
+
+### KERL_BUILD_DIR
+
+Default: `${KERL_BASE_DIR}/builds
+Directory in which kerl will perform builds
+
+
+### KERL_GIT_DIR
+
+Default: `${KERL_BASE_DIR}/gits`
+Directory in which kerl will clone git repositories for building.
+
+
+## Build configuration
+
+### KERL_CONFIGURE_OPTIONS
+
+Options to pass to `configure` when building OTP.
+
+
+### KERL_CONFIGURE_APPLICATIONS
+
+List of OTP applications which should exclusively be built.
+
+
+### KERL_CONFIGURE_DISABLE_APPLICATIONS
+
+List of OTP applications to disable during building.
+
+
+### KERL_BUILD_PLT
+
+Create a PLT file alongside the built release.
+
+
+### KERL_USE_AUTOCONF
+
+Use `autoconf` during build process.
+NB: Automatically enabled when using `KERL_BUILD_BACKEND=git`
+
+
+### KERL_BUILD_BACKEND
+
+Default value: `tarball`
+Acceptable values: `tarball`, `git`
+
+- `tarball`: Fetch erlang releases from erlang.org
+- `git`: Fetch erlang releases from [`$OTP_GITHUB_URL`](#otp_github_url)
+
+NB: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to `git`, one must also set [`$KERL_BUILD_DOCS`](#kerl_build_docs).
+
+NB: This setting has no effect when using `kerl build git...`, which invokes kerl to directly clone a git repository and build from there.
+
+
+### OTP_GITHUB_URL
+
+Default value: `https://github.com/erlang/otp`
+Acceptable value: any github fork of OTP, e.g. `https://github.com/basho/otp`
+
+
+### KERL_BUILD_DOCS
+### KERL_INSTALL_MANPAGES
+### KERL_INSTALL_HTMLDOCS
+
+If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang version regardless of origin (`tarball` backend from erlang.org or via `kerl build git`, or bia `git` backend).
+
+If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing a build created via `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `KERL_INSTALL_MANPAGES`.
+
+It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be up to 120MB.
+
+
+### KERL_SASL_STARTUP
+
+Build OTP to use SASL startup instead of minimal (default, when var is unset).
+
+
+## Installation configuration
+
+
+## Activation configuration
+
+The following apply when activating an installation (i.e. `. ${KERL_DEFAULT_INSTALL_DIR}/19.2/activate`).
+
+### KERL_ENABLE_PROMPT
+
+When set, automatically prefix the shell prompt with a section containing the erlang version (see [`$KERL_PROMPT_FORMAT`](#kerl_prompt_format) ).
+
+
+### KERL_PROMPT_FORMAT
+
+Default: `(%BUILDNAME%)`
+Available variables:
+ - `%BUILDNAME%`: Name of the kerl build (e.g. `my_test_build_18.0`)
+ - `%RELEASE%`: Name of the erlang release (e.g. `19.2` or `R16B02`)
+
+The format of the prompt section to add.
+
+
+### KERL_DEFAULT_INSTALL_DIR
+
+Effective when calling `kerl install <build>` with no installation location argument.
+
+If unset, `$PWD` is used.
+
+If set, install the build under `$KERL_DEFAULT_INSTALL_DIR/${buildname}`.
+
+
+### KERL_DEPLOY_SSH_OPTIONS
+### KERL_DEPLOY_RSYNC_OPTIONS
+
+Options passed to `ssh` and `rsync` during `kerl deploy` tasks.
 
 Note on .kerlrc
 ---------------
@@ -254,8 +377,8 @@ Commands reference
 
 Creates a named build either from an official Erlang/OTP release or from a git repository.
 
-    $ kerl build R14B02 r14b02
-    $ kerl build git https://github.com/erlang/otp dev r14b02_dev
+    $ kerl build 19.2 19.2
+    $ kerl build git https://github.com/erlang/otp dev 19.2_dev
 
 #### Tuning
 
@@ -265,7 +388,7 @@ You can specify the configure options to use when building Erlang/OTP with the
 `KERL_CONFIGURE_OPTIONS` variable, either in your $HOME/.kerlrc file or
 prepending it to the command line.
 
-    $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build R14B02 r14b02_hipe
+    $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build 19.2 19.2-hipe
 
 ##### Configure applications
 
@@ -308,8 +431,7 @@ after activating a kerl installation of Erlang/OTP. Here is an example of
 
 #### Building documentation
 
-Prior to kerl 1.0, kerl always downloaded prepared documentation from erlang.org. Now 
-if `KERL_BUILD_DOCS=yes` is set, kerl will build the man pages and HTML
+Prior to kerl 1.0, kerl always downloaded prepared documentation from erlang.org. Now if `KERL_BUILD_DOCS=yes` is set, kerl will build the man pages and HTML
 documentation from the source repository in which is working.
 
 **Note**: This variable takes precedent over the other documentation parameters. 
@@ -320,7 +442,7 @@ documentation from the source repository in which is working.
 
 Installs a named build to the specified filesystem location.
 
-    $ kerl install r14b02 /srv/otp/r14b02
+    $ kerl install 19.2 /srv/otp/19.2
 
 If path is omitted the current working directory will be used. However, if
 `KERL_DEFAULT_INSTALL_DIR` is defined in ~/.kerlrc,
@@ -422,13 +544,13 @@ Lists the releases, builds or installations available.
 Deletes the specified build or installation.
 
 ```
-$ kerl delete build r14b02
-The r14b02 build has been deleted
+$ kerl delete build 19.2
+The 19.2 build has been deleted
 ```
 
 ```
-$ kerl delete installation /srv/otp/r14b02
-The installation in /srv/otp/r14b02 has been deleted
+$ kerl delete installation /srv/otp/19.2
+The installation in /srv/otp/19.2 has been deleted
 ```
 
 ### active
@@ -439,7 +561,7 @@ Prints the path of the currently active installation, if any.
 
     $ kerl active
     The current active installation is:
-    /srv/otp/r14b02
+    /srv/otp/19.2
 
 ### status
 
@@ -449,12 +571,12 @@ Prints the available builds and installations as well as the currently active in
 
     $ kerl status
     Available builds:
-    R14B02,r14b02
-    git,r14b02_dev
+    19.2,19.2
+    git,19.2_dev
     ----------
     Available installations:
-    r14b02 /srv/otp/r14b02
-    r14b02 /srv/otp/r14b02_dev
+    19.2 /srv/otp/19.2
+    19.2 /srv/otp/19.2_dev
     ----------
     No Erlang/OTP kerl installation is currently active
 
