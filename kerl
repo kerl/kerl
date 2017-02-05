@@ -931,7 +931,7 @@ build_plt()
 
 do_plt()
 {
-    ACTIVE_PATH=`get_active_path`
+    ACTIVE_PATH="$1"
     if [ -n "$ACTIVE_PATH" ]; then
         plt=$ACTIVE_PATH/dialyzer/plt
         if [ -f "$plt" ]; then
@@ -945,6 +945,19 @@ do_plt()
     else
         echo "No Erlang/OTP kerl installation is currently active"
         return 2
+    fi
+}
+
+print_buildopts()
+{
+    buildopts="$1/$KERL_CONFIG_STORAGE_FILENAME"
+    if [ -f "$buildopts" ]; then
+        echo "The build options for the active installation are:"
+        cat "$buildopts"
+        return 0
+    else
+        echo "The build options for the active installation are not available."
+        return 1
     fi
 }
 
@@ -1545,7 +1558,7 @@ case "$1" in
         fi
         ;;
     plt)
-        if ! do_plt; then
+        if ! do_plt get_active_path; then
             exit 1;
         fi
         ;;
@@ -1557,7 +1570,14 @@ case "$1" in
         list_print installations
         echo "----------"
         if do_active; then
-            do_plt
+            ACTIVE_PATH=`get_active_path`
+            if [ -n "$ACTIVE_PATH" ]; then
+                do_plt "$ACTIVE_PATH"
+                print_buildopts "$ACTIVE_PATH"
+            else
+                echo "No Erlang/OTP installation is currently active."
+                exit 1
+            fi
         fi
         exit 0
         ;;
