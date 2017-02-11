@@ -946,8 +946,9 @@ build_plt()
     plt=$dialyzerd/plt
     build_log=$dialyzerd/build.log
     dialyzer=$1/bin/dialyzer
-    apps=`ls -1 $1/lib | cut -d- -f1 | grep -Ev 'erl_interface|jinterface' | xargs echo`
-    $dialyzer --output_plt $plt --build_plt --apps $apps > $build_log 2>&1
+    dirs=`find $1/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;`
+    apps=`for app in $dirs; do basename $app | cut -d- -f1 ; done | grep -Ev 'erl_interface|jinterface' | xargs echo`
+    $dialyzer --output_plt $plt --build_plt --apps $apps >> $build_log 2>&1
     status=$?
     if [ $status -eq 0 -o $status -eq 2 ]; then
         echo "Done building $plt"
