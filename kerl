@@ -1229,6 +1229,11 @@ list_has()
     return 1
 }
 
+path_usage()
+{
+    echo "usage: $0 path [<install_name>]"
+}
+
 list_usage()
 {
     echo "usage: $0 list <releases|builds|installations>"
@@ -1548,6 +1553,16 @@ case "$1" in
                 exit 1
                 ;;
         esac
+        ;;
+    path)
+        # Usage:
+        # kerl path
+        # # Print currently active installation path, else non-zero exit
+        # kerl path <install>
+        # Print path to installation with name <install>, else non-zero exit
+        if [ -z "$2" ]; then
+            get_active_path
+        fi
         ;;
     delete)
         if [ $# -ne 3 ]; then
