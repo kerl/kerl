@@ -171,7 +171,7 @@ usage()
 {
     echo "kerl: build and install Erlang/OTP"
     echo "usage: $0 <command> [options ...]"
-    printf "\n  <command>       Command to be executed\n\n"
+    echo "\n  <command>       Command to be executed\n\n"
     echo "Valid commands are:"
     echo "  build    Build specified release or git repository"
     echo "  install  Install the specified release at the given location"
@@ -1200,6 +1200,24 @@ list_print()
     echo "There are no $1 available"
 }
 
+list_print1()
+{
+    # TODO Assert that there is exactly 1 match
+    # TODO This function is a misnomer because it's becoming
+    # totally specialised to finding an installation by name
+    # We really only want to match if a single install has a path
+    # such that $(basename $installpath) == $2
+    # There are some possible extensions to this we could
+    # consider, such as:
+    # - match as above if there's exactly 1 match
+    # - if 2+ matches: prefer one in a subdir from $PWD
+    # - prefer $KERL_DEFAULT_INSTALL_DIR
+    # - probably more!
+    # FIXME 'grep -w' treats '-' as word boundary, so a search for
+    # 'foo-1' will match both '/path/foo-1' and '/path/bar-foo-1'
+    grep -w "$2" "$KERL_BASE_DIR/otp_$1" 2>&1
+}
+
 list_add()
 {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
@@ -1561,7 +1579,19 @@ case "$1" in
         # kerl path <install>
         # Print path to installation with name <install>, else non-zero exit
         if [ -z "$2" ]; then
-            get_active_path
+            # TODO Print a warning if no active path
+            activepath=$(get_active_path)
+            if [ -z "$activepath" ]; then
+                echo "No active kerl-managed erlang installation"
+                exit 1
+            fi
+            echo "$activepath"
+        else
+            # TODO Move this inside something like assert_valid_installation
+            # that either prints exactly 1 match or exits non-zero
+            # TODO Print exactly 1 otherwise error
+            activepath=$(list_print1 installations "$2" | cut -d' ' -f2)
+            echo $activepath
         fi
         ;;
     delete)
