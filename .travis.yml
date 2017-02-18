@@ -5,9 +5,13 @@ os:
 env:
     global:
         - KERL_BASE_DIR="$TMPDIR"/.kerl
-        - KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc"
+        - KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc wx"
     matrix: 
         - _KERL_VSN=19.2 
+        - _KERL_VSN=18.3
+        - _KERL_VSN=17.5
+        - _KERL_VSN=R16B03-1
+        - _KERL_VSN=R15B03-1
 
 script:
     - ./kerl update releases
