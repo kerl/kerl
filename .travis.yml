@@ -11,7 +11,6 @@ env:
     - _KERL_VSN=18.3
     - _KERL_VSN=17.5
     - _KERL_VSN=R16B03-1
-    - _KERL_VSN=R15B03-1
 
 script:
   - ./kerl update releases
