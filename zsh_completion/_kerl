@@ -30,6 +30,10 @@ _kerl_installations() {
   installations=(${(f)"$(_call_program installations kerl list installations 2>/dev/null | cut -f 2 -d " ")"})
 }
 
+_kerl_installnames() {
+    installnames=(${(f)"$(_call_program installations kerl list installations 2>/dev/null | cut -f 2 -d " " | xargs basename)"})
+}
+
 local -a _1st_arguments
 _1st_arguments=(
   'build:Build specified release or git repository'
@@ -39,6 +43,7 @@ _1st_arguments=(
   'list:List releases, builds and installations'
   'delete:Delete builds and installations'
   'active:Print the path of the active installation'
+  'path:Print the path of any installation'
   'status:Print available builds and installations'
   'prompt:Print a string suitable for insertion in prompt'
   'cleanup:Remove compilation artifacts (use after installation)'
@@ -95,6 +100,15 @@ case "$words[1]" in
       fi
       # TODO: suggest starting location of "$KERLDIR/$(lowercase $build)"
       _directories
+      ;;
+  path)
+      _arguments \
+          '1: :->installnames' && return 0
+      if [[ "$state" == installnames ]]; then
+          _kerl_installnames
+          _wanted installnames expl '' compadd -a installnames
+          return
+      fi
       ;;
   deploy) 
       _arguments \
