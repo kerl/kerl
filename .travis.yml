@@ -14,5 +14,5 @@ script:
     - travis_wait 30 ./kerl build "$_KERL_VSN" "$_KERL_VSN"
     - ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
     - ./kerl status
-    - ./kerl delete installation $(kerl path install_$_KERL_VSN)
+    - ./kerl delete installation $(./kerl path install_$_KERL_VSN)
     - ./kerl delete build "$_KERL_VSN"
