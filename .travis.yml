@@ -5,7 +5,7 @@ os:
 env:
   global:
     - KERL_BASE_DIR="$TMPDIR"/.kerl
-    - KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc wx"
+    - KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc"
   matrix: 
     - _KERL_VSN=19.2 
     - _KERL_VSN=18.3
