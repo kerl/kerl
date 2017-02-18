@@ -14,5 +14,8 @@ script:
     - travis_wait 30 ./kerl build "$_KERL_VSN" "$_KERL_VSN"
     - ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
     - ./kerl status
+    - source $(./kerl path install_$_KERL_VSN)/activate
+    - erl -s crypto -s init stop
+    - kerl_deactivate
     - ./kerl delete installation $(./kerl path install_$_KERL_VSN)
     - ./kerl delete build "$_KERL_VSN"
