@@ -598,6 +598,12 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+12 February 2017 - 1.4.1
+
+  - Fix reading a checksum file for compile options (#180)
+  - Get a little smarter about figuring out what apps to use
+    when building a PLT file for dialyzer (#181)
+
 5 February 2017 - 1.4.0
 
   - Fix environment variable handling and a typo (#179)
