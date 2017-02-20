@@ -171,7 +171,7 @@ usage()
 {
     echo "kerl: build and install Erlang/OTP"
     echo "usage: $0 <command> [options ...]"
-    echo "\n  <command>       Command to be executed\n\n"
+    printf "\n  <command>       Command to be executed\n\n"
     echo "Valid commands are:"
     echo "  build    Build specified release or git repository"
     echo "  install  Install the specified release at the given location"
