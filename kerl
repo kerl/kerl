@@ -1229,6 +1229,11 @@ list_has()
     return 1
 }
 
+path_usage()
+{
+    echo "usage: $0 path [<install_name>]"
+}
+
 list_usage()
 {
     echo "usage: $0 list <releases|builds|installations>"
@@ -1548,6 +1553,39 @@ case "$1" in
                 exit 1
                 ;;
         esac
+        ;;
+    path)
+        # Usage:
+        # kerl path
+        # # Print currently active installation path, else non-zero exit
+        # kerl path <install>
+        # Print path to installation with name <install>, else non-zero exit
+        if [ -z "$2" ]; then
+            activepath=$(get_active_path)
+            if [ -z "$activepath" ]; then
+                echo "No active kerl-managed erlang installation"
+                exit 1
+            fi
+            echo "$activepath"
+        else
+            # There are some possible extensions to this we could
+            # consider, such as:
+            # - if 2+ matches: prefer one in a subdir from $PWD
+            # - prefer $KERL_DEFAULT_INSTALL_DIR
+            match=
+            for ins in $(list_print installations | cut -d' ' -f2); do
+                if [ "$(basename $ins)" = "$2" ]; then
+                    if [ -z "$match" ]; then
+                        match="$ins"
+                    else
+                        echo "Error: too many matching installations" >&2
+                        exit 2
+                    fi
+                fi
+            done
+            [ -n "$match" ] && echo "$match" && exit 0
+            echo "Error: no matching installation found" >&2 && exit 1
+        fi
         ;;
     delete)
         if [ $# -ne 3 ]; then
