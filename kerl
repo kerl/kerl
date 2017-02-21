@@ -589,7 +589,7 @@ _do_build()
     if [ -e "./$KERL_CONFIG_STORAGE_FILENAME.md5" ]; then
         # Compare our current options to the saved ones
         OLD_SUM=$(read -r < "./$KERL_CONFIG_STORAGE_FILENAME.md5")
-        if [ "$SUM" -ne "$OLD_SUM" ]; then
+        if [ "$SUM" != "$OLD_SUM" ]; then
             echo "Configure options have changed. Reconfiguring..."
             rm -f configure
             mv "$TMPOPT" "./$KERL_CONFIG_STORAGE_FILENAME"
