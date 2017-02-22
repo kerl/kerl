@@ -580,6 +580,20 @@ Prints the available builds and installations as well as the currently active in
     ----------
     No Erlang/OTP kerl installation is currently active
 
+### path
+
+    kerl path [installation]
+
+Prints the path of the currently active installation if one is active. When given an
+installation name, it will return the path to that installation location on disk.
+This makes it useful for automation without having to run kerl's output through
+other tools to extract to path information.
+
+    $ kerl path
+    No active kerl-managed erlang installation
+
+    $ kerl path 19.2.3
+    /aux/erlangs/19.2.3
 
 Compiling crypto on Macs
 ------------------------
@@ -598,6 +612,12 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+22 February 2017 - 1.4.2
+
+  - Fixed a syntax error when comparing hash outputs on reconfigurations (#191)
+  - Added the path subcommand; enabled Travis-CI (#190)
+  - Fixed mistakenly omitted version string from past 2 releases.
+
 12 February 2017 - 1.4.1
 
   - Fix reading a checksum file for compile options (#180)
