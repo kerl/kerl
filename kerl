@@ -369,6 +369,12 @@ do_git_build()
         rm -Rf "${KERL_BUILD_DIR:?}/$3"
         exit 1
     fi
+    git submodule update --init --recursive > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Couldn't update submodules"
+        rm -Rf "$KERL_BUILD_DIR/$3"
+        exit 1
+    fi
     if [ ! -x otp_build ]; then
         echo "Not a valid Erlang/OTP repository"
         rm -Rf "${KERL_BUILD_DIR:?}/$3"
