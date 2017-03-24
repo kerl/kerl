@@ -24,118 +24,40 @@
 
 unset ERL_TOP
 
-KERL_VERSION="1.4.2"
+KERL_VERSION="1.5.0"
 
 #Grep fix for mac pcre errors
 GREP_OPTIONS=''
-
-ERLANG_DOWNLOAD_URL="http://www.erlang.org/download"
-KERL_CONFIG_STORAGE_FILENAME=".kerl_config"
 
 if [ -z "$HOME" ]; then
     echo "Error: \$HOME is empty or not set." 1>&2
     exit 1
 fi
 
-# Default values
-: ${OTP_GITHUB_URL:="https://github.com/erlang/otp"}
+# These need to be set before anything else can continue.
+# Other vars are given default values later.
 : ${KERL_BASE_DIR:="$HOME"/.kerl}
 : ${KERL_CONFIG:="$HOME"/.kerlrc}
-: ${KERL_DOWNLOAD_DIR:="${KERL_BASE_DIR:?}"/archives}
-: ${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
-: ${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
 
-if [ -n "$OTP_GITHUB_URL" ]; then
-    _OGU="$OTP_GITHUB_URL"
-fi
-if [ -n "$KERL_CONFIGURE_OPTIONS" ]; then
-    _KCO="$KERL_CONFIGURE_OPTIONS"
-fi
-if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
-    _KCA="$KERL_CONFIGURE_APPLICATIONS"
-fi
-if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
-    _KCDA="$KERL_CONFIGURE_DISABLE_APPLICATIONS"
-fi
-if [ -n "$KERL_SASL_STARTUP" ]; then
-    _KSS="$KERL_SASL_STARTUP"
-fi
-if [ -n "$KERL_DEPLOY_SSH_OPTIONS" ]; then
-    _KDSSH="$KERL_DEPLOY_SSH_OPTIONS"
-fi
-if [ -n "$KERL_DEPLOY_RSYNC_OPTIONS" ]; then
-    _KDRSYNC="$KERL_DEPLOY_RSYNC_OPTIONS"
-fi
-if [ -n "$KERL_INSTALL_MANPAGES" ]; then
-    _KIM="$KERL_INSTALL_MANPAGES"
-fi
-if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
-    _KIHD="$KERL_INSTALL_HTMLDOCS"
-fi
-if [ -n "$KERL_BUILD_PLT" ]; then
-    _KBPLT="$KERL_BUILD_PLT"
-fi
-if [ -n "$KERL_BUILD_DOCS" ]; then
-    _KBD="$KERL_BUILD_DOCS"
-fi
-if [ -n "$KERL_BUILD_BACKEND" ]; then
-    _KBB="$KERL_BUILD_BACKEND"
-fi
-OTP_GITHUB_URL=
-KERL_CONFIGURE_OPTIONS=
-KERL_CONFIGURE_APPLICATIONS=
-KERL_CONFIGURE_DISABLE_APPLICATIONS=
-KERL_SASL_STARTUP=
-KERL_DEPLOY_SSH_OPTIONS=
-KERL_DEPLOY_RSYNC_OPTIONS=
-KERL_INSTALL_MANPAGES=
-KERL_INSTALL_HTMLDOCS=
-KERL_BUILD_PLT=
-KERL_BUILD_DOCS=
-KERL_BUILD_BACKEND=
+# Back up the outer shell's env
+_OLDENV=$(env)
 
 # ensure the base dir exists
 mkdir -p "$KERL_BASE_DIR" || exit 1
 
 # source the config file if available
-if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
+[ -f "$KERL_CONFIG" ] && . "$KERL_CONFIG"
 
-if [ -n "$_OGU" ]; then
-    OTP_GITHUB_URL="$_OGU"
-fi
-if [ -n "$_KCO" ]; then
-    KERL_CONFIGURE_OPTIONS="$_KCO"
-fi
-if [ -n "$_KCA" ]; then
-    KERL_CONFIGURE_APPLICATIONS="$_KCA"
-fi
-if [ -n "$_KCDA" ]; then
-    KERL_CONFIGURE_DISABLE_APPLICATIONS="$_KCDA"
-fi
-if [ -n "$_KSS" ]; then
-    KERL_SASL_STARTUP="$_KSS"
-fi
-if [ -n "$_KDSSH" ]; then
-    KERL_DEPLOY_SSH_OPTIONS="$_KDSSH"
-fi
-if [ -n "$_KDRSYNC" ]; then
-    KERL_DEPLOY_RSYNC_OPTIONS="$_KDRSYNC"
-fi
-if [ -n "$_KIM" ]; then
-    KERL_INSTALL_MANPAGES="$_KIM"
-fi
-if [ -n "$_KIHD" ]; then
-    KERL_INSTALL_HTMLDOCS="$_KIHD"
-fi
-if [ -n "$_KBPLT" ]; then
-    KERL_BUILD_PLT="$_KBPLT"
-fi
-if [ -n "$_KBD" ]; then
-    KERL_BUILD_DOCS="$_KBD"
-fi
-if [ -n "$_KBB" ]; then
-    KERL_BUILD_BACKEND="$_KBB"
-fi
+# Replay backed up env over that from config
+export $(echo $_OLDENV | xargs)
+
+# Default values for those still unset from execution env and config file
+: ${KERL_DOWNLOAD_DIR:="${KERL_BASE_DIR:?}"/archives}
+: ${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
+: ${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
+: ${OTP_GITHUB_URL:="https://github.com/erlang/otp"}
+: ${ERLANG_DOWNLOAD_URL:="http://www.erlang.org/download"}
+: ${KERL_CONFIG_STORAGE_FILENAME:=".kerl_config"}
 
 if [ -z "$KERL_SASL_STARTUP" ]; then
     INSTALL_OPT=-minimal
