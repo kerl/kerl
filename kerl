@@ -472,7 +472,7 @@ maybe_patch()
 maybe_patch_all()
 {
     perlver=$(get_perl_version)
-    if [ "$perlver" -ge 24 ]; then
+    if [ "$perlver" -ge 22 ]; then
         case "$1" in
             14)
                 apply_r14_beam_makeops_patch >> "$LOGFILE"
