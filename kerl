@@ -588,7 +588,7 @@ _do_build()
     # Check for a .kerl_config.md5 file
     if [ -e "./$KERL_CONFIG_STORAGE_FILENAME.md5" ]; then
         # Compare our current options to the saved ones
-        OLD_SUM=$(read -r < "./$KERL_CONFIG_STORAGE_FILENAME.md5")
+        read -r OLD_SUM < "./$KERL_CONFIG_STORAGE_FILENAME.md5"
         if [ "$SUM" != "$OLD_SUM" ]; then
             echo "Configure options have changed. Reconfiguring..."
             rm -f configure
