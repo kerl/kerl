@@ -391,7 +391,7 @@ get_otp_version()
 get_perl_version()
 {
     if assert_perl; then
-        perl -v | grep version | sed $SED_OPT -e 's/.*v5\.([0-9]+)\.[0-9].*/\1/'
+        perl -V | grep version | sed $SED_OPT -e 's/.*v5\.([0-9]+)\.[0-9].*/\1/'
     else
         echo "FATAL: I couldn't find perl which is required to compile Erlang."
         exit 1
