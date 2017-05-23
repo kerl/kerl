@@ -542,6 +542,15 @@ _do_build()
         Darwin)
             OSVERSION=`uname -r`
             RELVERSION=`get_otp_version "$1"`
+
+            # Ensure that the --enable-darwin-64bit flag is set on all macOS
+            # That way even on older Erlangs we get 64 bit Erlang builds
+            # macOS has been mandatory 64 bit for a while
+            echo -n $KERL_CONFIGURE_OPTIONS | grep "darwin-64bit" 1>/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                KERL_CONFIGURE_OPTIONS = "$KERL_CONFIGURE_OPTIONS --enable-darwin-64bit"
+            fi
+
             case "$OSVERSION" in
                 16*|15*)
                     echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1
