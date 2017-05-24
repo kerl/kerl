@@ -1,12 +1,31 @@
 kerl
 ====
+Easy building and installing of [Erlang/OTP](http://www.erlang.org) instances.
 
-Easy building and installing of [Erlang/OTP](http://www.erlang.org) instances
+Kerl aims to be shell agnostic and its only dependencies, excluding what's
+required to actually build Erlang/OTP, are `curl` and `git`.
 
-Kerl aims to be shell agnostic and its only dependencies, excluding what's required to actually build Erlang/OTP, are `curl` and `git`.
+All is done so that, once a specific release has been built, creating a new
+installation is as fast as possible.
 
-All is done so that, once a specific release has been built, creating a new installation is as fast as possible.
+OTP Support Policy
+------------------
+As of 2017 May 24, we are supporting OTP back to R14B04. Older builds
+may or may not work. We will advance release support as new releases of OTP
+become available.  For example, when OTP 20 is released, we will support Erlang
+builds R15 and newer.
 
+Triage cadence
+--------------
+We triage kerl pull requests and issues at least once a month, typically on
+the fourth Tuesday of the month at 1 pm US/Pacific or 8 pm UTC.
+
+IRC channel
+-----------
+We have a channel on [freenode](http://webchat.freenode.net) called `#kerl` -
+feel free to join and ask support or implementation questions any time. If
+no one is around, feel free to open an issue with your question or problem
+instead.
 
 Downloading
 -----------
@@ -14,7 +33,6 @@ Downloading
 If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew), you can install kerl, along with shell completion, by running:
 
     $ brew install kerl
-
 
 Alternatively, you can download the script directly from github:
 
@@ -612,6 +630,16 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+24 May 2017 - 1.5.0
+
+  - Published an OTP support policy, triage schedule, IRC channel
+  - Apply build patches for Perls >= 5.22 on older OTP releases (#198)
+  - Fix bad `read` usage (#200)
+  - Add a force flag for mv (#201)
+  - Use a more portable way to get perl minor release version (#204)
+  - Force 64 bit flag on macOS (#205)
+  - Fix documentation symlinks (#206)
+
 22 February 2017 - 1.4.2
 
   - Fixed a syntax error when comparing hash outputs on reconfigurations (#191)
