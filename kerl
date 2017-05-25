@@ -24,7 +24,7 @@
 
 unset ERL_TOP
 
-KERL_VERSION="1.5.0"
+KERL_VERSION="1.5.1"
 
 #Grep fix for mac pcre errors
 GREP_OPTIONS=''

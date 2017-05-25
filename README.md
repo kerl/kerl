@@ -630,6 +630,10 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+25 May 2017 - 1.5.1
+
+  - Bug Fix: Remove spurious spaces (#209)
+
 24 May 2017 - 1.5.0
 
   - Published an OTP support policy, triage schedule, IRC channel
