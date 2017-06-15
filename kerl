@@ -29,6 +29,8 @@ KERL_VERSION="1.7.0"
 #Grep fix for mac pcre errors
 GREP_OPTIONS=''
 
+# TODO: make DOCSH_GITHUB_URL configurable
+DOCSH_GITHUB_URL="https://github.com/erszcz/docsh.git"
 ERLANG_DOWNLOAD_URL="http://www.erlang.org/download"
 KERL_CONFIG_STORAGE_FILENAME=".kerl_config"
 
@@ -1080,6 +1082,65 @@ ACTIVATE_CSH
     echo ". ${absdir}/activate${SHELL_SUFFIX}"
     echo "Later on, you can leave the installation typing:"
     echo "kerl_deactivate"
+}
+
+install_docsh() {
+    # TODO: check version compatibility
+
+    REPO_URL=$DOCSH_GITHUB_URL
+    GIT=$(echo -n $REPO_URL | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
+    BUILDNAME=$1
+    DOCSH_DIR="$KERL_BUILD_DIR/$BUILDNAME/docsh"
+    DOCSH_REF=master
+
+    mkdir -p "$KERL_GIT_DIR" || exit 1
+    cd "$KERL_GIT_DIR" || exit 1
+    echo "Checking out docsh git repository from ${REPO_URL}..."
+    if [ ! -d "$GIT" ]; then
+        git clone -q --mirror "$REPO_URL" "$GIT" > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Error mirroring remote git repository"
+            exit 1
+        fi
+    fi
+    cd "$GIT" || exit 1
+    git remote update --prune > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error updating remote git repository"
+        exit 1
+    fi
+
+    rm -Rf "$DOCSH_DIR"
+    mkdir -p "$DOCSH_DIR" || exit 1
+    cd "$DOCSH_DIR" || exit 1
+    git clone -l "$KERL_GIT_DIR/$GIT" $DOCSH_DIR > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error cloning local git repository"
+        exit 1
+    fi
+    cd $DOCSH_DIR || exit 1
+    git checkout "$DOCSH_REF" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        git checkout -b "$DOCSH_REF" "$DOCSH_REF" > /dev/null 2>&1
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Couldn't checkout specified version"
+        rm -Rf "$DOCSH_DIR"
+        exit 1
+    fi
+    if [ ! -f ./install.sh ]; then
+        echo "docsh install script not found"
+        rm -Rf "$DOCSH_DIR"
+        exit 1
+    fi
+
+    echo "Installing docsh for $BUILDNAME from git, please wait..."
+    yes | ./install.sh > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Couldn't install docsh"
+        rm -Rf "$DOCSH_DIR"
+        exit 1
+    fi
 }
 
 download_manpages()
