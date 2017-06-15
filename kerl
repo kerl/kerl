@@ -404,7 +404,7 @@ do_git_build()
     GIT=$(echo -n "$1" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
-    echo "Checking Erlang/OTP git repository from $1..."
+    echo "Checking out Erlang/OTP git repository from $1..."
     if [ ! -d "$GIT" ]; then
         git clone -q --mirror "$1" "$GIT" > /dev/null 2>&1
         if [ $? -ne 0 ]; then
