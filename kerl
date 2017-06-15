@@ -1135,10 +1135,14 @@ install_docsh() {
     fi
 
     echo "Installing docsh for $BUILDNAME from git, please wait..."
-    yes | ./install.sh > /dev/null 2>&1
+    # TODO: MUST troubleshoot the install script failure
+    set -x
+    : yes | ./install.sh > /dev/null 2>&1
+    : yes | DEBUG=1 ./install.sh
+    yes | ./install.sh
     if [ $? -ne 0 ]; then
         echo "Couldn't install docsh"
-        rm -Rf "$DOCSH_DIR"
+        #rm -Rf "$DOCSH_DIR"
         exit 1
     fi
 }
