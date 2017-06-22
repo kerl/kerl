@@ -906,7 +906,7 @@ ACTIVATE_CSH
         cat << OTP_20_ADDITION >> "$absdir/activate"
 _KERL_SAVED_ERL_AFLAGS="\$ERL_AFLAGS"
 export _KERL_SAVED_ERL_AFLAGS
-export ERL_AFLAGS="-kernel shell_history_enabled \$ERL_AFLAGS"
+export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
 OTP_20_ADDITION
     fi
 
