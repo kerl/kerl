@@ -904,9 +904,12 @@ ACTIVATE_CSH
     if [ $otpver -ge 20 ]; then
         # https://twitter.com/mononcqc/status/877544929496629248
         cat << OTP_20_ADDITION >> "$absdir/activate"
-_KERL_SAVED_ERL_AFLAGS="\$ERL_AFLAGS"
+_KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
 export _KERL_SAVED_ERL_AFLAGS
-export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+kernel_history=\$(echo "\$ERL_AFLAGS" | grep "kernel shell_history")
+if [ -z "\$kernel_history" ]; then
+    export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+fi
 OTP_20_ADDITION
     fi
 
