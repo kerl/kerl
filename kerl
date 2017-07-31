@@ -1641,7 +1641,8 @@ case "$1" in
         fi
         ;;
     plt)
-        if ! do_plt get_active_path; then
+        ACTIVE_PATH=`get_active_path`
+        if ! do_plt "$ACTIVE_PATH"; then
             exit 1;
         fi
         ;;
