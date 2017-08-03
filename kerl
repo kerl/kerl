@@ -768,6 +768,12 @@ REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
 _KERL_ACTIVE_DIR="$absdir"
 export _KERL_ACTIVE_DIR
+# https://twitter.com/mononcqc/status/877544929496629248
+export _KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
+kernel_history=\$(echo "\$ERL_AFLAGS" | grep "kernel shell_history")
+if [ -z "\$kernel_history" ]; then
+    export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+fi
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     _KERL_SAVED_PS1="\$PS1"
@@ -899,19 +905,6 @@ endif
 
 rehash
 ACTIVATE_CSH
-
-    otpver=$(get_otp_version "$rel")
-    if [ $otpver -ge 20 ]; then
-        # https://twitter.com/mononcqc/status/877544929496629248
-        cat << OTP_20_ADDITION >> "$absdir/activate"
-_KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
-export _KERL_SAVED_ERL_AFLAGS
-kernel_history=\$(echo "\$ERL_AFLAGS" | grep "kernel shell_history")
-if [ -z "\$kernel_history" ]; then
-    export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
-fi
-OTP_20_ADDITION
-    fi
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
         DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel/lib/erlang"
