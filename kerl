@@ -179,6 +179,7 @@ usage()
     echo "  update   Update the list of available releases from your source provider"
     echo "  list     List releases, builds and installations"
     echo "  delete   Delete builds and installations"
+    echo "  path     Print the path of a given installation"
     echo "  active   Print the path of the active installation"
     echo "  plt      Print Dialyzer PLT path for the active installation"
     echo "  status   Print available builds and installations"
