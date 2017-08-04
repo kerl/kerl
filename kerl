@@ -338,9 +338,9 @@ _check_required_pkgs()
         if [ -n "$has_dpkg" -a -n "$has_rpm" ]; then
             echo "WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done."
         elif [ -n "$has_dpkg" ]; then
-            retval=$(_check_dpkg)
+            check_dpkg
         elif [ -n "$has_rpm" ]; then
-            retval=$(_check_rpm)
+            _check_rpm
         fi
     fi
 }
