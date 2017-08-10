@@ -1779,6 +1779,25 @@ case "$1" in
             fi
         fi
         ;;
+    install-docsh)
+        ACTIVE_PATH="$(get_active_path)"
+        if [ -n "$ACTIVE_PATH" ]; then
+            ACTIVE_NAME="$(get_name_from_install_path "$ACTIVE_PATH")"
+            if [ -z "$ACTIVE_NAME" ]; then
+                ## TODO: Are git builds installed the usual way
+                ##       or do we need this clause to provide a fallback?
+                #BUILDNAME="$(basename "$ACTIVE_PATH")"
+                echo "$ACTIVE_PATH is not a kerl installation"
+                exit 1
+            else
+                BUILDNAME="$ACTIVE_NAME"
+            fi
+            install_docsh $BUILDNAME
+        else
+            echo "No Erlang/OTP installation is currently active - can't install docsh"
+            exit 1
+        fi
+        ;;
     deploy)
         if [ $# -lt 2 ]; then
             echo "usage: $0 $1 <[user@]host> [directory] [remote_directory]"
