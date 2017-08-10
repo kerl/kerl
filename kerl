@@ -1198,7 +1198,7 @@ do_plt()
             return 1
         fi
     else
-        echo "No Erlang/OTP kerl installation is currently active"
+        echo "No Erlang/OTP installation is currently active"
         return 2
     fi
 }
@@ -1503,7 +1503,7 @@ do_active()
         echo "$ACTIVE_PATH"
         return 0
     else
-        echo "No Erlang/OTP kerl installation is currently active"
+        echo "No Erlang/OTP installation is currently active"
         return 1
     fi
 }
@@ -1926,7 +1926,7 @@ case "$1" in
                 do_plt "$ACTIVE_PATH"
                 print_buildopts "$ACTIVE_PATH"
             else
-                echo "No Erlang/OTP installation is currently active."
+                echo "No Erlang/OTP installation is currently active"
                 exit 1
             fi
         fi
