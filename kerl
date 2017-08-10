@@ -1125,26 +1125,28 @@ install_docsh() {
     fi
     if [ $? -ne 0 ]; then
         echo "Couldn't checkout specified version"
-        rm -Rf "$DOCSH_DIR"
-        exit 1
-    fi
-    if [ ! -f ./install.sh ]; then
-        echo "docsh install script not found"
-        rm -Rf "$DOCSH_DIR"
+        : rm -Rf "$DOCSH_DIR"
         exit 1
     fi
 
-    echo "Installing docsh for $BUILDNAME from git, please wait..."
-    # TODO: MUST troubleshoot the install script failure
-    set -x
-    : yes | ./install.sh > /dev/null 2>&1
-    : yes | DEBUG=1 ./install.sh
-    yes | ./install.sh
-    if [ $? -ne 0 ]; then
-        echo "Couldn't install docsh"
-        #rm -Rf "$DOCSH_DIR"
+	./rebar3 compile
+	if [ $? -ne 0 ]; then
+		echo "Couldn't compile docsh"
+        : rm -Rf "$DOCSH_DIR"
+		exit 1
+	fi
+
+    ## Install $HOME/.erlang
+    if [ if $HOME/.erlang ]; then
+        echo "Couldn't install $HOME/.erlang - the file already exists"
+        : rm -Rf "$DOCSH_DIR"
         exit 1
+    else
+        cat $DOCSH_DIR/templates/dot.erlang > $HOME/.erlang
     fi
+    ## Install docsh user_default
+    echo "not done yet, fail intentionally"
+    exit 1
 }
 
 download_manpages()
