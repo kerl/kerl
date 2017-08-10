@@ -1091,7 +1091,7 @@ install_docsh() {
     GIT=$(echo -n $REPO_URL | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
     BUILDNAME=$1
     DOCSH_DIR="$KERL_BUILD_DIR/$BUILDNAME/docsh"
-    DOCSH_REF=master
+    DOCSH_REF=kerl-install-docsh
 
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
