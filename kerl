@@ -933,8 +933,8 @@ ACTIVATE_CSH
     fi
 
     PID=$$
-    PPID=$(ps -p $PID -o ppid | grep -E "[0-9]+" -o)
-    PARENT_CMD=$(ps -p $PPID -o comm | tail -n 1)
+    PARENT_PID=$(ps -p $PID -o ppid | grep -E "[0-9]+" -o)
+    PARENT_CMD=$(ps -p $PARENT_PID -o ucomm | tail -n 1)
     case "$PARENT_CMD" in
         fish)
             SHELL_SUFFIX=".fish"
