@@ -1137,7 +1137,7 @@ install_docsh() {
 	fi
 
     ## Install $HOME/.erlang
-    if [ if $HOME/.erlang ]; then
+    if [ -f $HOME/.erlang ]; then
         echo "Couldn't install $HOME/.erlang - the file already exists"
         : rm -Rf "$DOCSH_DIR"
         exit 1
