@@ -1125,21 +1125,21 @@ install_docsh() {
     fi
     if [ $? -ne 0 ]; then
         echo "Couldn't checkout specified version"
-        : rm -Rf "$DOCSH_DIR"
+        rm -Rf "$DOCSH_DIR"
         exit 1
     fi
 
 	./rebar3 compile
 	if [ $? -ne 0 ]; then
 		echo "Couldn't compile docsh"
-        : rm -Rf "$DOCSH_DIR"
+        rm -Rf "$DOCSH_DIR"
 		exit 1
 	fi
 
     ## Install $HOME/.erlang
     if [ -f $HOME/.erlang ]; then
         echo "Couldn't install $HOME/.erlang - the file already exists"
-        : rm -Rf "$DOCSH_DIR"
+        rm -Rf "$DOCSH_DIR"
         exit 1
     else
         cat $DOCSH_DIR/templates/dot.erlang > $HOME/.erlang
@@ -1147,7 +1147,7 @@ install_docsh() {
     ## Install docsh user_default
     if [ -f $DOCSH_DIR/user_default.beam ]; then
         echo "Couldn't install $DOCSH_DIR/user_default.beam - the file already exists"
-        : rm -Rf "$DOCSH_DIR"
+        rm -Rf "$DOCSH_DIR"
         exit 1
     else
         erlc -I $DOCSH_DIR/include -o $DOCSH_DIR/ ~/work/erszcz/docsh/templates/user_default.erl
