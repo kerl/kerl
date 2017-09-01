@@ -865,6 +865,10 @@ kerl_deactivate()
         export PS1
         unset _KERL_SAVED_PS1
     fi
+    if [ -n "\$_KERL_DOCSH_USER_DEFAULT" ]; then
+        unset DOCSH_USER_DEFAULT
+        unset _KERL_DOCSH_USER_DEFAULT
+    fi
     if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
@@ -907,11 +911,16 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     PS1="\$PRMPT\$PS1"
     export PS1
 fi
+if [ -d "$absdir/lib/docsh" ]; then
+    export DOCSH_USER_DEFAULT="$absdir/lib/docsh/user_default"
+    export _KERL_DOCSH_USER_DEFAULT=yes
+fi
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
 ACTIVATE
 
+## TODO: add docsh vars
     cat <<ACTIVATE_FISH > "$absdir/activate.fish"
 # credits to virtualenv
 function _kerl_remove_el --description 'remove element from array'
@@ -976,6 +985,7 @@ if set --query KERL_ENABLE_PROMPT
 end
 ACTIVATE_FISH
 
+## TODO: add docsh vars
     cat <<ACTIVATE_CSH > "$absdir/activate.csh"
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
