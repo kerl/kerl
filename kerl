@@ -1145,14 +1145,6 @@ install_docsh() {
     else
         cat $DOCSH_DIR/templates/dot.erlang > $HOME/.erlang
     fi
-    ## Install docsh user_default
-    if [ -f $DOCSH_DIR/user_default.beam ]; then
-        echo "Couldn't install $DOCSH_DIR/user_default.beam - the file already exists"
-        rm -Rf "$DOCSH_DIR"
-        exit 1
-    else
-        erlc -I $DOCSH_DIR/include -o $DOCSH_DIR/ ~/work/erszcz/docsh/templates/user_default.erl
-    fi
     ## Install docsh
     if [ -f $ACTIVE_PATH/lib/docsh ]; then
         echo "Couldn't install $ACTIVE_PATH/lib/docsh - the directory already exists"
@@ -1160,6 +1152,14 @@ install_docsh() {
         exit 1
     else
         cp -R $DOCSH_DIR/_build/default/lib/docsh $ACTIVE_PATH/lib/
+    fi
+    ## Install docsh user_default
+    if [ -f $ACTIVE_PATH/lib/docsh/user_default.beam ]; then
+        echo "Couldn't install $ACTIVE_PATH/lib/docsh/user_default.beam - the file already exists"
+        rm -Rf "$DOCSH_DIR"
+        exit 1
+    else
+        erlc -I $DOCSH_DIR/include -o $ACTIVE_PATH/lib/docsh/ $DOCSH_DIR/templates/user_default.erl
     fi
 }
 
