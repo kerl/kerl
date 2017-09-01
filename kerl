@@ -1092,6 +1092,7 @@ install_docsh() {
     BUILDNAME=$1
     DOCSH_DIR="$KERL_BUILD_DIR/$BUILDNAME/docsh"
     DOCSH_REF=kerl-install-docsh
+    ACTIVE_PATH=$2
 
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
@@ -1151,6 +1152,14 @@ install_docsh() {
         exit 1
     else
         erlc -I $DOCSH_DIR/include -o $DOCSH_DIR/ ~/work/erszcz/docsh/templates/user_default.erl
+    fi
+    ## Install docsh
+    if [ -f $ACTIVE_PATH/lib/docsh ]; then
+        echo "Couldn't install $ACTIVE_PATH/lib/docsh - the directory already exists"
+        rm -Rf "$DOCSH_DIR"
+        exit 1
+    else
+        cp -R $DOCSH_DIR/_build/default/lib/docsh $ACTIVE_PATH/lib/
     fi
 }
 
@@ -1799,7 +1808,7 @@ case "$1" in
             else
                 BUILDNAME="$ACTIVE_NAME"
             fi
-            install_docsh $BUILDNAME
+            install_docsh "$BUILDNAME" "$ACTIVE_PATH"
         else
             echo "No Erlang/OTP installation is currently active - can't install docsh"
             exit 1
