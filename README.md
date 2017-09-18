@@ -284,7 +284,7 @@ Acceptable value: any github fork of OTP, e.g. `https://github.com/basho/otp`
 ### KERL_INSTALL_MANPAGES
 ### KERL_INSTALL_HTMLDOCS
 
-If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang version regardless of origin (`tarball` backend from erlang.org or via `kerl build git`, or bia `git` backend).
+If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang version regardless of origin (`tarball` backend from erlang.org or via `kerl build git`, or via `git` backend).
 
 If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing a build created via `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `KERL_INSTALL_MANPAGES`.
 
@@ -404,7 +404,8 @@ Creates a named build either from an official Erlang/OTP release or from a git r
 
 You can specify the configure options to use when building Erlang/OTP with the
 `KERL_CONFIGURE_OPTIONS` variable, either in your $HOME/.kerlrc file or
-prepending it to the command line.
+prepending it to the command line.  Full list of all options can be in
+[Erlang documentation](http://erlang.org/doc/installation_guide/INSTALL.html#Advanced-configuration-and-build-of-ErlangOTP_Configuring).
 
     $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build 19.2 19.2-hipe
 
