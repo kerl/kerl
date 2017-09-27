@@ -538,6 +538,16 @@ do_normal_build()
     list_add builds "$1,$2"
 }
 
+_flags(){
+  host=$(./erts/autoconf/config.guess)
+  DARWIN_VERSION=$(uname -r | sed $SED_OPT -e 's/R?([0-9]{1,2}).+/\1/')
+  if [ "$DARWIN_VERSION" -ge 17 ]; then
+    CFLAGS="$CFLAGS" DED_LD="$CC" DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp" $@
+  else
+    CFLAGS="$CFLAGS" $@
+  fi
+}
+
 _do_build()
 {
     case "$KERL_SYSTEM" in
@@ -552,9 +562,9 @@ _do_build()
             if [ $? -ne 0 ]; then
                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --enable-darwin-64bit"
             fi
-
+            
             case "$OSVERSION" in
-                16*|15*)
+                17*|16*|15*)
                     echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1
                     # Reminder to self: 0 from grep means the string was detected
                     if [ $? -ne 0 ]; then
@@ -622,15 +632,15 @@ _do_build()
     fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         ./otp_build autoconf $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1 && \
-           CFLAGS="$CFLAGS" ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+           _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
     else
-        CFLAGS="$CFLAGS" ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+        _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
 
     fi
     echo -n $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" 1>/dev/null 2>&1
     if [ $? -ne 0 ]; then
         make clean >> "$LOGFILE" 2>&1
-        CFLAGS="$CFLAGS" ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+        _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
     fi
     if [ $? -ne 0 ]; then
         show_logfile "Configure failed." "$LOGFILE"
@@ -665,7 +675,7 @@ _do_build()
         done
     fi
 
-    CFLAGS="$CFLAGS" ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+    _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
     if [ $? -ne 0 ]; then
         show_logfile "Build failed." "$LOGFILE"
         list_remove builds "$1 $2"
