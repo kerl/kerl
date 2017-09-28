@@ -482,6 +482,12 @@ maybe_patch_all()
             15)
                 apply_r15_beam_makeops_patch >> "$LOGFILE"
                 ;;
+            16)
+                apply_r16_wx_ptr_patch >> "$LOGFILE"
+                ;;
+            17|18|19)
+                apply_wx_ptr_patch >> "$LOGFILE"
+                ;;
             *)
                 ;;
         esac
@@ -1475,6 +1481,63 @@ apply_r15_beam_makeops_patch()
  
      if ($prev_last && !is_instr($prev_last, 'fail')) {
  	error("Line $line: A previous transformation shadows '$orig_transform'");
+_END_PATCH
+}
+
+#https://github.com/erlang/otp/commit/a64c4d806fa54848c35632114585ad82b98712e8.diff
+apply_wx_ptr_patch()
+{
+    patch -p1 <<'_END_PATCH'
+diff --git a/lib/wx/c_src/wxe_impl.cpp b/lib/wx/c_src/wxe_impl.cpp
+index 0d2da5d4a79..8118136d30e 100644
+--- a/lib/wx/c_src/wxe_impl.cpp
++++ b/lib/wx/c_src/wxe_impl.cpp
+@@ -666,7 +666,7 @@ void * WxeApp::getPtr(char * bp, wxeMemEnv *memenv) {
+     throw wxe_badarg(index);
+   }
+   void * temp = memenv->ref2ptr[index];
+-  if((index < memenv->next) && ((index == 0) || (temp > NULL)))
++  if((index < memenv->next) && ((index == 0) || (temp != (void *)NULL)))
+     return temp;
+   else {
+     throw wxe_badarg(index);
+@@ -678,7 +678,7 @@ void WxeApp::registerPid(char * bp, ErlDrvTermData pid, wxeMemEnv * memenv) {
+   if(!memenv)
+     throw wxe_badarg(index);
+   void * temp = memenv->ref2ptr[index];
+-  if((index < memenv->next) && ((index == 0) || (temp > NULL))) {
++  if((index < memenv->next) && ((index == 0) || (temp != (void *) NULL))) {
+     ptrMap::iterator it;
+     it = ptr2ref.find(temp);
+     if(it != ptr2ref.end()) {
+_END_PATCH
+}
+
+apply_r16_wx_ptr_patch()
+{
+    patch -p1 <<'_END_PATCH'
+diff --git a/lib/wx/c_src/wxe_impl.cpp b/lib/wx/c_src/wxe_impl.cpp
+index cc9bcc995..1b1912630 100644
+--- a/lib/wx/c_src/wxe_impl.cpp
++++ b/lib/wx/c_src/wxe_impl.cpp
+@@ -757,7 +757,7 @@ void * WxeApp::getPtr(char * bp, wxeMemEnv *memenv) {
+     throw wxe_badarg(index);
+   }
+   void * temp = memenv->ref2ptr[index];
+-  if((index < memenv->next) && ((index == 0) || (temp > NULL)))
++  if((index < memenv->next) && ((index == 0) || (temp != (void *)NULL)))
+     return temp;
+   else {
+     throw wxe_badarg(index);
+@@ -769,7 +769,7 @@ void WxeApp::registerPid(char * bp, ErlDrvTermData pid, wxeMemEnv * memenv) {
+   if(!memenv)
+     throw wxe_badarg(index);
+   void * temp = memenv->ref2ptr[index];
+-  if((index < memenv->next) && ((index == 0) || (temp > NULL))) {
++  if((index < memenv->next) && ((index == 0) || (temp != (void *)NULL))) {
+     ptrMap::iterator it;
+     it = ptr2ref.find(temp);
+     if(it != ptr2ref.end()) {
 _END_PATCH
 }
 
