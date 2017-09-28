@@ -542,7 +542,7 @@ _flags(){
   host=$(./erts/autoconf/config.guess)
   DARWIN_VERSION=$(uname -r | sed $SED_OPT -e 's/R?([0-9]{1,2}).+/\1/')
   if [ "$DARWIN_VERSION" -ge 17 ]; then
-    CFLAGS="$CFLAGS" DED_LD="$CC" DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp" $@
+    CFLAGS="$CFLAGS" DED_LD="clang" CC="clang" DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp" $@
   else
     CFLAGS="$CFLAGS" $@
   fi
@@ -600,7 +600,7 @@ _do_build()
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
-
+    
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="/tmp/kerloptions.$$"
     echo "$CFLAGS" > "$TMPOPT"
