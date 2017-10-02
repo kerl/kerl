@@ -482,12 +482,6 @@ maybe_patch_all()
             15)
                 apply_r15_beam_makeops_patch >> "$LOGFILE"
                 ;;
-            16)
-                apply_r16_wx_ptr_patch >> "$LOGFILE"
-                ;;
-            17|18|19)
-                apply_wx_ptr_patch >> "$LOGFILE"
-                ;;
             *)
                 ;;
         esac
@@ -506,9 +500,15 @@ maybe_patch_all()
 
 maybe_patch_darwin()
 {
+    # Reminder: $1 = OTP release version
     if [ "$1" -le 14 ]; then
         CFLAGS="-DERTS_DO_INCL_GLB_INLINE_FUNC_DEF"
         apply_darwin_compiler_patch >> "$LOGFILE"
+    elif [ "$1" -eq 16 ]; then
+        # TODO: Maybe check if clang version == 9
+        apply_r16_wx_ptr_patch >> "$LOGFILE"
+    elif [ "$1" -ge 17 -a "$1" -le 19 ]; then
+        apply_wx_ptr_patch >> "$LOGFILE"
     fi
 }
 
