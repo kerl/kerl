@@ -538,14 +538,29 @@ do_normal_build()
     list_add builds "$1,$2"
 }
 
-_flags(){
-  host=$(./erts/autoconf/config.guess)
-  DARWIN_VERSION=$(uname -r | sed $SED_OPT -e 's/R?([0-9]{1,2}).+/\1/')
-  if [ "$DARWIN_VERSION" -ge 17 ]; then
-    CFLAGS="$CFLAGS" DED_LD="clang" CC="clang" DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp" $@
-  else
-    CFLAGS="$CFLAGS" $@
-  fi
+_flags()
+{
+
+    # We need to munge the LD and DED flags for clang 9 shipped with
+    # High Sierra (macOS 10.13)
+    case "$KERL_SYSTEM" in
+        Darwin)
+            osver=$(uname -r)
+            case "$osver" in
+                17*)
+                    host=$(./erts/autoconf/config.guess)
+                    CFLAGS="$CFLAGS" DED_LD="clang" CC="clang" DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp" $@
+                    ;;
+                *)
+                    CFLAGS="$CFLAGS" $@
+                    ;;
+            esac
+            ;;
+        *)
+            CFLAGS="$CFLAGS" $@
+            ;;
+    esac
+
 }
 
 _do_build()
@@ -562,7 +577,7 @@ _do_build()
             if [ $? -ne 0 ]; then
                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --enable-darwin-64bit"
             fi
-            
+
             case "$OSVERSION" in
                 17*|16*|15*)
                     echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1
@@ -600,7 +615,7 @@ _do_build()
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
-    
+
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="/tmp/kerloptions.$$"
     echo "$CFLAGS" > "$TMPOPT"
