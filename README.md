@@ -631,6 +631,12 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+2 October 2017 - 1.6.0
+
+  - Support clang 9 and High Sierra command-line tools (CLT) on older Erlang
+    builds. (#234)
+  - Fix a pointer error on clang 9 (#235)
+
 25 May 2017 - 1.5.1
 
   - Bug Fix: Remove spurious spaces (#209)
