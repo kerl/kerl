@@ -548,8 +548,19 @@ _flags()
             osver=$(uname -r)
             case "$osver" in
                 17*)
-                    host=$(./erts/autoconf/config.guess)
-                    CFLAGS="$CFLAGS" DED_LD="clang" CC="clang" DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp" $@
+                    # Make sure we don't overwrite values that someone who
+                    # knows better than us set.
+                    if [ -z "$DED_LD" ]; then
+                        DED_LD="clang"
+                    fi
+                    if [ -z "$CC" ]; then
+                        CC="clang"
+                    fi
+                    if [ -z "$DED_LDFLAGS" ]; then
+                        host=$(./erts/autoconf/config.guess)
+                        DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp"
+                    fi
+                    CFLAGS="$CFLAGS" DED_LD="$DED_LD" CC="$CC" DED_LDFLAGS="$DED_LDFLAGS" $@
                     ;;
                 *)
                     CFLAGS="$CFLAGS" $@
