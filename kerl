@@ -996,7 +996,7 @@ ACTIVATE_FISH
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
-alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_SAVED_PROMP != 0 && set prompt="\$_KERL_SAVED_PROMP" && unset _KERL_SAVED_PROMP; test "\!:*" != "nondestructive" && unalias deactivate'
+alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "\!:*" != "nondestructive" && unalias deactivate'
 
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
