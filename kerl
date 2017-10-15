@@ -1836,6 +1836,7 @@ case "$1" in
                 BUILDNAME="$ACTIVE_NAME"
             fi
             install_docsh "$BUILDNAME" "$ACTIVE_PATH"
+            echo "Please kerl_deactivate and activate again to enable docsh"
         else
             echo "No Erlang/OTP installation is currently active - can't install docsh"
             exit 1
