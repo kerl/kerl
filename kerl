@@ -919,7 +919,6 @@ if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
 fi
 ACTIVATE
 
-## TODO: add docsh vars
     cat <<ACTIVATE_FISH > "$absdir/activate.fish"
 # credits to virtualenv
 function _kerl_remove_el --description 'remove element from array'
@@ -958,6 +957,10 @@ function kerl_deactivate --description "deactivate erlang environment"
             end | psub )
         functions --erase _kerl_saved_prompt
     end
+    if set --query _KERL_DOCSH_USER_DEFAULT
+        set --erase DOCSH_USER_DEFAULT
+        set --erase _KERL_DOCSH_USER_DEFAULT
+    end
     if test "\$argv[1]" != "nondestructive"
         functions --erase kerl_deactivate
         functions --erase _kerl_remove_el
@@ -981,6 +984,10 @@ if set --query KERL_ENABLE_PROMPT
         echo -n "($1)"
         _kerl_saved_prompt
     end
+end
+if test -d "$absdir/lib/docsh"
+    set -x DOCSH_USER_DEFAULT "$absdir/lib/docsh/user_default"
+    set -x _KERL_DOCSH_USER_DEFAULT yes
 end
 ACTIVATE_FISH
 
