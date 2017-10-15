@@ -29,7 +29,6 @@ KERL_VERSION="1.7.0"
 #Grep fix for mac pcre errors
 GREP_OPTIONS=''
 
-# TODO: COULD make DOCSH_GITHUB_URL configurable
 DOCSH_GITHUB_URL="https://github.com/erszcz/docsh.git"
 ERLANG_DOWNLOAD_URL="http://www.erlang.org/download"
 KERL_CONFIG_STORAGE_FILENAME=".kerl_config"
