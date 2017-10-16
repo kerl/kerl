@@ -1109,7 +1109,7 @@ install_docsh() {
     GIT=$(echo -n $REPO_URL | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
     BUILDNAME=$1
     DOCSH_DIR="$KERL_BUILD_DIR/$BUILDNAME/docsh"
-    DOCSH_REF="0.3.0"
+    DOCSH_REF="0.4.0"
     ACTIVE_PATH=$2
 
     OTP_VERSION=$(get_otp_version $1)
