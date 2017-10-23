@@ -760,6 +760,11 @@ do_install()
 # credits to virtualenv
 kerl_deactivate()
 {
+    if [ -n "\$_KERL_SAVED_ERL_AFLAGS" ]; then
+        ERL_AFLAGS="\$_KERL_SAVED_ERL_AFLAGS"
+        export ERL_AFLAGS
+        unset _KERL_SAVED_ERL_AFLAGS
+    fi
     if [ -n "\$_KERL_PATH_REMOVABLE" ]; then
         PATH=\`echo \${PATH} | sed -e "s#\${_KERL_PATH_REMOVABLE}:##"\`
         export PATH
@@ -806,6 +811,12 @@ REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
 _KERL_ACTIVE_DIR="$absdir"
 export _KERL_ACTIVE_DIR
+# https://twitter.com/mononcqc/status/877544929496629248
+export _KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
+kernel_history=\$(echo "\$ERL_AFLAGS" | grep "kernel shell_history")
+if [ -z "\$kernel_history" ]; then
+    export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+fi
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     _KERL_SAVED_PS1="\$PS1"
@@ -937,6 +948,7 @@ endif
 
 rehash
 ACTIVATE_CSH
+
     if [ -n "$KERL_BUILD_DOCS" ]; then
         DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel/lib/erlang"
         if [ -d "$DOC_DIR" ]; then
