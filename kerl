@@ -974,8 +974,23 @@ ACTIVATE_CSH
         build_plt "$absdir"
     fi
 
+    PID=$$
+    PARENT_PID=$(ps -p $PID -o ppid | grep -E "[0-9]+" -o)
+    PARENT_CMD=$(ps -p $PARENT_PID -o ucomm | tail -n 1)
+    case "$PARENT_CMD" in
+        fish)
+            SHELL_SUFFIX=".fish"
+            ;;
+        csh)
+            SHELL_SUFFIX=".csh"
+            ;;
+        *)
+            SHELL_SUFFIX=""
+            ;;
+    esac
+
     echo "You can activate this installation running the following command:"
-    echo ". $absdir/activate"
+    echo ". ${absdir}/activate${SHELL_SUFFIX}"
     echo "Later on, you can leave the installation typing:"
     echo "kerl_deactivate"
 }
