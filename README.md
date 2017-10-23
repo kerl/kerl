@@ -631,11 +631,19 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+23 October 2017 - 1.7.0
+
+  - Suggest the proper activation script based on the shell you're using (#225)
+  - Automatically turn on built-in shell history when using an OTP release >=
+    20 (#214)
+  - Warn when a Linux does not appear to have a pre-requisite library/package
+    to compile Erlang from source code. (#222)
+
 2 October 2017 - 1.6.0
 
   - Support clang 9 and High Sierra command-line tools (CLT) on older Erlang
     builds. (#234)
-  - Fix a pointer error on clang 9 (#235)
+  - Fix a pointer error in wx on macOS/clang 9 (#235)
 
 25 May 2017 - 1.5.1
 
