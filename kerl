@@ -330,6 +330,71 @@ assert_build_name_unused()
     fi
 }
 
+_check_required_pkgs()
+{
+    has_dpkg=$(which dpkg)
+    has_rpm=$(which rpm)
+    if [ -n "$has_dpkg" -o -n "$has_rpm" ]; then
+        # found either dpkg or rpm (or maybe even both!)
+        if [ -n "$has_dpkg" -a -n "$has_rpm" ]; then
+            echo "WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done."
+        elif [ -n "$has_dpkg" ]; then
+            check_dpkg
+        elif [ -n "$has_rpm" ]; then
+            _check_rpm
+        fi
+    fi
+}
+
+_dpkg_is_installed()
+{
+    # gratefully stolen from
+    # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
+    # returns 0 (true) if found, 1 otherwise
+    dpkg-query -Wf'${db:Status-abbrev}' "$1" 2>/dev/null | grep -q '^i'
+}
+
+_check_dpkg()
+{
+    required=<<_DPKG
+libssl-dev
+make
+automake
+autoconf
+libncurses5-dev
+gcc
+_DPKG
+
+    for pkg in "$required"; do
+        if ! _dpkg_is_installed "$pkg"; then
+            echo "WARNING: It appears that a required development package '$pkg' is not installed."
+        fi
+    done
+}
+
+_rpm_is_installed()
+{
+    rpm --quiet -q "$1" 1>/dev/null 2>&1
+}
+
+_check_rpm()
+{
+    required=<<_RPM
+openssl-devel
+make
+automake
+autoconf
+ncurses-devel
+gcc
+_RPM
+
+    for pkg in "$required"; do
+        if ! _rpm_is_installed "$pkg"; then
+            echo "WARNING: It appears a required development package '$pkg' is not installed."
+        fi
+    done
+}
+
 do_git_build()
 {
     assert_build_name_unused "$3"
@@ -621,6 +686,16 @@ _do_build()
                 ;;
             esac
         ;;
+        Linux)
+            # we are going to check here to see if the Linux uses dpkg or rpms
+            #
+            # this is a "best effort" attempt to discover if a Linux has the
+            # packages needed to build Erlang. We will always assume the user
+            # knows better than us and are going to go ahead and try to build
+            # Erlang anyway. But at least it will be a clear warning to the
+            # user if a build fails.
+            _check_required_pkgs
+            ;;
         *)
         ;;
     esac
