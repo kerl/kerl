@@ -973,6 +973,10 @@ function kerl_deactivate --description "deactivate erlang environment"
             end | psub )
         functions --erase _kerl_saved_prompt
     end
+    if set --query _KERL_DOCSH_DOT_ERLANG
+        rm "\$HOME/.erlang"
+        set --erase _KERL_DOCSH_DOT_ERLANG
+    end
     if set --query _KERL_DOCSH_USER_DEFAULT
         set --erase DOCSH_USER_DEFAULT
         set --erase _KERL_DOCSH_USER_DEFAULT
@@ -1004,6 +1008,17 @@ end
 if test -d "$absdir/lib/docsh"
     set -x DOCSH_USER_DEFAULT "$absdir/lib/docsh/user_default"
     set -x _KERL_DOCSH_USER_DEFAULT yes
+    if test -f "\$HOME/.erlang"
+        if test ! x"\$KERL_DOCSH_DOT_ERLANG" = x"exists"
+            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
+            echo "Please make sure \$HOME/.erlang contains code"
+            echo "from $absdir/lib/docsh/dot.erlang"
+            echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
+        end
+    else
+        ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
+        set -x _KERL_DOCSH_DOT_ERLANG yes
+    end
 end
 ACTIVATE_FISH
 
