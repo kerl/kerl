@@ -1157,12 +1157,12 @@ install_docsh() {
         exit 1
     fi
 
-	./rebar3 compile
-	if [ $? -ne 0 ]; then
-		echo "Couldn't compile docsh"
+    ./rebar3 compile
+    if [ $? -ne 0 ]; then
+        echo "Couldn't compile docsh"
         rm -Rf "$DOCSH_DIR"
-		exit 1
-	fi
+        exit 1
+    fi
 
     ## Install $HOME/.erlang
     if [ -f $HOME/.erlang ]; then
