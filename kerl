@@ -864,6 +864,10 @@ kerl_deactivate()
         export PS1
         unset _KERL_SAVED_PS1
     fi
+    if [ -n "\$_KERL_DOCSH_DOT_ERLANG" ]; then
+        rm "\$HOME/.erlang"
+        unset _KERL_DOCSH_DOT_ERLANG
+    fi
     if [ -n "\$_KERL_DOCSH_USER_DEFAULT" ]; then
         unset DOCSH_USER_DEFAULT
         unset _KERL_DOCSH_USER_DEFAULT
@@ -913,6 +917,17 @@ fi
 if [ -d "$absdir/lib/docsh" ]; then
     export DOCSH_USER_DEFAULT="$absdir/lib/docsh/user_default"
     export _KERL_DOCSH_USER_DEFAULT=yes
+    if [ -f "\$HOME/.erlang" ]; then
+        if [ ! x"\$KERL_DOCSH_DOT_ERLANG" = x"exists" ]; then
+            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
+            echo "Please make sure \$HOME/.erlang contains code"
+            echo "from $absdir/lib/docsh/dot.erlang"
+            echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
+        fi
+    else
+        ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
+        export _KERL_DOCSH_DOT_ERLANG=yes
+    fi
 fi
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
@@ -1164,14 +1179,6 @@ install_docsh() {
         exit 1
     fi
 
-    ## Install $HOME/.erlang
-    if [ -f $HOME/.erlang ]; then
-        echo "Couldn't install $HOME/.erlang - the file already exists"
-        rm -Rf "$DOCSH_DIR"
-        exit 1
-    else
-        cat $DOCSH_DIR/templates/dot.erlang > $HOME/.erlang
-    fi
     ## Install docsh
     if [ -f $ACTIVE_PATH/lib/docsh ]; then
         echo "Couldn't install $ACTIVE_PATH/lib/docsh - the directory already exists"
@@ -1179,6 +1186,21 @@ install_docsh() {
         exit 1
     else
         cp -R $DOCSH_DIR/_build/default/lib/docsh $ACTIVE_PATH/lib/
+    fi
+    ## Prepare dot.erlang for linking as $HOME/.erlang
+    if [ -f $ACTIVE_PATH/lib/docsh/dot.erlang ]; then
+        echo "Couldn't install $ACTIVE_PATH/lib/docsh/dot.erlang - the file already exists"
+        rm -Rf "$DOCSH_DIR"
+        exit 1
+    else
+        cat $DOCSH_DIR/templates/dot.erlang > $ACTIVE_PATH/lib/docsh/dot.erlang
+    fi
+    ## Warn if $HOME/.erlang exists
+    if [ -f $HOME/.erlang ]; then
+        echo "$HOME/.erlang exists - kerl won't be able to symlink a docsh-compatible version."
+        echo "Please make sure your $HOME/.erlang contains code"
+        echo "from $ACTIVE_PATH/lib/docsh/dot.erlang"
+        echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress further warnings"
     fi
     ## Install docsh user_default
     if [ -f $ACTIVE_PATH/lib/docsh/user_default.beam ]; then
