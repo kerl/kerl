@@ -1026,7 +1026,7 @@ ACTIVATE_FISH
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
-alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_DOCSH_USER_DEFAULT != 0 && unsetenv DOCSH_USER_DEFAULT && unset _KERL_DOCSH_USER_DEFAULT; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "\!:*" != "nondestructive" && unalias deactivate'
+alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_DOCSH_USER_DEFAULT != 0 && unsetenv DOCSH_USER_DEFAULT && unset _KERL_DOCSH_USER_DEFAULT; test \$?_KERL_DOCSH_DOT_ERLANG != 0 && rm "\$HOME/.erlang" && unset _KERL_DOCSH_DOT_ERLANG; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "\!:*" != "nondestructive" && unalias deactivate'
 
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
@@ -1072,6 +1072,17 @@ endif
 if ( -d "$absdir/lib/docsh" ) then
     setenv DOCSH_USER_DEFAULT "$absdir/lib/docsh/user_default"
     set _KERL_DOCSH_USER_DEFAULT = "yes"
+    if ( -f "\$HOME/.erlang" ) then
+        if ( \$?KERL_DOCSH_DOT_ERLANG == 0 ) then
+            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
+            echo "Please make sure \$HOME/.erlang contains code"
+            echo "from $absdir/lib/docsh/dot.erlang"
+            echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
+        endif
+    else
+        ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
+        set _KERL_DOCSH_DOT_ERLANG = "yes"
+    endif
 endif
 
 rehash
