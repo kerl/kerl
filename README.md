@@ -624,6 +624,11 @@ This extends the shell with new helpers, which enable access to full
 function help (via `h/{1,2,3}`), function specs (`s/{1,2,3}`) and type
 information (`t/{1,2,3}`).
 
+If you already have an OTP installation, you will need to remove it and
+re-install it **before** you execute `install-docsh`,
+since docsh needs some environment variables of its own to be set up
+and managed by the activate script.
+
 Activating a docsh-enabled Erlang installation will try to create
 a `$HOME/.erlang` symlink.
 If this file exists (i.e. you have created it manually),
@@ -634,8 +639,11 @@ Alternatively, if the file exists and you have to keep it you can extend
 it with the content of [a docsh-specific `.erlang`][docsh-dot-erlang] - this
 task is left as an exercise for the reader - and export
 `KERL_DOCSH_DOT_ERLANG=exists` to silence unwanted warnings.
+The [manual setup guide][docsh-manual-setup] will probably come in handy
+if you decide to take this route.
 
 [docsh-dot-erlang]: https://github.com/erszcz/docsh/blob/2d9843bce794e726f591bbca49c88aedbb435f8c/templates/dot.erlang
+[docsh-manual-setup]: https://github.com/erszcz/docsh/blob/ecf35821610977e36b04c0c256990a5b0dab4870/doc/manual-setup.md
 
 Compiling crypto on Macs
 ------------------------
