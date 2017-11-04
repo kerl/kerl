@@ -614,6 +614,29 @@ other tools to extract to path information.
     $ kerl path 19.2.3
     /aux/erlangs/19.2.3
 
+### install-docsh
+
+    kerl install-docsh
+
+Install `erl` shell documentation access
+extension - [docsh](https://github.com/erszcz/docsh).
+This extends the shell with new helpers, which enable access to full
+function help (via `h/{1,2,3}`), function specs (`s/{1,2,3}`) and type
+information (`t/{1,2,3}`).
+
+Activating a docsh-enabled Erlang installation will try to create
+a `$HOME/.erlang` symlink.
+If this file exists (i.e. you have created it manually),
+please consider removing it - otherwise, docsh won't work.
+Deactivating the kerl Erlang installation will remove the symlink.
+
+Alternatively, if the file exists and you have to keep it you can extend
+it with the content of [a docsh-specific `.erlang`][docsh-dot-erlang] - this
+task is left as an exercise for the reader - and export
+`KERL_DOCSH_DOT_ERLANG=exists` to silence unwanted warnings.
+
+[docsh-dot-erlang]: https://github.com/erszcz/docsh/blob/2d9843bce794e726f591bbca49c88aedbb435f8c/templates/dot.erlang
+
 Compiling crypto on Macs
 ------------------------
 Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
