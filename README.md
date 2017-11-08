@@ -649,19 +649,23 @@ Compiling crypto on Macs
 ------------------------
 Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
 own SSL library. That makes using homebrew the most convenient way to install
-openssl on macOS 10.12 (Sierra) or El Capitan. Recently, homebrew [decided to
-stop creating](https://github.com/Homebrew/brew/pull/612) symlinks from the
-homebrew installation directory to `/usr/local`, so in response to this, *if*
-you're running El Capitan or Sierra, *and* you have homebrew installed, *and*
-you used it to install openssl, kerl will ask homebrew for the openssl
-installation prefix and configure Erlang to build with that location
-automatically.
+openssl on macOS 10.11 or later. Additionally, homebrew [stop creating](https://github.com/Homebrew/brew/pull/612)
+symlinks from the homebrew installation directory to `/usr/local`, so in
+response to this, *if* you're running El Capitan, Sierra, or High Sierra
+*and* you have homebrew installed, *and* you used it to install openssl,
+kerl will ask homebrew for the openssl installation prefix and configure Erlang
+to build with that location automatically.
 
 **Important**: If you already have `--with-ssl` in your .kerlrc, kerl
 will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+8 November 2017 - 1.8.0
+
+  - Include support for installing and managing docsh (#213)
+  - Fix a function name typo (#241)
+
 23 October 2017 - 1.7.0
 
   - Suggest the proper activation script based on the shell you're using (#225)
