@@ -1,3 +1,13 @@
+language: bash
+sudo: false
+
+addons:
+  apt:
+    sources:
+      - debian-sid # for: shellCheck
+    packages:
+      - shellcheck
+
 os:
   - linux
   - osx
@@ -6,19 +16,37 @@ env:
   global:
     - KERL_BASE_DIR="$TMPDIR"/.kerl
     - KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc"
-  matrix: 
-    - _KERL_VSN=19.2 
+  matrix:
+    - _KERL_VSN=19.2
     - _KERL_VSN=18.3
     - _KERL_VSN=17.5
     - _KERL_VSN=R16B03-1
 
+before_script:
+  - set -o pipefail
+  - |
+    if [[ "$TRAVIS_OS_NAME" == 'linux' ]] && [[ "$_KERL_VSN" == '19.2' ]]; then
+      set -e
+      export USING_SHELLCHECK=1
+      shellcheck ./kerl
+      shellcheck ./bash_completion/kerl
+    # zsh_completion/_kerl  # https://github.com/koalaman/shellcheck/issues/809
+      set +e
+    fi
+
 script:
+  - set -e
   - ./kerl update releases
   - travis_wait 45 ./kerl build "$_KERL_VSN" "$_KERL_VSN"
   - ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
   - ./kerl status
+  - |
+    if [[ "$USING_SHELLCHECK" == '1' ]]; then
+      shellcheck $(./kerl path install_$_KERL_VSN)/activate
+    fi
   - source $(./kerl path install_$_KERL_VSN)/activate
   - erl -s crypto -s init stop
   - kerl_deactivate
   - ./kerl delete installation $(./kerl path install_$_KERL_VSN)
   - ./kerl delete build "$_KERL_VSN"
+  - set +e
