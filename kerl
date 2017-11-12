@@ -301,7 +301,7 @@ is_valid_installation()
             name=$(echo "$l" | cut -d " " -f 1)
             path=$(echo "$l" | cut -d " " -f 2)
             if [ "$name" = "$1" -o "$path" = "$1" ]; then
-                if [ -f "$1"/activate ]; then
+                if [ -f "$path"/activate ]; then
                     return 0
                 fi
             fi
