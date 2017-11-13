@@ -2017,7 +2017,7 @@ case "$1" in
                 fi
                 escaped="$(echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
                 list_remove "$2"s "$escaped"
-                echo "The installation in $3 has been deleted"
+                echo "The installation \"$3\" has been deleted"
                 ;;
             *)
                 echo "Cannot delete $2"
