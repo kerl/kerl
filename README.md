@@ -661,6 +661,10 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+13 November 2017 - 1.8.1
+
+  - Fix removing an installation by its name. (#244)
+
 8 November 2017 - 1.8.0
 
   - Include support for installing and managing docsh (#213)
