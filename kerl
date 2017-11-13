@@ -301,7 +301,7 @@ is_valid_installation()
             name=$(echo "$l" | cut -d " " -f 1)
             path=$(echo "$l" | cut -d " " -f 2)
             if [ "$name" = "$1" -o "$path" = "$1" ]; then
-                if [ -f "$1"/activate ]; then
+                if [ -f "$path"/activate ]; then
                     return 0
                 fi
             fi
@@ -1587,6 +1587,14 @@ get_name_from_install_path()
     return 0
 }
 
+get_install_path_from_name()
+{
+    if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
+        grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f2
+    fi
+    return 0
+}
+
 do_active()
 {
     ACTIVE_PATH="$(get_active_path)"
@@ -2002,10 +2010,14 @@ case "$1" in
                 ;;
             installation)
                 assert_valid_installation "$3"
-                maybe_remove "$3"
+                if [ -d "$3" ]; then
+                    maybe_remove "$3"
+                else
+                    maybe_remove "$(get_install_path_from_name "$3")"
+                fi
                 escaped="$(echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
                 list_remove "$2"s "$escaped"
-                echo "The installation in $3 has been deleted"
+                echo "The installation \"$3\" has been deleted"
                 ;;
             *)
                 echo "Cannot delete $2"
