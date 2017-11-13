@@ -10,10 +10,10 @@ installation is as fast as possible.
 
 OTP Support Policy
 ------------------
-As of 2017 May 24, we are supporting OTP back to R14B04. Older builds
+As of 2017 November 8, we are supporting OTP builds back to R15. Older builds
 may or may not work. We will advance release support as new releases of OTP
-become available.  For example, when OTP 20 is released, we will support Erlang
-builds R15 and newer.
+become available.  For example, when OTP 21 is released, we will support Erlang
+builds R16 and newer.
 
 Triage cadence
 --------------
@@ -618,6 +618,8 @@ other tools to extract to path information.
 
     kerl install-docsh
 
+**Important note**: docsh currently only supports OTP 18 and 19.
+
 Install `erl` shell documentation access
 extension - [docsh](https://github.com/erszcz/docsh).
 This extends the shell with new helpers, which enable access to full
@@ -649,7 +651,7 @@ Compiling crypto on Macs
 ------------------------
 Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
 own SSL library. That makes using homebrew the most convenient way to install
-openssl on macOS 10.11 or later. Additionally, homebrew [stop creating](https://github.com/Homebrew/brew/pull/612)
+openssl on macOS 10.11 or later. Additionally, homebrew [stopped creating](https://github.com/Homebrew/brew/pull/612)
 symlinks from the homebrew installation directory to `/usr/local`, so in
 response to this, *if* you're running El Capitan, Sierra, or High Sierra
 *and* you have homebrew installed, *and* you used it to install openssl,
@@ -658,6 +660,24 @@ to build with that location automatically.
 
 **Important**: If you already have `--with-ssl` in your .kerlrc, kerl
 will honor that instead, and will not do any automatic configuration.
+
+Compiling crypto on Red Hat systems
+-----------------------------------
+Red Hat believes there's a [patent
+issue](https://bugzilla.redhat.com/show_bug.cgi?id=319901#c2) and has disabled
+elliptic curve crypto algorithms in its distributions for over 10 years.
+
+This causes Erlang builds to die when its compiling its own crypto libraries.
+
+As a workaround, you can set `CFLAGS="-DOPENSSL_NO_EC=1"` to tell the
+Erlang crypto libraries to not build the elliptic curve cipher suite.
+
+This issue applies to Fedora, Red Hat Enterprise Linux, CentOS and all
+derivatives of those distributions.
+
+There is a [tracking issue](https://github.com/kerl/kerl/issues/212) to
+automatically set this compiler flag, if you wish to follow how kerl
+will eventually deal with this issue.
 
 Changelog
 ---------
