@@ -358,16 +358,16 @@ _dpkg_is_installed()
 
 _check_dpkg()
 {
-    required=<<_DPKG
+    required="
 libssl-dev
 make
 automake
 autoconf
 libncurses5-dev
 gcc
-_DPKG
+"
 
-    for pkg in "$required"; do
+    for pkg in $required; do
         if ! _dpkg_is_installed "$pkg"; then
             echo "WARNING: It appears that a required development package '$pkg' is not installed."
         fi
@@ -381,16 +381,16 @@ _rpm_is_installed()
 
 _check_rpm()
 {
-    required=<<_RPM
+    required="
 openssl-devel
 make
 automake
 autoconf
 ncurses-devel
 gcc
-_RPM
+"
 
-    for pkg in "$required"; do
+    for pkg in $required; do
         if ! _rpm_is_installed "$pkg"; then
             echo "WARNING: It appears a required development package '$pkg' is not installed."
         fi
