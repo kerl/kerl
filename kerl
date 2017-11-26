@@ -898,7 +898,7 @@ _KERL_ACTIVE_DIR="$absdir"
 export _KERL_ACTIVE_DIR
 # https://twitter.com/mononcqc/status/877544929496629248
 export _KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
-kernel_history=\$(echo "\$ERL_AFLAGS" | grep "kernel shell_history")
+kernel_history=\$(echo "\$ERL_AFLAGS" | grep 'kernel shell_history' || true)
 if [ -z "\$kernel_history" ]; then
     export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
 fi
