@@ -1,5 +1,8 @@
 kerl
 ====
+
+CircleCI status: [![CircleCI](https://circleci.com/gh/kerl/kerl.svg?style=svg)](https://circleci.com/gh/kerl/kerl)
+
 Easy building and installing of [Erlang/OTP](http://www.erlang.org) instances.
 
 Kerl aims to be shell agnostic and its only dependencies, excluding what's
