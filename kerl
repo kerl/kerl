@@ -576,6 +576,7 @@ maybe_patch_darwin()
         apply_r16_wx_ptr_patch >> "$LOGFILE"
     elif [ "$1" -ge 17 -a "$1" -le 19 ]; then
         apply_wx_ptr_patch >> "$LOGFILE"
+        apply_zlib_patch >> "$LOGFILE"
     fi
 }
 
@@ -1784,6 +1785,28 @@ apply_r15_beam_makeops_patch()
  
      if ($prev_last && !is_instr($prev_last, 'fail')) {
  	error("Line $line: A previous transformation shadows '$orig_transform'");
+_END_PATCH
+}
+
+# http://erlang.org/pipermail/erlang-bugs/2017-January/005215.html
+apply_zlib_patch()
+{
+  patch -p1 <<'_END_PATCH'
+diff --git a/erts/emulator/beam/external.c b/erts/emulator/beam/external.c
+index beed847..1c4fff5 100644
+--- a/erts/emulator/beam/external.c
++++ b/erts/emulator/beam/external.c
+@@ -1431,6 +1431,10 @@ static B2TContext* b2t_export_context(Process* p, B2TContext* src)
+     if (ctx->state >= B2TDecode && ctx->u.dc.next == &src->u.dc.res) {
+         ctx->u.dc.next = &ctx->u.dc.res;
+     }
++    else if (ctx->state == B2TUncompressChunk) {
++        int cres = inflateCopy(&ctx->u.uc.stream, &src->u.uc.stream);
++        ASSERT(cres == Z_OK); (void)cres;
++    }
+     hp = HAlloc(p, PROC_BIN_SIZE);
+     ctx->trap_bin = erts_mk_magic_binary_term(&hp, &MSO(p), context_b);
+     return ctx;
 _END_PATCH
 }
 
