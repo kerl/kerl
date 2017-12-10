@@ -198,6 +198,14 @@ be either a branch, a tag or a commit id that will be passed to `git checkout`:
     Building Erlang/OTP 19.2_dev from git, please wait...
     Erlang/OTP 19.2_dev from git has been successfully built
 
+Build from upyun
+----------------
+
+Some countries(China) visit erlang.org and github very slowly.
+[UPYUN](https://github.com/upyun) make all `*tar.gz` under the [Erlang/download](http://www.erlang.org/download) mirror to [UPYUN/download](http://erlang.b0.upaiyun.com/download), make download become super fast.
+
+   $ export DOWNLOAD_BACKEND="upyun"
+   $ kerl build 20.1 20.1_test
 
 Tuning
 ------

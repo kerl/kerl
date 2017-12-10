@@ -31,6 +31,7 @@ GREP_OPTIONS=''
 
 DOCSH_GITHUB_URL="https://github.com/erszcz/docsh.git"
 ERLANG_DOWNLOAD_URL="http://www.erlang.org/download"
+UPYUN_DOWNLOAD_URL="http://erlang.b0.upaiyun.com/download"
 KERL_CONFIG_STORAGE_FILENAME=".kerl_config"
 
 if [ -z "$HOME" ]; then
@@ -137,7 +138,6 @@ fi
 if [ -n "$_KBB" ]; then
     KERL_BUILD_BACKEND="$_KBB"
 fi
-
 if [ -z "$KERL_SASL_STARTUP" ]; then
     INSTALL_OPT=-minimal
 else
@@ -149,6 +149,11 @@ if [ -z "$KERL_BUILD_BACKEND" ]; then
 else
     KERL_BUILD_BACKEND="git"
     KERL_USE_AUTOCONF=1
+fi
+if [ -z "$DOWNLOAD_BACKEND" ]; then
+    DOWNLOAD_BACKEND="official"
+else
+    DOWNLOAD_BACKEND="upyun"
 fi
 
 KERL_SYSTEM=$(uname -s)
@@ -1643,7 +1648,11 @@ tarball_download()
 {
     if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
         echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
-        curl -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || exit 1
+        if [ "$DOWNLOAD_BACKEND" = "upyun" ]; then
+            curl -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$UPYUN_DOWNLOAD_URL/$1" || exit 1
+        else
+            curl -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || exit 1
+        fi
         update_checksum_file
     fi
     ensure_checksum_file
