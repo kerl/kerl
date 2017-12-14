@@ -1482,7 +1482,7 @@ list_print()
             if [ -z "$2" ]; then
                 cat "$KERL_BASE_DIR/otp_$1"
             else
-                echo $(cat "$KERL_BASE_DIR/otp_$1")
+                cat "$KERL_BASE_DIR/otp_$2"
             fi
             return 0
         fi
