@@ -493,7 +493,7 @@ show_configuration_warnings()
     if [ -n "$INDEX" ]; then
         # Skip the section header, find the end line and skip it
         # then print the results indented
-        tail -n +$(($INDEX+3)) "$1" | \
+        tail -n +$((INDEX+3)) "$1" | \
             sed -n '1,/\*/p' | \
             awk -F: -v logfile="$1" -v section="$2" \
                 'BEGIN { printf "%s (See: %s)\n", section, logfile }
