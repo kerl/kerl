@@ -649,7 +649,6 @@ _do_build()
     case "$KERL_SYSTEM" in
         Darwin)
             OSVERSION=$(uname -r)
-            RELVERSION=$(get_otp_version "$1")
 
             # Ensure that the --enable-darwin-64bit flag is set on all macOS
             # That way even on older Erlangs we get 64 bit Erlang builds
