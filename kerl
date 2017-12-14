@@ -26,9 +26,6 @@ unset ERL_TOP
 
 KERL_VERSION="1.8.2"
 
-#Grep fix for mac pcre errors
-GREP_OPTIONS=''
-
 DOCSH_GITHUB_URL="https://github.com/erszcz/docsh.git"
 ERLANG_DOWNLOAD_URL="http://www.erlang.org/download"
 KERL_CONFIG_STORAGE_FILENAME=".kerl_config"
