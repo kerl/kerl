@@ -1321,13 +1321,13 @@ do_deploy()
         exit 1
     fi
 
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086,SC2029
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\$(pwd)\" ./Install $INSTALL_OPT \"\$(pwd)\" >/dev/null 2>&1"; then
         echo "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
 
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086,SC2029
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && sed -i -e \"s#$path#\"\$(pwd)\"#g\" activate"; then
         echo "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
