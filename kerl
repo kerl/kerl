@@ -238,7 +238,7 @@ ensure_checksum_file()
 check_releases()
 {
     if [ ! -f "$KERL_BASE_DIR"/otp_releases ]; then
-        get_releases > "$KERL_BASE_DIR"/otp_releases
+        get_releases >"$KERL_BASE_DIR"/otp_releases
     fi
 }
 
@@ -249,7 +249,7 @@ is_valid_release()
         if [ "$1" = "$rel" ]; then
             return 0
         fi
-    done < "$KERL_BASE_DIR"/otp_releases
+    done <"$KERL_BASE_DIR"/otp_releases
     return 1
 }
 
@@ -272,7 +272,7 @@ get_release_from_name()
                 echo "$rel"
                 return 0
             fi
-        done < "$KERL_BASE_DIR"/otp_builds
+        done <"$KERL_BASE_DIR"/otp_builds
     fi
     return 1
 }
@@ -302,7 +302,7 @@ is_valid_installation()
                     return 0
                 fi
             fi
-        done < "$KERL_BASE_DIR"/otp_installations
+        done <"$KERL_BASE_DIR"/otp_installations
     fi
     return 1
 }
@@ -325,7 +325,7 @@ assert_build_name_unused()
                 echo "There's already a build named $1"
                 exit 1
             fi
-        done < "$KERL_BASE_DIR"/otp_builds
+        done <"$KERL_BASE_DIR"/otp_builds
     fi
 }
 
@@ -373,7 +373,7 @@ gcc
 
 _rpm_is_installed()
 {
-    rpm --quiet -q "$1" 1>/dev/null 2>&1
+    rpm --quiet -q "$1" >/dev/null 2>&1
 }
 
 _check_rpm()
@@ -403,13 +403,13 @@ do_git_build()
     cd "$KERL_GIT_DIR" || exit 1
     echo "Checking out Erlang/OTP git repository from $1..."
     if [ ! -d "$GIT" ]; then
-        if ! git clone -q --mirror "$1" "$GIT" > /dev/null 2>&1; then
+        if ! git clone -q --mirror "$1" "$GIT" >/dev/null 2>&1; then
             echo "Error mirroring remote git repository"
             exit 1
         fi
     fi
     cd "$GIT" || exit 1
-    if ! git remote update --prune > /dev/null 2>&1; then
+    if ! git remote update --prune >/dev/null 2>&1; then
         echo "Error updating remote git repository"
         exit 1
     fi
@@ -417,13 +417,13 @@ do_git_build()
     rm -Rf "${KERL_BUILD_DIR:?}/$3"
     mkdir -p "$KERL_BUILD_DIR/$3" || exit 1
     cd "$KERL_BUILD_DIR/$3" || exit 1
-    if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git > /dev/null 2>&1; then
+    if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
         echo "Error cloning local git repository"
         exit 1
     fi
     cd otp_src_git || exit 1
-    if ! git checkout "$2" > /dev/null 2>&1; then
-        if ! git checkout -b "$2" "$2" > /dev/null 2>&1; then
+    if ! git checkout "$2" >/dev/null 2>&1; then
+        if ! git checkout -b "$2" "$2" >/dev/null 2>&1; then
             echo "Couldn't checkout specified version"
             rm -Rf "${KERL_BUILD_DIR:?}/$3"
             exit 1
@@ -536,10 +536,10 @@ maybe_patch_all()
     if [ "$perlver" -ge 22 ]; then
         case "$1" in
             14)
-                apply_r14_beam_makeops_patch >> "$LOGFILE"
+                apply_r14_beam_makeops_patch >>"$LOGFILE"
                 ;;
             15)
-                apply_r15_beam_makeops_patch >> "$LOGFILE"
+                apply_r15_beam_makeops_patch >>"$LOGFILE"
                 ;;
             *)
                 ;;
@@ -551,7 +551,7 @@ maybe_patch_all()
         if [ "$1" -le 16 ]; then
             javaver=$(get_javac_version)
             if [ "$javaver" -ge 8 ]; then
-                apply_javadoc_linting_patch >> "$LOGFILE"
+                apply_javadoc_linting_patch >>"$LOGFILE"
             fi
         fi
     fi
@@ -567,19 +567,19 @@ maybe_patch_darwin()
     # Reminder: $1 = OTP release version
     if [ "$1" -le 14 ]; then
         CFLAGS="-DERTS_DO_INCL_GLB_INLINE_FUNC_DEF"
-        apply_darwin_compiler_patch >> "$LOGFILE"
+        apply_darwin_compiler_patch >>"$LOGFILE"
     elif [ "$1" -eq 16 ]; then
         # TODO: Maybe check if clang version == 9
-        apply_r16_wx_ptr_patch >> "$LOGFILE"
+        apply_r16_wx_ptr_patch >>"$LOGFILE"
     elif [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
-        apply_wx_ptr_patch >> "$LOGFILE"
+        apply_wx_ptr_patch >>"$LOGFILE"
     fi
 }
 
 maybe_patch_sunos()
 {
     if [ "$1" -le 14 ]; then
-        apply_solaris_networking_patch >> "$LOGFILE"
+        apply_solaris_networking_patch >>"$LOGFILE"
     fi
 }
 
@@ -654,13 +654,13 @@ _do_build()
             # Ensure that the --enable-darwin-64bit flag is set on all macOS
             # That way even on older Erlangs we get 64 bit Erlang builds
             # macOS has been mandatory 64 bit for a while
-            if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "darwin-64bit" 1>/dev/null 2>&1; then
+            if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "darwin-64bit" >/dev/null 2>&1; then
                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --enable-darwin-64bit"
             fi
 
             case "$OSVERSION" in
                 17*|16*|15*)
-                    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1; then
+                    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" >/dev/null 2>&1; then
                         whichbrew=$(which brew)
                         if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                             brew_prefix=$(brew --prefix openssl)
@@ -706,18 +706,18 @@ _do_build()
 
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="/tmp/kerloptions.$$"
-    echo "$CFLAGS" > "$TMPOPT"
-    echo "$KERL_CONFIGURE_OPTIONS" >> "$TMPOPT"
+    echo "$CFLAGS" >"$TMPOPT"
+    echo "$KERL_CONFIGURE_OPTIONS" >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f $MD5SUM_FIELD)
     # Check for a .kerl_config.md5 file
     if [ -e "./$KERL_CONFIG_STORAGE_FILENAME.md5" ]; then
         # Compare our current options to the saved ones
-        read -r OLD_SUM < "./$KERL_CONFIG_STORAGE_FILENAME.md5"
+        read -r OLD_SUM <"./$KERL_CONFIG_STORAGE_FILENAME.md5"
         if [ "$SUM" != "$OLD_SUM" ]; then
             echo "Configure options have changed. Reconfiguring..."
             rm -f configure
             mv "$TMPOPT" "./$KERL_CONFIG_STORAGE_FILENAME"
-            echo "$SUM" > "./$KERL_CONFIG_STORAGE_FILENAME.md5"
+            echo "$SUM" >"./$KERL_CONFIG_STORAGE_FILENAME.md5"
         else
             # configure options are the same
             rm -f "$TMPOPT"
@@ -725,7 +725,7 @@ _do_build()
     else
 	# no file exists, so write one
 	mv "$TMPOPT" ./.kerl_config
-	echo "$SUM" > ./.kerl_config.md5
+	echo "$SUM" >./.kerl_config.md5
     fi
 
     # Don't apply patches to "custom" git builds. We have no idea if they will apply
@@ -734,15 +734,15 @@ _do_build()
         maybe_patch "$KERL_SYSTEM" "$1"
     fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
-        ./otp_build autoconf $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1 && \
-           _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+        ./otp_build autoconf $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1 && \
+           _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
     else
-        _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
+        _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
 
     fi
-    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" 1>/dev/null 2>&1; then
-        make clean >> "$LOGFILE" 2>&1
-        if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1; then
+    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" >/dev/null 2>&1; then
+        make clean >>"$LOGFILE" 2>&1
+        if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
             show_logfile "Configure failed." "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
@@ -774,28 +774,28 @@ _do_build()
         done
     fi
 
-    if ! _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1; then
+    if ! _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
         show_logfile "Build failed." "$LOGFILE"
         list_remove builds "$1 $2"
         exit 1
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
         echo "Building docs..."
-        if ! make docs >> "$LOGFILE" 2>&1; then
+        if ! make docs >>"$LOGFILE" 2>&1; then
             show_logfile "Building docs failed." "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
         fi
-        if ! make install-docs >> "$LOGFILE" 2>&1; then
+        if ! make install-docs >>"$LOGFILE" 2>&1; then
             show_logfile "Installing docs failed." "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
         fi
     fi
     rm -f "$LOGFILE"
-    ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
+    ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
     cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
-    ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
+    ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
 }
 
 do_install()
@@ -812,13 +812,13 @@ do_install()
     echo "Installing Erlang/OTP $rel ($1) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
     cd "$ERL_TOP" || exit 1
-    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" > /dev/null 2>&1 &&
-              cd "$absdir" && ./Install $INSTALL_OPT "$absdir" > /dev/null 2>&1); then
+    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >/dev/null 2>&1 &&
+              cd "$absdir" && ./Install $INSTALL_OPT "$absdir" >/dev/null 2>&1); then
         echo "Couldn't install Erlang/OTP $rel ($1) in $absdir"
         exit 1
     fi
     list_add installations "$1 $absdir";
-    cat <<ACTIVATE > "$absdir"/activate
+    cat <<ACTIVATE >"$absdir"/activate
 # credits to virtualenv
 kerl_deactivate()
 {
@@ -920,7 +920,7 @@ if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
 fi
 ACTIVATE
 
-    cat <<ACTIVATE_FISH > "$absdir/activate.fish"
+    cat <<ACTIVATE_FISH >"$absdir/activate.fish"
 # credits to virtualenv
 function _kerl_remove_el --description 'remove element from array'
     set -l new_array
@@ -1007,7 +1007,7 @@ if test -d "$absdir/lib/docsh"
 end
 ACTIVATE_FISH
 
-    cat <<ACTIVATE_CSH > "$absdir/activate.csh"
+    cat <<ACTIVATE_CSH >"$absdir/activate.csh"
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
@@ -1142,7 +1142,7 @@ install_docsh() {
     OTP_VERSION=$(get_otp_version $1)
     # This has to be updated with docsh updates
     DOCSH_SUPPORTED='^1[89]\|20$'
-    if ! echo $OTP_VERSION | grep "$DOCSH_SUPPORTED" > /dev/null 2>&1; then
+    if ! echo $OTP_VERSION | grep "$DOCSH_SUPPORTED" >/dev/null 2>&1; then
         echo "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
         exit 1
     fi
@@ -1151,13 +1151,13 @@ install_docsh() {
     cd "$KERL_GIT_DIR" || exit 1
     echo "Checking out docsh git repository from ${REPO_URL}..."
     if [ ! -d "$GIT" ]; then
-        if ! git clone -q --mirror "$REPO_URL" "$GIT" > /dev/null 2>&1; then
+        if ! git clone -q --mirror "$REPO_URL" "$GIT" >/dev/null 2>&1; then
             echo "Error mirroring remote git repository"
             exit 1
         fi
     fi
     cd "$GIT" || exit 1
-    if ! git remote update --prune > /dev/null 2>&1; then
+    if ! git remote update --prune >/dev/null 2>&1; then
         echo "Error updating remote git repository"
         exit 1
     fi
@@ -1165,13 +1165,13 @@ install_docsh() {
     rm -Rf "$DOCSH_DIR"
     mkdir -p "$DOCSH_DIR" || exit 1
     cd "$DOCSH_DIR" || exit 1
-    if ! git clone -l "$KERL_GIT_DIR/$GIT" $DOCSH_DIR > /dev/null 2>&1; then
+    if ! git clone -l "$KERL_GIT_DIR/$GIT" $DOCSH_DIR >/dev/null 2>&1; then
         echo "Error cloning local git repository"
         exit 1
     fi
     cd $DOCSH_DIR || exit 1
-    if ! git checkout "$DOCSH_REF" > /dev/null 2>&1; then
-        if ! git checkout -b "$DOCSH_REF" "$DOCSH_REF" > /dev/null 2>&1; then
+    if ! git checkout "$DOCSH_REF" >/dev/null 2>&1; then
+        if ! git checkout -b "$DOCSH_REF" "$DOCSH_REF" >/dev/null 2>&1; then
             echo "Couldn't checkout specified version"
             rm -Rf "$DOCSH_DIR"
             exit 1
@@ -1198,7 +1198,7 @@ install_docsh() {
         rm -Rf "$DOCSH_DIR"
         exit 1
     else
-        cat $DOCSH_DIR/templates/dot.erlang > $ACTIVE_PATH/lib/docsh/dot.erlang
+        cat $DOCSH_DIR/templates/dot.erlang >$ACTIVE_PATH/lib/docsh/dot.erlang
     fi
     ## Warn if $HOME/.erlang exists
     if [ -f $HOME/.erlang ]; then
@@ -1243,7 +1243,7 @@ build_plt()
     dialyzer=$1/bin/dialyzer
     dirs=$(find $1/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
     apps=$(for app in $dirs; do basename $app | cut -d- -f1 ; done | grep -Ev 'erl_interface|jinterface' | xargs echo)
-    $dialyzer --output_plt $plt --build_plt --apps $apps >> $build_log 2>&1
+    $dialyzer --output_plt $plt --build_plt --apps $apps >>$build_log 2>&1
     status=$?
     if [ $status -eq 0 ] || [ $status -eq 2 ]; then
         echo "Done building $plt"
@@ -1303,7 +1303,7 @@ do_deploy()
         remotepath="$3"
     fi
 
-    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true > /dev/null 2>&1; then
+    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true >/dev/null 2>&1; then
         echo "Couldn't ssh to $host"
         exit 1
     fi
@@ -1315,7 +1315,7 @@ do_deploy()
         exit 1
     fi
 
-    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\`pwd\`\" ./Install $INSTALL_OPT \"\`pwd\`\" > /dev/null 2>&1"; then
+    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\`pwd\`\" ./Install $INSTALL_OPT \"\`pwd\`\" >/dev/null 2>&1"; then
         echo "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
@@ -1497,10 +1497,10 @@ list_add()
             if [ "$l" = "$2" ]; then
                 return 1
             fi
-        done < "$KERL_BASE_DIR/otp_$1"
-        echo "$2" >> "$KERL_BASE_DIR/otp_$1" || exit 1
+        done <"$KERL_BASE_DIR/otp_$1"
+        echo "$2" >>"$KERL_BASE_DIR/otp_$1" || exit 1
     else
-        echo "$2" > "$KERL_BASE_DIR/otp_$1" || exit 1
+        echo "$2" >"$KERL_BASE_DIR/otp_$1" || exit 1
     fi
 }
 
@@ -1514,7 +1514,7 @@ list_remove()
 list_has()
 {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        grep "$2" "$KERL_BASE_DIR/otp_$1" > /dev/null 2>&1 && return 0
+        grep "$2" "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1 && return 0
     fi
     return 1
 }
