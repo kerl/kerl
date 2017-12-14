@@ -734,14 +734,17 @@ _do_build()
         maybe_patch "$KERL_SYSTEM" "$1"
     fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
+        # shellcheck disable=SC2086
         ./otp_build autoconf $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1 && \
            _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
     else
+        # shellcheck disable=SC2086
         _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
 
     fi
     if ! echo "$KERL_CONFIGURE_OPTIONS" | grep "--enable-native-libs" >/dev/null 2>&1; then
         make clean >>"$LOGFILE" 2>&1
+        # shellcheck disable=SC2086
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
             show_logfile "Configure failed." "$LOGFILE"
             list_remove builds "$1 $2"
@@ -774,6 +777,7 @@ _do_build()
         done
     fi
 
+    # shellcheck disable=SC2086
     if ! _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
         show_logfile "Build failed." "$LOGFILE"
         list_remove builds "$1 $2"
@@ -1242,6 +1246,7 @@ build_plt()
     build_log="$dialyzerd"/build.log
     dirs=$(find "$1"/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
     apps=$(for app in $dirs; do basename "$app" | cut -d- -f1 ; done | grep -Ev 'erl_interface|jinterface' | xargs echo)
+    # shellcheck disable=SC2086
     "$1"/bin/dialyzer --output_plt "$plt" --build_plt --apps $apps >>"$build_log" 2>&1
     status=$?
     if [ $status -eq 0 ] || [ $status -eq 2 ]; then
@@ -1302,6 +1307,7 @@ do_deploy()
         remotepath="$3"
     fi
 
+    # shellcheck disable=SC2086
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true >/dev/null 2>&1; then
         echo "Couldn't ssh to $host"
         exit 1
@@ -1309,16 +1315,19 @@ do_deploy()
 
     echo "Cloning Erlang/OTP $rel ($path) to $host ($remotepath) ..."
 
+    # shellcheck disable=SC2086
     if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"; then
         echo "Couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)"
         exit 1
     fi
 
+    # shellcheck disable=SC2086
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\$(pwd)\" ./Install $INSTALL_OPT \"\$(pwd)\" >/dev/null 2>&1"; then
         echo "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
 
+    # shellcheck disable=SC2086
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && sed -i -e \"s#$path#\"\$(pwd)\"#g\" activate"; then
         echo "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
@@ -2122,6 +2131,7 @@ case "$1" in
             else
                 VALUE="$ACTIVE_NAME"
             fi
+            # shellcheck disable=SC2059
             printf "$FMT" "$VALUE"
         fi
         exit 0
