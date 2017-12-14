@@ -1434,7 +1434,7 @@ maybe_remove() {
 
 list_print() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        if [ "$(wc -l "$KERL_BASE_DIR/otp_$1")" -ne 0 ]; then
+        if [ "$(wc -l "$KERL_BASE_DIR/otp_$1")" != '0' ]; then
             if [ -z "$2" ]; then
                 cat "$KERL_BASE_DIR/otp_$1"
             else
