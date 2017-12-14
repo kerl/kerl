@@ -1447,8 +1447,8 @@ is_valid_install_path()
             echo "ERROR: $1 is not a directory."
             return 1
         else
-            count=$(ls -la "$1" | wc -l)
-            if [ "$count" -ne 3 ]; then
+            count=$(find "$1" | wc -l)
+            if [ "$count" -ne 1 ]; then
                 echo "ERROR: $1 does not appear to be an empty directory."
                 return 1
             fi
