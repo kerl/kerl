@@ -403,15 +403,13 @@ do_git_build()
     cd "$KERL_GIT_DIR" || exit 1
     echo "Checking out Erlang/OTP git repository from $1..."
     if [ ! -d "$GIT" ]; then
-        git clone -q --mirror "$1" "$GIT" > /dev/null 2>&1
-        if [ $? -ne 0 ]; then
+        if ! git clone -q --mirror "$1" "$GIT" > /dev/null 2>&1; then
             echo "Error mirroring remote git repository"
             exit 1
         fi
     fi
     cd "$GIT" || exit 1
-    git remote update --prune > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if ! git remote update --prune > /dev/null 2>&1; then
         echo "Error updating remote git repository"
         exit 1
     fi
@@ -419,20 +417,17 @@ do_git_build()
     rm -Rf "${KERL_BUILD_DIR:?}/$3"
     mkdir -p "$KERL_BUILD_DIR/$3" || exit 1
     cd "$KERL_BUILD_DIR/$3" || exit 1
-    git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git > /dev/null 2>&1; then
         echo "Error cloning local git repository"
         exit 1
     fi
     cd otp_src_git || exit 1
-    git checkout "$2" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        git checkout -b "$2" "$2" > /dev/null 2>&1
-    fi
-    if [ $? -ne 0 ]; then
-        echo "Couldn't checkout specified version"
-        rm -Rf "${KERL_BUILD_DIR:?}/$3"
-        exit 1
+    if ! git checkout "$2" > /dev/null 2>&1; then
+        if ! git checkout -b "$2" "$2" > /dev/null 2>&1; then
+            echo "Couldn't checkout specified version"
+            rm -Rf "${KERL_BUILD_DIR:?}/$3"
+            exit 1
+        fi
     fi
     if [ ! -x otp_build ]; then
         echo "Not a valid Erlang/OTP repository"
@@ -659,16 +654,13 @@ _do_build()
             # Ensure that the --enable-darwin-64bit flag is set on all macOS
             # That way even on older Erlangs we get 64 bit Erlang builds
             # macOS has been mandatory 64 bit for a while
-            echo -n $KERL_CONFIGURE_OPTIONS | grep "darwin-64bit" 1>/dev/null 2>&1
-            if [ $? -ne 0 ]; then
+            if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "darwin-64bit" 1>/dev/null 2>&1; then
                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --enable-darwin-64bit"
             fi
 
             case "$OSVERSION" in
                 17*|16*|15*)
-                    echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1
-                    # Reminder to self: 0 from grep means the string was detected
-                    if [ $? -ne 0 ]; then
+                    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" 1>/dev/null 2>&1; then
                         whichbrew=$(which brew)
                         if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                             brew_prefix=$(brew --prefix openssl)
@@ -748,15 +740,13 @@ _do_build()
         _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
 
     fi
-    echo -n $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" 1>/dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" 1>/dev/null 2>&1; then
         make clean >> "$LOGFILE" 2>&1
-        _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
-    fi
-    if [ $? -ne 0 ]; then
-        show_logfile "Configure failed." "$LOGFILE"
-        list_remove builds "$1 $2"
-        exit 1
+        if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1; then
+            show_logfile "Configure failed." "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
     fi
 
     for SECTION in "APPLICATIONS DISABLED" \
@@ -768,8 +758,7 @@ _do_build()
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
         find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
         for i in $KERL_CONFIGURE_APPLICATIONS; do
-            rm ./lib/"$i"/SKIP
-            if [ $? -ne 0 ]; then
+            if ! rm ./lib/"$i"/SKIP; then
                 echo "Couldn't prepare '$i' application for building"
                 list_remove builds "$1 $2"
                 exit 1
@@ -778,30 +767,26 @@ _do_build()
     fi
     if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
         for i in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
-            touch -f ./lib/"$i"/SKIP
-            if [ $? -ne 0 ]; then
+            if ! touch -f ./lib/"$i"/SKIP; then
                 echo "Couldn't disable '$i' application for building"
                 exit 1
             fi
         done
     fi
 
-    _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1
-    if [ $? -ne 0 ]; then
+    if ! _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >> "$LOGFILE" 2>&1; then
         show_logfile "Build failed." "$LOGFILE"
         list_remove builds "$1 $2"
         exit 1
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
         echo "Building docs..."
-        make docs >> "$LOGFILE" 2>&1
-        if [ $? -ne 0 ]; then
+        if ! make docs >> "$LOGFILE" 2>&1; then
             show_logfile "Building docs failed." "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
         fi
-        make install-docs >> "$LOGFILE" 2>&1
-        if [ $? -ne 0 ]; then
+        if ! make install-docs >> "$LOGFILE" 2>&1; then
             show_logfile "Installing docs failed." "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
@@ -815,8 +800,7 @@ _do_build()
 
 do_install()
 {
-    rel=$(get_release_from_name "$1")
-    if [ $? -ne 0 ]; then
+    if ! rel=$(get_release_from_name "$1"); then
         echo "No build named $1"
         exit 1
     fi
@@ -828,9 +812,8 @@ do_install()
     echo "Installing Erlang/OTP $rel ($1) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
     cd "$ERL_TOP" || exit 1
-    ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" > /dev/null 2>&1 &&
-        cd "$absdir" && ./Install $INSTALL_OPT "$absdir" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" > /dev/null 2>&1 &&
+              cd "$absdir" && ./Install $INSTALL_OPT "$absdir" > /dev/null 2>&1); then
         echo "Couldn't install Erlang/OTP $rel ($1) in $absdir"
         exit 1
     fi
@@ -1158,9 +1141,8 @@ install_docsh() {
 
     OTP_VERSION=$(get_otp_version $1)
     # This has to be updated with docsh updates
-    DOCSH_SUPPORTED="^1[89]\|20$"
-    echo $OTP_VERSION | grep "$DOCSH_SUPPORTED" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    DOCSH_SUPPORTED='^1[89]\|20$'
+    if ! echo $OTP_VERSION | grep "$DOCSH_SUPPORTED" > /dev/null 2>&1; then
         echo "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
         exit 1
     fi
@@ -1169,15 +1151,13 @@ install_docsh() {
     cd "$KERL_GIT_DIR" || exit 1
     echo "Checking out docsh git repository from ${REPO_URL}..."
     if [ ! -d "$GIT" ]; then
-        git clone -q --mirror "$REPO_URL" "$GIT" > /dev/null 2>&1
-        if [ $? -ne 0 ]; then
+        if ! git clone -q --mirror "$REPO_URL" "$GIT" > /dev/null 2>&1; then
             echo "Error mirroring remote git repository"
             exit 1
         fi
     fi
     cd "$GIT" || exit 1
-    git remote update --prune > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if ! git remote update --prune > /dev/null 2>&1; then
         echo "Error updating remote git repository"
         exit 1
     fi
@@ -1185,24 +1165,20 @@ install_docsh() {
     rm -Rf "$DOCSH_DIR"
     mkdir -p "$DOCSH_DIR" || exit 1
     cd "$DOCSH_DIR" || exit 1
-    git clone -l "$KERL_GIT_DIR/$GIT" $DOCSH_DIR > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if ! git clone -l "$KERL_GIT_DIR/$GIT" $DOCSH_DIR > /dev/null 2>&1; then
         echo "Error cloning local git repository"
         exit 1
     fi
     cd $DOCSH_DIR || exit 1
-    git checkout "$DOCSH_REF" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        git checkout -b "$DOCSH_REF" "$DOCSH_REF" > /dev/null 2>&1
-    fi
-    if [ $? -ne 0 ]; then
-        echo "Couldn't checkout specified version"
-        rm -Rf "$DOCSH_DIR"
-        exit 1
+    if ! git checkout "$DOCSH_REF" > /dev/null 2>&1; then
+        if ! git checkout -b "$DOCSH_REF" "$DOCSH_REF" > /dev/null 2>&1; then
+            echo "Couldn't checkout specified version"
+            rm -Rf "$DOCSH_DIR"
+            exit 1
+        fi
     fi
 
-    ./rebar3 compile
-    if [ $? -ne 0 ]; then
+    if ! ./rebar3 compile; then
         echo "Couldn't compile docsh"
         rm -Rf "$DOCSH_DIR"
         exit 1
@@ -1327,28 +1303,24 @@ do_deploy()
         remotepath="$3"
     fi
 
-    ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true > /dev/null 2>&1; then
         echo "Couldn't ssh to $host"
         exit 1
     fi
 
     echo "Cloning Erlang/OTP $rel ($path) to $host ($remotepath) ..."
 
-    rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"
-    if [ $? -ne 0 ]; then
+    if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"; then
         echo "Couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)"
         exit 1
     fi
 
-    ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\`pwd\`\" ./Install $INSTALL_OPT \"\`pwd\`\" > /dev/null 2>&1"
-    if [ $? -ne 0 ]; then
+    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\`pwd\`\" ./Install $INSTALL_OPT \"\`pwd\`\" > /dev/null 2>&1"; then
         echo "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
 
-    ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && sed -i -e \"s#$path#\"\`pwd\`\"#g\" activate"
-    if [ $? -ne 0 ]; then
+    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && sed -i -e \"s#$path#\"\`pwd\`\"#g\" activate"; then
         echo "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
@@ -1375,8 +1347,7 @@ _resolve_symlinks() {
     _assert_no_path_cycles "$@" || return
 
     local dir_context path
-    path=$(readlink -- "$1")
-    if [ $? -eq 0 ]; then
+    if path=$(readlink -- "$1"); then
         dir_context=$(dirname -- "$1")
         _resolve_symlinks "$(_prepend_dir_context_if_necessary "$dir_context" "$path")" "$@"
     else
