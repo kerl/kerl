@@ -203,7 +203,7 @@ get_releases()
 get_git_releases()
 {
     git ls-remote --tags "$OTP_GITHUB_URL" \
-    | egrep -o 'OTP[_-][^^{}]+' \
+    | grep -E -o 'OTP[_-][^^{}]+' \
     | sed $SED_OPT 's/OTP[_-]//' \
     | sort -n \
     | uniq
