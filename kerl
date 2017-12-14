@@ -398,7 +398,7 @@ do_git_build()
 {
     assert_build_name_unused "$3"
 
-    GIT=$(echo -n "$1" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
+    GIT=$(printf '%s' "$1" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
     echo "Checking out Erlang/OTP git repository from $1..."
@@ -654,13 +654,13 @@ _do_build()
             # Ensure that the --enable-darwin-64bit flag is set on all macOS
             # That way even on older Erlangs we get 64 bit Erlang builds
             # macOS has been mandatory 64 bit for a while
-            if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "darwin-64bit" >/dev/null 2>&1; then
+            if ! echo $KERL_CONFIGURE_OPTIONS | grep "darwin-64bit" >/dev/null 2>&1; then
                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --enable-darwin-64bit"
             fi
 
             case "$OSVERSION" in
                 17*|16*|15*)
-                    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "ssl" >/dev/null 2>&1; then
+                    if ! echo $KERL_CONFIGURE_OPTIONS | grep "ssl" >/dev/null 2>&1; then
                         whichbrew=$(which brew)
                         if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                             brew_prefix=$(brew --prefix openssl)
@@ -740,7 +740,7 @@ _do_build()
         _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
 
     fi
-    if ! echo -n $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" >/dev/null 2>&1; then
+    if ! echo $KERL_CONFIGURE_OPTIONS | grep "--enable-native-libs" >/dev/null 2>&1; then
         make clean >>"$LOGFILE" 2>&1
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
             show_logfile "Configure failed." "$LOGFILE"
@@ -1133,7 +1133,7 @@ ACTIVATE_CSH
 
 install_docsh() {
     REPO_URL=$DOCSH_GITHUB_URL
-    GIT=$(echo -n $REPO_URL | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
+    GIT=$(printf '%s' $REPO_URL | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
     BUILDNAME=$1
     DOCSH_DIR="$KERL_BUILD_DIR/$BUILDNAME/docsh"
     DOCSH_REF="0.5.0"
@@ -1346,7 +1346,6 @@ resolve_symlinks() {
 _resolve_symlinks() {
     _assert_no_path_cycles "$@" || return
 
-    local dir_context path
     if path=$(readlink -- "$1"); then
         dir_context=$(dirname -- "$1")
         _resolve_symlinks "$(_prepend_dir_context_if_necessary "$dir_context" "$path")" "$@"
@@ -1371,8 +1370,6 @@ _prepend_path_if_relative() {
 }
 
 _assert_no_path_cycles() {
-    local target path
-
     target=$1
     shift
 
@@ -1396,7 +1393,6 @@ _canonicalize_dir_path() {
 }
 
 _canonicalize_file_path() {
-    local dir file
     dir=$(dirname -- "$1")
     file=$(basename -- "$1")
     (cd "$dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$file")
