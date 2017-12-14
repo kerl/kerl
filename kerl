@@ -648,8 +648,8 @@ _do_build()
 {
     case "$KERL_SYSTEM" in
         Darwin)
-            OSVERSION=`uname -r`
-            RELVERSION=`get_otp_version "$1"`
+            OSVERSION=$(uname -r)
+            RELVERSION=$(get_otp_version "$1")
 
             # Ensure that the --enable-darwin-64bit flag is set on all macOS
             # That way even on older Erlangs we get 64 bit Erlang builds
@@ -1241,8 +1241,8 @@ build_plt()
     plt=$dialyzerd/plt
     build_log=$dialyzerd/build.log
     dialyzer=$1/bin/dialyzer
-    dirs=`find $1/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;`
-    apps=`for app in $dirs; do basename $app | cut -d- -f1 ; done | grep -Ev 'erl_interface|jinterface' | xargs echo`
+    dirs=$(find $1/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
+    apps=$(for app in $dirs; do basename $app | cut -d- -f1 ; done | grep -Ev 'erl_interface|jinterface' | xargs echo)
     $dialyzer --output_plt $plt --build_plt --apps $apps >> $build_log 2>&1
     status=$?
     if [ $status -eq 0 ] || [ $status -eq 2 ]; then
@@ -1482,7 +1482,7 @@ list_print()
             if [ -z "$2" ]; then
                 cat "$KERL_BASE_DIR/otp_$1"
             else
-                echo `cat "$KERL_BASE_DIR/otp_$1"`
+                echo $(cat "$KERL_BASE_DIR/otp_$1")
             fi
             return 0
         fi
@@ -2092,7 +2092,7 @@ case "$1" in
         fi
         ;;
     plt)
-        ACTIVE_PATH=`get_active_path`
+        ACTIVE_PATH=$(get_active_path)
         if ! do_plt "$ACTIVE_PATH"; then
             exit 1;
         fi
@@ -2105,7 +2105,7 @@ case "$1" in
         list_print installations
         echo "----------"
         if do_active; then
-            ACTIVE_PATH=`get_active_path`
+            ACTIVE_PATH=$(get_active_path)
             if [ -n "$ACTIVE_PATH" ]; then
                 do_plt "$ACTIVE_PATH"
                 print_buildopts "$ACTIVE_PATH"
