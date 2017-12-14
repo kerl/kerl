@@ -36,12 +36,12 @@ if [ -z "$HOME" ]; then
 fi
 
 # Default values
-: ${OTP_GITHUB_URL:="https://github.com/erlang/otp"}
-: ${KERL_BASE_DIR:="$HOME"/.kerl}
-: ${KERL_CONFIG:="$HOME"/.kerlrc}
-: ${KERL_DOWNLOAD_DIR:="${KERL_BASE_DIR:?}"/archives}
-: ${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
-: ${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
+OTP_GITHUB_URL=${OTP_GITHUB_URL:="https://github.com/erlang/otp"}
+KERL_BASE_DIR=${KERL_BASE_DIR:="$HOME"/.kerl}
+KERL_CONFIG=${KERL_CONFIG:="$HOME"/.kerlrc}
+KERL_DOWNLOAD_DIR=${KERL_DOWNLOAD_DIR:="${KERL_BASE_DIR:?}"/archives}
+KERL_BUILD_DIR=${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
+KERL_GIT_DIR=${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
 
 if [ -n "$OTP_GITHUB_URL" ]; then
     _OGU="$OTP_GITHUB_URL"
