@@ -297,7 +297,7 @@ is_valid_installation()
         while read -r l; do
             name=$(echo "$l" | cut -d " " -f 1)
             path=$(echo "$l" | cut -d " " -f 2)
-            if [ "$name" = "$1" -o "$path" = "$1" ]; then
+            if [ "$name" = "$1" ] || [ "$path" = "$1" ]; then
                 if [ -f "$path"/activate ]; then
                     return 0
                 fi
@@ -333,9 +333,9 @@ _check_required_pkgs()
 {
     has_dpkg=$(which dpkg)
     has_rpm=$(which rpm)
-    if [ -n "$has_dpkg" -o -n "$has_rpm" ]; then
+    if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ]; then
         # found either dpkg or rpm (or maybe even both!)
-        if [ -n "$has_dpkg" -a -n "$has_rpm" ]; then
+        if [ -n "$has_dpkg" ] && [ -n "$has_rpm" ]; then
             echo "WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done."
         elif [ -n "$has_dpkg" ]; then
             _check_dpkg
@@ -576,7 +576,7 @@ maybe_patch_darwin()
     elif [ "$1" -eq 16 ]; then
         # TODO: Maybe check if clang version == 9
         apply_r16_wx_ptr_patch >> "$LOGFILE"
-    elif [ "$1" -ge 17 -a "$1" -le 19 ]; then
+    elif [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
         apply_wx_ptr_patch >> "$LOGFILE"
     fi
 }
@@ -670,12 +670,12 @@ _do_build()
                     # Reminder to self: 0 from grep means the string was detected
                     if [ $? -ne 0 ]; then
                         whichbrew=$(which brew)
-                        if [ -n "$whichbrew" -a -x "$whichbrew" ]; then
+                        if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                             brew_prefix=$(brew --prefix openssl)
-                            if [ -n "$brew_prefix" -a -d "$brew_prefix" ]; then
+                            if [ -n "$brew_prefix" ] && [ -d "$brew_prefix" ]; then
                                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$brew_prefix"
                             fi
-                        elif [ ! -d /usr/include/openssl -o ! -d /usr/local/include/openssl ]; then
+                        elif [ ! -d /usr/include/openssl ] || [ ! -d /usr/local/include/openssl ]; then
                             # Apple removed OpenSSL from El Capitan, but its still in this
                             # funky location, so set ssl headers to look here
                             xc_ssl='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr'
@@ -1269,7 +1269,7 @@ build_plt()
     apps=`for app in $dirs; do basename $app | cut -d- -f1 ; done | grep -Ev 'erl_interface|jinterface' | xargs echo`
     $dialyzer --output_plt $plt --build_plt --apps $apps >> $build_log 2>&1
     status=$?
-    if [ $status -eq 0 -o $status -eq 2 ]; then
+    if [ $status -eq 0 ] || [ $status -eq 2 ]; then
         echo "Done building $plt"
         return 0
     else
