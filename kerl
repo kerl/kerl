@@ -96,7 +96,10 @@ KERL_BUILD_BACKEND=
 mkdir -p "$KERL_BASE_DIR" || exit 1
 
 # source the config file if available
-if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
+if [ -f "$KERL_CONFIG" ]; then
+    # shellcheck source=/dev/null
+    . "$KERL_CONFIG"
+fi
 
 if [ -n "$_OGU" ]; then
     OTP_GITHUB_URL="$_OGU"
