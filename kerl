@@ -630,15 +630,15 @@ _flags()
                         host=$(./erts/autoconf/config.guess)
                         DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp"
                     fi
-                    CFLAGS="$CFLAGS" DED_LD="$DED_LD" CC="$CC" DED_LDFLAGS="$DED_LDFLAGS" $@
+                    CFLAGS="$CFLAGS" DED_LD="$DED_LD" CC="$CC" DED_LDFLAGS="$DED_LDFLAGS" "$@"
                     ;;
                 *)
-                    CFLAGS="$CFLAGS" $@
+                    CFLAGS="$CFLAGS" "$@"
                     ;;
             esac
             ;;
         *)
-            CFLAGS="$CFLAGS" $@
+            CFLAGS="$CFLAGS" "$@"
             ;;
     esac
 
