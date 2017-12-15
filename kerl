@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 # Copyright (c) 2016-2018 Mark Allen
 # Copyright (c) 2011, 2012 Spawngrid, Inc
@@ -788,6 +788,7 @@ do_install() {
     fi
     list_add installations "$1 $absdir";
     cat <<ACTIVATE >"$absdir"/activate
+#!/bin/sh
 # credits to virtualenv
 kerl_deactivate() {
     if [ -n "\$_KERL_SAVED_ERL_AFLAGS" ]; then
@@ -796,12 +797,14 @@ kerl_deactivate() {
         unset _KERL_SAVED_ERL_AFLAGS
     fi
     if [ -n "\$_KERL_PATH_REMOVABLE" ]; then
-        PATH=\`echo \${PATH} | sed -e "s#\${_KERL_PATH_REMOVABLE}:##"\`
+        # shellcheck disable=SC2001
+        PATH="\$(echo "\$PATH" | sed -e "s#\$_KERL_PATH_REMOVABLE:##")"
         export PATH
         unset _KERL_PATH_REMOVABLE
     fi
     if [ -n "\$_KERL_MANPATH_REMOVABLE" ]; then
-        MANPATH=\`echo \${MANPATH} | sed -e "s#\${_KERL_MANPATH_REMOVABLE}:##"\`
+        # shellcheck disable=SC2001
+        MANPATH="\$(echo "\$MANPATH" | sed -e "s#\$_KERL_MANPATH_REMOVABLE:##")"
         export MANPATH
         unset _KERL_MANPATH_REMOVABLE
     fi
@@ -826,7 +829,7 @@ kerl_deactivate() {
         unset DOCSH_USER_DEFAULT
         unset _KERL_DOCSH_USER_DEFAULT
     fi
-    if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
+    if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
     if [ ! "\$1" = "nondestructive" ]; then
@@ -855,6 +858,7 @@ kernel_history=\$(echo "\$ERL_AFLAGS" | grep 'kernel shell_history' || true)
 if [ -z "\$kernel_history" ]; then
     export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
 fi
+# shellcheck source=/dev/null
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     _KERL_SAVED_PS1="\$PS1"
@@ -872,6 +876,7 @@ if [ -d "$absdir/lib/docsh" ]; then
     export DOCSH_USER_DEFAULT="$absdir/lib/docsh/user_default"
     export _KERL_DOCSH_USER_DEFAULT=yes
     if [ -f "\$HOME/.erlang" ]; then
+        # shellcheck disable=SC2153
         if [ ! x"\$KERL_DOCSH_DOT_ERLANG" = x'exists' ]; then
             echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
             echo "Please make sure \$HOME/.erlang contains code"
@@ -883,7 +888,7 @@ if [ -d "$absdir/lib/docsh" ]; then
         export _KERL_DOCSH_DOT_ERLANG=yes
     fi
 fi
-if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
+if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
 ACTIVATE
@@ -1018,7 +1023,7 @@ if ( \$?KERL_ENABLE_PROMPT ) then
         set FRMT = "(%BUILDNAME%)"
     endif
 
-    set PROMPT = \`echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^'\`
+    set PROMPT = \$(echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^')
     set prompt = "\$PROMPT\$prompt"
 endif
 
