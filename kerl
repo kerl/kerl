@@ -2089,6 +2089,8 @@ case "$1" in
             *)
                 echo "Cleaning up compilation products for $2"
                 rm -rf "${KERL_BUILD_DIR:?}/$2"
+                rel="$(get_release_from_name "$2")"
+                list_remove builds "$rel,$2"
                 echo "Cleaned up compilation products for $2 under $KERL_BUILD_DIR"
                 ;;
         esac
