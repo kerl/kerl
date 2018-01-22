@@ -2087,9 +2087,9 @@ case "$1" in
                 echo "Cleaned up all compilation products under $KERL_BUILD_DIR"
                 ;;
             *)
-                echo "Cleaning up compilation products for $3"
-                rm -rf "${KERL_BUILD_DIR:?}/$3"
-                echo "Cleaned up compilation products for $3 under $KERL_BUILD_DIR"
+                echo "Cleaning up compilation products for $2"
+                rm -rf "${KERL_BUILD_DIR:?}/$2"
+                echo "Cleaned up compilation products for $2 under $KERL_BUILD_DIR"
                 ;;
         esac
         ;;
