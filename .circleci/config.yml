@@ -1,6 +1,7 @@
 version: 2
 jobs:
-  build:
+
+  debian8_R15B03-1:
     docker:
       - image: debian:8
     environment:
@@ -9,6 +10,30 @@ jobs:
     steps:
       - run: apt-get update && apt-get upgrade -y
       - run: apt-get install -y git curl build-essential libncurses-dev libssl-dev
+      - checkout
+      - run: ./kerl update releases
+      - run:
+          command: ./kerl build "$_KERL_VSN" "$_KERL_VSN"
+          no_output_timeout: 45m
+      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: ./kerl status
+      - run: |
+          set -x
+          source $(./kerl path install_$_KERL_VSN)/activate
+          erl -s crypto -s init stop
+          kerl_deactivate
+      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
+      - run: ./kerl delete build "$_KERL_VSN"
+
+  centos6_20.2:
+    docker:
+      - image: centos:6
+    environment:
+      - _KERL_VSN: 20.2
+      - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'odbc'
+    steps:
+      - run: yum -y update
+      - run: yum -y install git curl ncurses-devel openssl-devel make automake autoconf gcc
       - checkout
       - run: ./kerl update releases
       - run:
