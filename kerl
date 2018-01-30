@@ -531,7 +531,7 @@ maybe_patch_all() {
     fi
 
     # Maybe apply zlib patch
-    if [ "$1" -ge 17 -a "$1" -le 19 ]; then
+    if [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
         apply_zlib_patch >> "$LOGFILE"
     fi
 }
