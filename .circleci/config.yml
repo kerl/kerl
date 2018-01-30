@@ -33,7 +33,11 @@ jobs:
       - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'odbc'
     steps:
       - run: yum -y update
-      - run: yum -y install git curl ncurses-devel openssl-devel make automake autoconf gcc
+      - run: yum -y install curl ncurses-devel openssl-devel make automake autoconf gcc
+      - run: |
+          yum -y install https://centos6.iuscommunity.org/ius-release.rpm
+          # CircleCI checkout uses -B which isn't available in CentOS6's packaged git
+          yum -y install git2u
       - checkout
       - run: ./kerl update releases
       - run:
