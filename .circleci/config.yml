@@ -1,7 +1,7 @@
 version: 2
 jobs:
 
-  debian8_R15B03-1:
+  build:
     docker:
       - image: debian:8
     environment:
@@ -48,3 +48,10 @@ jobs:
           kerl_deactivate
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
+
+workflows:
+  version: 2
+  test-workflow:
+    jobs:
+      - build
+      - centos6_20.2
