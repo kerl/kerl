@@ -684,6 +684,12 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+5 March 2018 - 1.8.2
+
+  - Apply zlib patch when building OTP 17-19. (#258)
+  - Add CircleCI (#246)
+  - Fix empty package name warning (#245)
+
 13 November 2017 - 1.8.1
 
   - Fix removing an installation by its name. (#244)
