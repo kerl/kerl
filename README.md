@@ -621,7 +621,7 @@ other tools to extract to path information.
 
     kerl install-docsh
 
-**Important note**: docsh currently only supports OTP 18 and 19.
+**Important note**: docsh only supports OTP versions 18 and later.
 
 Install `erl` shell documentation access
 extension - [docsh](https://github.com/erszcz/docsh).
