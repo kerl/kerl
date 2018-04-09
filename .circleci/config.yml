@@ -6,6 +6,7 @@ workflows:
       - debian8_R15B03-1
       - centos6_20.2
       - alpine3.7_20.3
+      - jessie_20.3.2_wx
 
 jobs:
 
@@ -29,6 +30,45 @@ jobs:
           set -x
           source $(./kerl path install_$_KERL_VSN)/activate
           erl -s crypto -s init stop
+          kerl_deactivate
+      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
+      - run: ./kerl delete build "$_KERL_VSN"
+
+  jessie_20.3.2_wx:
+    docker:
+      - image: debian:jessie
+    environment:
+      - _KERL_VSN: 20.3.2
+      - KERL_BUILD_BACKEND: git
+    steps:
+      - run: apt update && apt upgrade -y
+      - run: |
+          apt install -y --no-install-recommends \
+             curl ca-certificates \
+             libodbc1 libssl1.0.0 libsctp1 \
+             git autoconf dpkg-dev gcc g++ make \
+             libncurses-dev unixodbc-dev libssl-dev libsctp-dev
+      - run: apt install -y libwxgtk3.0
+      - run: wx-config --version
+      - checkout
+      - run: ./kerl update releases
+      - run:
+          command: |
+            export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+            ./kerl build "$_KERL_VSN" "$_KERL_VSN" | tee build.log
+          no_output_timeout: 45m
+      - run: cat build.log
+      - run: "! grep -F 'ODBC library' build.log"
+      - run: "! grep -F 'wx will NOT be usable' build.log"
+      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: ./kerl status
+      - run: |
+          set -x
+          source $(./kerl path install_$_KERL_VSN)/activate
+          for app in crypto odbc wx; do
+            echo Testing app $app
+            erl -s $app -s init stop
+          done
           kerl_deactivate
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
