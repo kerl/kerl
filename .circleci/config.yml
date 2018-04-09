@@ -47,8 +47,9 @@ jobs:
              curl ca-certificates \
              libodbc1 libssl1.0.0 libsctp1 \
              git autoconf dpkg-dev gcc g++ make \
-             libncurses-dev unixodbc-dev libssl-dev libsctp-dev
-      - run: apt install -y libwxgtk3.0
+             libncurses-dev unixodbc-dev libssl-dev libsctp-dev \
+             libwxgtk3.0-dev libgl1-mesa-dev libglu1-mesa-dev libpng3
+      # - run: apt install -y libwxgtk3.0
       - run: wx-config --version
       - checkout
       - run: ./kerl update releases
@@ -66,8 +67,9 @@ jobs:
           set -x
           source $(./kerl path install_$_KERL_VSN)/activate
           for app in crypto odbc wx; do
-            echo Testing app $app
-            erl -s $app -s init stop
+            echo TEST app $app
+            erl -noshell -eval "case application:ensure_all_started($app) of {ok,[_|_]} -> init:stop(); _ -> init:stop(1) end."
+            echo PASS app $app
           done
           kerl_deactivate
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
