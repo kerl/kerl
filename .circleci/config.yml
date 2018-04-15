@@ -7,7 +7,7 @@ workflows:
       - centos7_19.3
       - centos6_18.3
       - jessie_17.5_wx_odbc
-      - trusty_R16B03-1_wx_odbc
+      - trusty_R16B03-1
       - debian8_R15B03-1
 
 build_on_all_cores: &build_on_all_cores
@@ -20,16 +20,6 @@ activate_then_test_for_crypto: &activate_then_test_for_crypto
   |
     source $(./kerl path install_$_KERL_VSN)/activate
     erl -s crypto -s init stop
-    kerl_deactivate
-
-activate_then_test_for_crypto_odbc_wx: &activate_then_test_for_crypto_odbc_wx
-  |
-    source $(./kerl path install_$_KERL_VSN)/activate
-    for app in crypto odbc wx; do
-      echo TEST app $app
-      erl -noshell -eval "case application:ensure_all_started($app) of {ok,[_|_]} -> init:stop(); _ -> init:stop(1) end."
-      echo PASS app $app
-    done
     kerl_deactivate
 
 jobs:
@@ -132,32 +122,39 @@ jobs:
       - run: "! grep -F 'wx will NOT be usable' build.log"
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
-      - run: *activate_then_test_for_crypto_odbc_wx
+      - run: |
+          source $(./kerl path install_$_KERL_VSN)/activate
+          for app in crypto odbc wx; do
+            echo TEST app $app
+            erl -noshell -eval "case application:ensure_all_started($app) of {ok,[_|_]} -> init:stop(); _ -> init:stop(1) end."
+            echo PASS app $app
+          done
+          kerl_deactivate
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
 
-  trusty_R16B03-1_wx_odbc:
+  trusty_R16B03-1:
     docker:
       - image: ubuntu:trusty
     environment:
       - _KERL_VSN: R16B03-1
       - KERL_BUILD_BACKEND: git
+      - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'wx odbc'
     steps:
       - run: apt update && apt upgrade -y
       - run: |
           apt install -y --no-install-recommends \
              curl ca-certificates \
              git autoconf dpkg-dev gcc g++ make libncurses-dev \
-             libssl1.0.0 libssl-dev libsctp1 libsctp-dev \
-             libodbc1 unixodbc-dev \
-             libwxgtk3.0-dev libgl1-mesa-dev libglu1-mesa-dev libpng3
-      - run: wx-config --version
+             libssl1.0.0 libssl-dev libsctp1 libsctp-dev
       - checkout
       - run: ./kerl update releases
-      - run: *build_on_all_cores
+      - run:
+          command: bash -x ./kerl build "$_KERL_VSN" "$_KERL_VSN"
+          no_output_timeout: 45m
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
-      - run: *activate_then_test_for_crypto_odbc_wx
+      - run: *activate_then_test_for_crypto
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
 
