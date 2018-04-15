@@ -53,6 +53,7 @@ jobs:
       - image: centos:7
     environment:
       - _KERL_VSN: 19.3
+      - KERL_BUILD_BACKEND: git
       - KERL_CONFIGURE_DISABLE_APPLICATIONS: odbc
     steps:
       - run: yum -y update
@@ -75,6 +76,7 @@ jobs:
       - image: centos:6
     environment:
       - _KERL_VSN: 18.3
+      - KERL_BUILD_BACKEND: git
       - KERL_CONFIGURE_DISABLE_APPLICATIONS: odbc
     steps:
       - run: yum -y update
@@ -159,6 +161,7 @@ jobs:
       - image: debian:8
     environment:
       - _KERL_VSN: R15B03-1
+      - KERL_BUILD_BACKEND: git
       - KERL_CONFIGURE_DISABLE_APPLICATIONS: odbc
     steps:
       - run: apt-get update && apt-get upgrade -y
