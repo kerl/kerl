@@ -6,7 +6,7 @@ workflows:
       - alpine3.7_20.3
       - centos7_19.3
       - centos6_18.3
-      - jessie_17.5_wx_odbc
+      - jessie_17.5__wx_odbc__shellcheck
       - trusty_R16B03-1
       - debian8_R15B03-1
 
@@ -98,12 +98,13 @@ jobs:
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
 
-  jessie_17.5_wx_odbc:
+  jessie_17.5__wx_odbc__shellcheck:
     docker:
       - image: debian:jessie
     environment:
       - _KERL_VSN: 17.5
       - KERL_BUILD_BACKEND: git
+      - SHELLCHECK_URL: https://storage.googleapis.com/shellcheck/shellcheck-stable.linux.x86_64.tar.xz
     steps:
       - run: apt update && apt upgrade -y
       - run: |
@@ -114,7 +115,18 @@ jobs:
              libodbc1 unixodbc-dev \
              libwxgtk3.0-dev libgl1-mesa-dev libglu1-mesa-dev libpng3
       - run: wx-config --version
+      - run: |
+          curl -#fSLo shellcheck.tar.xz $SHELLCHECK_URL
+          tar --xz -xvf shellcheck.tar.xz
+          mv shellcheck-*/shellcheck /usr/local/bin
+          rm -r shellcheck-*/
+          shellcheck --version
       - checkout
+      - run: |
+          shellcheck ./kerl
+          shellcheck ./bash_completion/kerl
+          # https://github.com/koalaman/shellcheck/issues/809
+          # shellcheck ./zsh_completion/_kerl
       - run: ./kerl update releases
       - run: *build_on_all_cores
       - run: cat build.log
@@ -122,6 +134,10 @@ jobs:
       - run: "! grep -F 'wx will NOT be usable' build.log"
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
+      - run: |
+          shellcheck $(./kerl path install_$_KERL_VSN)/activate
+          # shellcheck $(./kerl path install_$_KERL_VSN)/activate.csh
+          # shellcheck $(./kerl path install_$_KERL_VSN)/activate.fish
       - run: |
           source $(./kerl path install_$_KERL_VSN)/activate
           for app in crypto odbc wx; do
