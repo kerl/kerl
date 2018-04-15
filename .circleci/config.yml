@@ -161,7 +161,7 @@ jobs:
       - run: |
           apt install -y --no-install-recommends \
              curl ca-certificates \
-             git autoconf dpkg-dev gcc g++ make libncurses-dev \
+             git autoconf automake dpkg-dev gcc g++ make libncurses-dev \
              libssl1.0.0 libssl-dev libsctp1 libsctp-dev
       - checkout
       - run: ./kerl update releases
