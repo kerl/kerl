@@ -1,7 +1,7 @@
 kerl [![TravisCI build status](https://travis-ci.org/kerl/kerl.svg?branch=master)](https://travis-ci.org/kerl/kerl) [![CircleCI](https://circleci.com/gh/kerl/kerl.svg?style=svg)](https://circleci.com/gh/kerl/kerl)
 ====
 
-Easy building and installing of [Erlang/OTP](http://www.erlang.org) instances.
+Easy building and installing of [Erlang/OTP](https://www.erlang.org) instances.
 
 Kerl aims to be shell agnostic and its only dependencies, excluding what's
 required to actually build Erlang/OTP, are `curl` and `git`.
@@ -57,7 +57,7 @@ Kerl keeps tracks of the releases it downloads, builds and installs, allowing
 easy installations to new destinations (without complete rebuilding) and easy
 switches between Erlang/OTP installations.
 
-By default, kerl downloads source tarballs from the [official Erlang website](http://www.erlang.org), but
+By default, kerl downloads source tarballs from the [official Erlang website](https://www.erlang.org), but
 you can tell kerl to download tarballs of Erlang source code from the tags
 pushed to the [official source code](https://github.com/erlang/otp) by setting `KERL_BUILD_BACKEND=git`
 
@@ -380,7 +380,7 @@ Glossary
 
 Here are the abstractions kerl is handling:
 
-- **releases**: Erlang/OTP releases from [erlang.org](http://erlang.org)
+- **releases**: Erlang/OTP releases from [erlang.org](https://erlang.org)
 
 - **builds**: the result of configuring and compiling releases or git repositories
 
@@ -406,7 +406,7 @@ Creates a named build either from an official Erlang/OTP release or from a git r
 You can specify the configure options to use when building Erlang/OTP with the
 `KERL_CONFIGURE_OPTIONS` variable, either in your $HOME/.kerlrc file or
 prepending it to the command line.  Full list of all options can be in
-[Erlang documentation](http://erlang.org/doc/installation_guide/INSTALL.html#Advanced-configuration-and-build-of-ErlangOTP_Configuring).
+[Erlang documentation](https://erlang.org/doc/installation_guide/INSTALL.html#Advanced-configuration-and-build-of-ErlangOTP_Configuring).
 
     $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build 19.2 19.2-hipe
 

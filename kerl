@@ -27,7 +27,7 @@ unset ERL_TOP
 KERL_VERSION='1.8.2'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
-ERLANG_DOWNLOAD_URL='http://www.erlang.org/download'
+ERLANG_DOWNLOAD_URL='https://www.erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
 if [ -z "$HOME" ]; then
@@ -211,10 +211,19 @@ get_git_releases() {
 }
 
 get_tarball_releases() {
-    curl -f -q -L -s $ERLANG_DOWNLOAD_URL/ | \
-        sed $SED_OPT -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
-                     -e '/^R1|^[0-9]/!d' | \
-        sed -e 's/^R\(.*\)/\1:R\1/' | sed -e 's/^\([^\:]*\)$/\1-z:\1/' | sort | cut -d: -f2
+    tmp="$(mktemp /tmp/kerl.XXXXXX)"
+    if [ 200 = "$(curl -qsL --output "$tmp" --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL/)" ]; then
+        sed $SED_OPT \
+            -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
+            -e '/^R1|^[0-9]/!d' "$tmp" \
+        | sed -e 's/^R\(.*\)/\1:R\1/' \
+        | sed -e 's/^\([^\:]*\)$/\1-z:\1/' \
+        | sort | cut -d: -f2
+        rm "$tmp"
+        return 0
+    fi
+    rm "$tmp"
+    exit 1
 }
 
 update_checksum_file() {
