@@ -219,6 +219,7 @@ get_tarball_releases() {
         | sed -e 's/^R\(.*\)/\1:R\1/' \
         | sed -e 's/^\([^\:]*\)$/\1-z:\1/' \
         | sort | cut -d: -f2
+        rm "$tmp"
         return 0
     fi
     rm "$tmp"
