@@ -8,9 +8,7 @@ addons:
     packages:
       - shellcheck
 
-os:
-  - linux
-  - osx
+os: osx
 
 env:
   global:
