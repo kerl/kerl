@@ -58,7 +58,7 @@ jobs:
     steps:
       - run: yum -y update
       - run: |
-          yum -y install curl \
+          yum -y install curl git \
                          make automake autoconf gcc gcc-c++ \
                          gcc-java \
                          ncurses-devel openssl-devel
@@ -149,7 +149,9 @@ jobs:
              libssl1.0.0 libssl-dev libsctp1 libsctp-dev
       - checkout
       - run: ./kerl update releases
-      - run: *build_on_all_cores
+      - run:
+          command: bash -x ./kerl build "$_KERL_VSN" "$_KERL_VSN"
+          no_output_timeout: 45m
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
       - run: *activate_then_test_for_crypto
@@ -166,7 +168,7 @@ jobs:
     steps:
       - run: apt-get update && apt-get upgrade -y
       - run: |
-          apt-get install -y git curl build-essential libncurses-dev libssl-dev
+          apt-get install -y git curl build-essential automake autoconf libncurses-dev libssl-dev
       - checkout
       - run: ./kerl update releases
       - run: *build_on_all_cores
