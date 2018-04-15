@@ -238,17 +238,17 @@ Directory in which kerl will clone git repositories for building.
 
 ### KERL_CONFIGURE_OPTIONS
 
-Options to pass to `configure` when building OTP.
+Space-separated options to pass to `configure` when building OTP.
 
 
 ### KERL_CONFIGURE_APPLICATIONS
 
-List of OTP applications which should exclusively be built.
+Space-separated list of OTP applications which should exclusively be built.
 
 
 ### KERL_CONFIGURE_DISABLE_APPLICATIONS
 
-List of OTP applications to disable during building.
+Space-separated list of OTP applications to disable during building.
 
 
 ### KERL_BUILD_PLT

@@ -149,9 +149,7 @@ jobs:
              libssl1.0.0 libssl-dev libsctp1 libsctp-dev
       - checkout
       - run: ./kerl update releases
-      - run:
-          command: bash -x ./kerl build "$_KERL_VSN" "$_KERL_VSN"
-          no_output_timeout: 45m
+      - run: *build_on_all_cores
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
       - run: *activate_then_test_for_crypto
