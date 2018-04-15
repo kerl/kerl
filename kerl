@@ -150,9 +150,11 @@ else
 fi
 
 if [ -z "$KERL_BUILD_BACKEND" ]; then
-    KERL_BUILD_BACKEND='tarball'
-else
     KERL_BUILD_BACKEND='git'
+else
+    KERL_BUILD_BACKEND='tarball'
+fi
+if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
     KERL_USE_AUTOCONF=1
 fi
 
