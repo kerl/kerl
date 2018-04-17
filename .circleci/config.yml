@@ -6,7 +6,7 @@ workflows:
       - alpine3.7_20.3
       - centos7_19.3
       - centos6_18.3
-      - jessie_17.5__wx_odbc__shellcheck
+      - debian9_17.5__wx_odbc__shellcheck
       - trusty_R16B03-1
       - debian8_R15B03-1
 
@@ -98,30 +98,30 @@ jobs:
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
 
-  jessie_17.5__wx_odbc__shellcheck:
+  debian9_17.5__wx_odbc__shellcheck:
     docker:
-      - image: debian:jessie
+      - image: debian:9
     environment:
       - _KERL_VSN: 17.5
       - KERL_BUILD_BACKEND: git
-      - SHELLCHECK_URL: https://storage.googleapis.com/shellcheck/shellcheck-0.4.6.linux.x86_64.tar.xz
+      - SHELLCHECK_URL: https://storage.googleapis.com/shellcheck/shellcheck-stable.linux.x86_64.tar.xz
     steps:
       - run: apt update && apt upgrade -y
       - run: |
           apt install -y --no-install-recommends \
              curl ca-certificates \
              git autoconf dpkg-dev gcc g++ make libncurses-dev \
-             libssl1.0.0 libssl-dev libsctp1 libsctp-dev \
+             libssl1.1 libssl-dev libsctp1 libsctp-dev \
              libodbc1 unixodbc-dev \
-             libwxgtk3.0-dev libgl1-mesa-dev libglu1-mesa-dev libpng3
+             libwxgtk3.0-dev libgl1-mesa-dev libglu1-mesa-dev libpng16-16 libpng-dev
       - run: wx-config --version
+      - checkout
       - run: |
           curl -#fSLo shellcheck.tar.xz $SHELLCHECK_URL
           tar --xz -xvf shellcheck.tar.xz
           mv shellcheck-*/shellcheck /usr/local/bin
-          rm -vr shellcheck-*/
+          rm -vr shellcheck-*/ shellcheck.tar.xz
           shellcheck --version
-      - checkout
       - run: |
           shellcheck ./kerl
           shellcheck ./bash_completion/kerl
