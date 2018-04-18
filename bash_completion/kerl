@@ -58,7 +58,7 @@ _kerl()
             mapfile -t COMPREPLY < <( compgen -W "$PATHS" -- "$cur")
             ;;
         delete)
-            mapfile -t COMPREPLY < <( compgen -W "build installation $words" -- "$cur")
+            mapfile -t COMPREPLY < <( compgen -W "build installation" -- "$cur")
             ;;
         update)
             mapfile -t COMPREPLY < <( compgen -W "releases" -- "$cur")
