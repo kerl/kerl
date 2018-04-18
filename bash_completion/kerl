@@ -12,10 +12,10 @@ _kerl()
 
     case $prev in
         kerl)
-            mapfile -t COMPREPLY < <( compgen -W "build install update list delete active path status" -- "$cur" )
+            mapfile -t COMPREPLY < <( compgen -W 'build install update list delete active path status' -- "$cur" )
             ;;
         list)
-            mapfile -t COMPREPLY < <( compgen -W "releases builds installations" -- "$cur" )
+            mapfile -t COMPREPLY < <( compgen -W 'releases builds installations' -- "$cur" )
             ;;
         build)
             if [ "$COMP_CWORD" -eq 2 ]; then
@@ -58,10 +58,10 @@ _kerl()
             mapfile -t COMPREPLY < <( compgen -W "$PATHS" -- "$cur")
             ;;
         delete)
-            mapfile -t COMPREPLY < <( compgen -W "build installation" -- "$cur")
+            mapfile -t COMPREPLY < <( compgen -W 'build installation' -- "$cur")
             ;;
         update)
-            mapfile -t COMPREPLY < <( compgen -W "releases" -- "$cur")
+            mapfile -t COMPREPLY < <( compgen -W 'releases' -- "$cur")
             ;;
         *)
             if [ "$COMP_CWORD" -eq 3 ]; then
