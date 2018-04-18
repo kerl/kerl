@@ -12,42 +12,42 @@ _kerl()
 
     case $prev in
         kerl)
-            COMPREPLY=( $( compgen -W "build install update list delete active path status" -- "$cur" ) )
+            mapfile -t COMPREPLY < <( compgen -W "build install update list delete active path status" -- "$cur" )
             ;;
         list)
-            COMPREPLY=( $( compgen -W "releases builds installations" -- "$cur" ) )
+            mapfile -t COMPREPLY < <( compgen -W "releases builds installations" -- "$cur" )
             ;;
         build)
             if [ "$COMP_CWORD" -eq 2 ]; then
                 if [ -f "$HOME"/.kerl/otp_releases ]; then
                     RELEASES=$(cat "$HOME"/.kerl/otp_releases)
                 fi
-                COMPREPLY=( $( compgen -W "git $RELEASES" -- "$cur") )
+                mapfile -t COMPREPLY < <( compgen -W "git $RELEASES" -- "$cur")
             else
                 if [ -f "$HOME"/.kerl/otp_builds ]; then
                     BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
                 fi
-                COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
+                mapfile -t COMPREPLY < <( compgen -W "$BUILDS" -- "$cur")
             fi
             ;;
         installation)
             if [ -f "$HOME"/.kerl/otp_installations ]; then
                 PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
             fi
-            COMPREPLY=( $( compgen -W "$PATHS" -- "$cur") )
+            mapfile -t COMPREPLY < <( compgen -W "$PATHS" -- "$cur")
             ;;
         install)
             if [ -f "$HOME"/.kerl/otp_builds ]; then
                 BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
             fi
-            COMPREPLY=( $( compgen -W "$BUILDS" -- "$cur") )
+            mapfile -t COMPREPLY < <( compgen -W "$BUILDS" -- "$cur")
             ;;
          path)
             INSTALL_LIST="$HOME"/.kerl/otp_installations
             if [ -f "$INSTALL_LIST" ]; then
                 NAMES=$(cut -d ' ' -f 2 "$INSTALL_LIST" | xargs basename)
             fi
-            COMPREPLY=( $( compgen -W "$NAMES" -- "$cur") )
+            mapfile -t COMPREPLY < <( compgen -W "$NAMES" -- "$cur")
             ;;
          deploy)
             if [ "$COMP_CWORD" -eq 3 ]; then
@@ -55,13 +55,13 @@ _kerl()
                     PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
                 fi
             fi
-            COMPREPLY=( $( compgen -W "$PATHS" -- "$cur") )
+            mapfile -t COMPREPLY < <( compgen -W "$PATHS" -- "$cur")
             ;;
         delete)
-            COMPREPLY=( $( compgen -W "build installation $words" -- "$cur") )
+            mapfile -t COMPREPLY < <( compgen -W "build installation $words" -- "$cur")
             ;;
         update)
-            COMPREPLY=( $( compgen -W "releases" -- "$cur") )
+            mapfile -t COMPREPLY < <( compgen -W "releases" -- "$cur")
             ;;
         *)
             if [ "$COMP_CWORD" -eq 3 ]; then
