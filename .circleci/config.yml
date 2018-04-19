@@ -111,7 +111,7 @@ jobs:
           apt install -y --no-install-recommends \
              curl ca-certificates \
              git autoconf dpkg-dev gcc g++ make libncurses-dev \
-             libssl1.1 libssl-dev libsctp1 libsctp-dev \
+             libssl1.0.2 libssl1.0-dev libsctp1 libsctp-dev \
              libodbc1 unixodbc-dev \
              libwxgtk3.0-dev libgl1-mesa-dev libglu1-mesa-dev libpng16-16 libpng-dev \
              procps
@@ -141,7 +141,7 @@ jobs:
           # shellcheck $(./kerl path install_$_KERL_VSN)/activate.fish
       - run: |
           source $(./kerl path install_$_KERL_VSN)/activate
-          for app in crypto odbc wx; do
+          for app in odbc crypto wx; do
             echo TEST app $app
             erl -noshell -eval "case application:ensure_all_started($app) of {ok,[_|_]} -> init:stop(); _ -> init:stop(1) end."
             echo PASS app $app
