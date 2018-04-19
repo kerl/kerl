@@ -7,7 +7,7 @@ workflows:
       - centos7_19.3
       - centos6_18.3
       - debian9_17.5__wx_odbc__shellcheck
-      - trusty_R16B03-1
+      - trusty_17.0
       - debian8_R15B03-1
 
 build_on_all_cores: &build_on_all_cores
@@ -150,11 +150,11 @@ jobs:
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
 
-  trusty_R16B03-1:
+  trusty_17.0:
     docker:
       - image: ubuntu:trusty
     environment:
-      - _KERL_VSN: R16B03-1
+      - _KERL_VSN: 17.0
       - KERL_BUILD_BACKEND: git
       - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'wx odbc'
     steps:
