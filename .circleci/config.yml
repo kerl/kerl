@@ -29,10 +29,12 @@ jobs:
                   libxslt git
       - checkout
       - run: ./kerl update releases
-      - run: &build_on_all_cores |
-          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
-          ./kerl build "$_KERL_VSN" "$_KERL_VSN" | tee build.log
-        no_output_timeout: 45m
+      - run: &build_on_all_cores
+          command:
+            |
+              export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+              ./kerl build "$_KERL_VSN" "$_KERL_VSN" | tee build.log
+          no_output_timeout: 45m
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
       - run: &activate_then_test_for_crypto
@@ -149,7 +151,7 @@ jobs:
     docker:
       - image: ubuntu:trusty
     environment:
-      - _KERL_VSN: 17.0
+      - _KERL_VSN: '17.0'
       - KERL_BUILD_BACKEND: git
       - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'wx odbc'
     steps:
