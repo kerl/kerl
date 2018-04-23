@@ -152,7 +152,7 @@ jobs:
       - image: ubuntu:trusty
     environment:
       - _KERL_VSN: '17.0'
-      - KERL_BUILD_BACKEND: git
+    # - KERL_BUILD_BACKEND: git ## This would cause the build to fail?!
       - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'wx odbc'
     steps:
       - run: apt update && apt upgrade -y
