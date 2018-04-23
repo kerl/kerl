@@ -194,8 +194,7 @@ usage() {
 if [ $# -eq 0 ]; then usage; fi
 
 get_releases() {
-    if [ "$KERL_BUILD_BACKEND" = 'git' ]
-    then
+    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         get_git_releases
     else
         get_tarball_releases
@@ -218,8 +217,7 @@ get_tarball_releases() {
 }
 
 update_checksum_file() {
-    if [ "$KERL_BUILD_BACKEND" = 'git' ];
-    then
+    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         return 0
     else
         echo 'Getting checksum file from erlang.org...'
