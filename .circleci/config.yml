@@ -3,70 +3,20 @@ workflows:
   version: 2
   test-workflow:
     jobs:
-      - debian8_R15B03-1
-      - centos6_20.2
       - alpine3.7_20.3
+      - centos7_19.3
+      - centos6_18.3
+      - debian9_17.5__wx_odbc__shellcheck
+      - trusty_17.0
+      - debian8_R15B03-1
 
 jobs:
-
-  debian8_R15B03-1:
-    docker:
-      - image: debian:8
-    environment:
-      - _KERL_VSN: R15B03-1
-      - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'odbc'
-    steps:
-      - run: apt-get update && apt-get upgrade -y
-      - run: apt-get install -y git curl build-essential libncurses-dev libssl-dev
-      - checkout
-      - run: ./kerl update releases
-      - run:
-          command: ./kerl build "$_KERL_VSN" "$_KERL_VSN"
-          no_output_timeout: 45m
-      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
-      - run: ./kerl status
-      - run: |
-          set -x
-          source $(./kerl path install_$_KERL_VSN)/activate
-          erl -s crypto -s init stop
-          kerl_deactivate
-      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
-      - run: ./kerl delete build "$_KERL_VSN"
-
-  centos6_20.2:
-    docker:
-      - image: centos:6
-    environment:
-      - _KERL_VSN: 20.2
-      - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'odbc'
-    steps:
-      - run: yum -y update
-      - run: yum -y install curl ncurses-devel openssl-devel make automake autoconf gcc gcc-c++ gcc-java
-      - run: |
-          yum -y install https://centos6.iuscommunity.org/ius-release.rpm
-          # CircleCI checkout uses -B which isn't available in CentOS6's packaged git
-          yum -y install git2u
-      - checkout
-      - run: ./kerl update releases
-      - run:
-          command: ./kerl build "$_KERL_VSN" "$_KERL_VSN"
-          no_output_timeout: 45m
-      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
-      - run: ./kerl status
-      - run: |
-          set -x
-          source $(./kerl path install_$_KERL_VSN)/activate
-          erl -s crypto -s init stop
-          kerl_deactivate
-      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
-      - run: ./kerl delete build "$_KERL_VSN"
 
   alpine3.7_20.3:
     docker:
       - image: alpine:3.7
     environment:
       - _KERL_VSN: 20.3
-      - KERL_CONFIGURE_DISABLE_APPLICATIONS: odbc
       - KERL_BUILD_BACKEND: git
       - KERL_BUILD_DOCS: 'yes'
     steps:
@@ -75,22 +25,167 @@ jobs:
           apk add curl ca-certificates \
                   dpkg-dev dpkg \
                   gcc g++ libc-dev linux-headers make autoconf ncurses-dev tar \
-                  openssl-dev unixodbc-dev lksctp-tools-dev \
-                  lksctp-tools \
+                  openssl-dev lksctp-tools-dev lksctp-tools \
                   libxslt git
       - checkout
       - run: ./kerl update releases
-      - run:
-          command: |
-            export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
-            ./kerl build "$_KERL_VSN" "$_KERL_VSN"
+      - run: &build_on_all_cores
+          command:
+            |
+              export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+              ./kerl build "$_KERL_VSN" "$_KERL_VSN" | tee build.log
           no_output_timeout: 45m
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
+      - run: &activate_then_test_for_crypto
+          |
+            source $(./kerl path install_$_KERL_VSN)/activate
+            erl -s crypto -s init stop
+            kerl_deactivate
+      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
+      - run: ./kerl delete build "$_KERL_VSN"
+
+  centos7_19.3:
+    docker:
+      - image: centos:7
+    environment:
+      - _KERL_VSN: 19.3
+      - KERL_BUILD_BACKEND: git
+      - KERL_CONFIGURE_DISABLE_APPLICATIONS: odbc
+    steps:
+      - run: yum -y update
       - run: |
-          set -x
+          yum -y install curl git \
+                         make automake autoconf gcc gcc-c++ \
+                         gcc-java \
+                         ncurses-devel openssl-devel
+      - checkout
+      - run: ./kerl update releases
+      - run: *build_on_all_cores
+      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: ./kerl status
+      - run: *activate_then_test_for_crypto
+      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
+      - run: ./kerl delete build "$_KERL_VSN"
+
+  centos6_18.3:
+    docker:
+      - image: centos:6
+    environment:
+      - _KERL_VSN: 18.3
+      - KERL_BUILD_BACKEND: git
+      - KERL_CONFIGURE_DISABLE_APPLICATIONS: odbc
+    steps:
+      - run: yum -y update
+      - run: |
+          yum -y install curl \
+                         make automake autoconf gcc gcc-c++ \
+                         gcc-java \
+                         ncurses-devel openssl-devel
+      - run: |
+          yum -y install https://centos6.iuscommunity.org/ius-release.rpm
+          # CircleCI checkout uses -B which isn't available in CentOS6's packaged git
+          yum -y install git2u
+      - checkout
+      - run: ./kerl update releases
+      - run: *build_on_all_cores
+      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: ./kerl status
+      - run: *activate_then_test_for_crypto
+      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
+      - run: ./kerl delete build "$_KERL_VSN"
+
+  debian9_17.5__wx_odbc__shellcheck:
+    docker:
+      - image: debian:9
+    environment:
+      - _KERL_VSN: 17.5
+      - KERL_BUILD_BACKEND: git
+      - SHELLCHECK_URL: https://storage.googleapis.com/shellcheck/shellcheck-stable.linux.x86_64.tar.xz
+    steps:
+      - run: apt update && apt upgrade -y
+      - run: |
+          apt install -y --no-install-recommends \
+             curl ca-certificates \
+             git autoconf dpkg-dev gcc g++ make libncurses-dev \
+             libssl1.0.2 libssl1.0-dev libsctp1 libsctp-dev \
+             libodbc1 unixodbc-dev \
+             libwxgtk3.0-dev libgl1-mesa-dev libglu1-mesa-dev libpng16-16 libpng-dev \
+             procps
+      - run: wx-config --version
+      - checkout
+      - run: |
+          curl -#fSLo shellcheck.tar.xz $SHELLCHECK_URL
+          tar --xz -xvf shellcheck.tar.xz
+          mv shellcheck-*/shellcheck /usr/local/bin
+          rm -vr shellcheck-*/ shellcheck.tar.xz
+          shellcheck --version
+      - run: |
+          shellcheck ./kerl
+          shellcheck ./bash_completion/kerl
+          # https://github.com/koalaman/shellcheck/issues/809
+          # shellcheck ./zsh_completion/_kerl
+      - run: ./kerl update releases
+      - run: *build_on_all_cores
+      - run: cat build.log
+      - run: "! grep -F 'ODBC library' build.log"
+      - run: "! grep -F 'wx will NOT be usable' build.log"
+      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: ./kerl status
+      - run: |
+          shellcheck $(./kerl path install_$_KERL_VSN)/activate
+          # shellcheck $(./kerl path install_$_KERL_VSN)/activate.csh
+          # shellcheck $(./kerl path install_$_KERL_VSN)/activate.fish
+      - run: |
           source $(./kerl path install_$_KERL_VSN)/activate
-          erl -s crypto -s init stop
+          for app in odbc crypto wx; do
+            echo TEST app $app
+            erl -noshell -eval "case application:ensure_all_started($app) of {ok,[_|_]} -> init:stop(); _ -> init:stop(1) end."
+            echo PASS app $app
+          done
           kerl_deactivate
+      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
+      - run: ./kerl delete build "$_KERL_VSN"
+
+  trusty_17.0:
+    docker:
+      - image: ubuntu:trusty
+    environment:
+      - _KERL_VSN: '17.0'
+    # - KERL_BUILD_BACKEND: git ## This would cause the build to fail?!
+      - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'wx odbc'
+    steps:
+      - run: apt update && apt upgrade -y
+      - run: |
+          apt install -y --no-install-recommends \
+             curl ca-certificates \
+             git autoconf automake dpkg-dev gcc g++ make libncurses-dev \
+             libssl1.0.0 libssl-dev libsctp1 libsctp-dev
+      - checkout
+      - run: ./kerl update releases
+      - run: *build_on_all_cores
+      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: ./kerl status
+      - run: *activate_then_test_for_crypto
+      - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
+      - run: ./kerl delete build "$_KERL_VSN"
+
+  debian8_R15B03-1:
+    docker:
+      - image: debian:8
+    environment:
+      - _KERL_VSN: R15B03-1
+      - KERL_BUILD_BACKEND: git
+      - KERL_CONFIGURE_DISABLE_APPLICATIONS: odbc
+    steps:
+      - run: apt-get update && apt-get upgrade -y
+      - run: |
+          apt-get install -y git curl build-essential automake autoconf libncurses-dev libssl-dev
+      - checkout
+      - run: ./kerl update releases
+      - run: *build_on_all_cores
+      - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: ./kerl status
+      - run: *activate_then_test_for_crypto
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"

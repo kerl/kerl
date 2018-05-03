@@ -194,8 +194,7 @@ usage() {
 if [ $# -eq 0 ]; then usage; fi
 
 get_releases() {
-    if [ "$KERL_BUILD_BACKEND" = 'git' ]
-    then
+    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         get_git_releases
     else
         get_tarball_releases
@@ -227,8 +226,7 @@ get_tarball_releases() {
 }
 
 update_checksum_file() {
-    if [ "$KERL_BUILD_BACKEND" = 'git' ];
-    then
+    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         return 0
     else
         echo 'Getting checksum file from erlang.org...'
@@ -679,6 +677,28 @@ _do_build() {
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
 
+    # Set configuation flags given applications white/black lists
+    if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
+        for app in $KERL_CONFIGURE_APPLICATIONS; do
+            case "$KERL_CONFIGURE_OPTIONS" in
+                *"--with-$app"*)
+                    echo "Option '--with-$app' in KERL_CONFIGURE_OPTIONS is superfluous" ;;
+                *)
+                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-$app" ;;
+            esac
+        done
+    fi
+    if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
+        for app in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
+            case "$KERL_CONFIGURE_OPTIONS" in
+                *"--without-$app"*)
+                    echo "Option '--without-$app' in KERL_CONFIGURE_OPTIONS is superfluous" ;;
+                *)
+                    KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --without-$app" ;;
+            esac
+        done
+    fi
+
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="/tmp/kerloptions.$$"
     echo "$CFLAGS" >"$TMPOPT"
@@ -735,18 +755,18 @@ _do_build() {
 
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
         find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
-        for i in $KERL_CONFIGURE_APPLICATIONS; do
-            if ! rm ./lib/"$i"/SKIP; then
-                echo "Couldn't prepare '$i' application for building"
+        for app in $KERL_CONFIGURE_APPLICATIONS; do
+            if ! rm ./lib/"$app"/SKIP; then
+                echo "Couldn't prepare '$app' application for building"
                 list_remove builds "$1 $2"
                 exit 1
             fi
         done
     fi
     if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
-        for i in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
-            if ! touch -f ./lib/"$i"/SKIP; then
-                echo "Couldn't disable '$i' application for building"
+        for app in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
+            if ! touch -f ./lib/"$app"/SKIP; then
+                echo "Couldn't disable '$app' application for building"
                 exit 1
             fi
         done
@@ -935,7 +955,7 @@ function kerl_deactivate --description "deactivate erlang environment"
         # functions --copy complains about about fish_prompt already being defined
         # so we take a page from virtualenv's book
         . ( begin
-                printf "function fish_prompt\n\t#"
+                printf "function fish_prompt\\n\\t#"
                 functions _kerl_saved_prompt
             end | psub )
         functions --erase _kerl_saved_prompt
@@ -993,7 +1013,7 @@ ACTIVATE_FISH
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
-alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_DOCSH_USER_DEFAULT != 0 && unsetenv DOCSH_USER_DEFAULT && unset _KERL_DOCSH_USER_DEFAULT; test \$?_KERL_DOCSH_DOT_ERLANG != 0 && rm "\$HOME/.erlang" && unset _KERL_DOCSH_DOT_ERLANG; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "\!:*" != "nondestructive" && unalias deactivate'
+alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_DOCSH_USER_DEFAULT != 0 && unsetenv DOCSH_USER_DEFAULT && unset _KERL_DOCSH_USER_DEFAULT; test \$?_KERL_DOCSH_DOT_ERLANG != 0 && rm "\$HOME/.erlang" && unset _KERL_DOCSH_DOT_ERLANG; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "!:*" != "nondestructive" && unalias deactivate'
 
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
