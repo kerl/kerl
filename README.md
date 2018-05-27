@@ -91,6 +91,10 @@ Note that named builds allow you to have different builds for the same Erlang/OT
     Building Erlang/OTP 19.2 (19.2-builtdocs), please wait...
     Building docs...
     Erlang/OTP 19.2 (19.2-builtdocs) has been successfully built
+    
+To build with ssl support for OSX (for later use with elixir installation):
+
+    $ KERL_CONFIGURE_OPTIONS="--with-ssl=/usr/local/opt/openssl" kerl build 20.3 20.3
 
 (Note that kerl uses the otp_build script internally, and `./otp_build configure` disables HiPE on linux)
 
