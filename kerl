@@ -24,6 +24,9 @@
 
 unset ERL_TOP
 
+# Make sure CDPATH doesn't affect cd in case path is relative.
+unset CDPATH
+
 KERL_VERSION='1.8.2'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
