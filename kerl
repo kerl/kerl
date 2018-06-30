@@ -330,8 +330,8 @@ assert_build_name_unused() {
 }
 
 _check_required_pkgs() {
-    has_dpkg=$(which dpkg)
-    has_rpm=$(which rpm)
+    has_dpkg=$(command -v dpkg)
+    has_rpm=$(command -v rpm)
     if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ]; then
         # found either dpkg or rpm (or maybe even both!)
         if [ -n "$has_dpkg" ] && [ -n "$has_rpm" ]; then
@@ -450,7 +450,7 @@ get_perl_version() {
 }
 
 assert_perl() {
-    perl_loc=$(which perl)
+    perl_loc=$(command -v perl)
     if [ -z "$perl_loc" ]; then
         return 1
     else
@@ -460,7 +460,7 @@ assert_perl() {
 }
 
 get_javac_version() {
-    java_loc=$(which javac)
+    java_loc=$(command -v javac)
     if [ -z "$java_loc" ]; then
         # Java's not installed, so just return 0
         0
@@ -637,7 +637,7 @@ _do_build() {
             case "$OSVERSION" in
                 17*|16*|15*)
                     if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'ssl' >/dev/null 2>&1; then
-                        whichbrew=$(which brew)
+                        whichbrew=$(command -v brew)
                         if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                             brew_prefix=$(brew --prefix openssl)
                             if [ -n "$brew_prefix" ] && [ -d "$brew_prefix" ]; then
@@ -1115,7 +1115,7 @@ ACTIVATE_CSH
         build_plt "$absdir"
     fi
 
-    if which apk >/dev/null 2>&1; then
+    if command -v apk >/dev/null 2>&1; then
         # Running on Alpine Linux, assuming non-exotic shell
         SHELL_SUFFIX=''
     else
