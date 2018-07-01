@@ -3,6 +3,7 @@ workflows:
   version: 2
   test-workflow:
     jobs:
+      - alpine_21
       - alpine3.7_20.3
       - centos7_19.3
       - centos6_18.3
@@ -12,14 +13,14 @@ workflows:
 
 jobs:
 
-  alpine3.7_20.3:
+  alpine_21:
     docker:
-      - image: alpine:3.7
+      - image: alpine
     environment:
-      - _KERL_VSN: 20.3
+      - _KERL_VSN: '21.0.1'
       - KERL_BUILD_BACKEND: git
       - KERL_BUILD_DOCS: 'yes'
-    steps:
+    steps: &alpine_steps
       - run: apk update && apk upgrade
       - run: |
           apk add curl ca-certificates \
@@ -44,6 +45,15 @@ jobs:
             kerl_deactivate
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
+
+  alpine3.7_20.3:
+    docker:
+      - image: alpine:3.7
+    environment:
+      - _KERL_VSN: 20.3
+      - KERL_BUILD_BACKEND: git
+      - KERL_BUILD_DOCS: 'yes'
+    steps: *alpine_steps
 
   centos7_19.3:
     docker:
