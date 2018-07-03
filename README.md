@@ -682,6 +682,11 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+3 July 2018 - 1.8.3
+
+  - Update testing to include OTP 21 (#286)
+  - Fix an issue affecting CD\_PATH during builds (#284)
+
 5 March 2018 - 1.8.2
 
   - Apply zlib patch when building OTP 17-19. (#258)
