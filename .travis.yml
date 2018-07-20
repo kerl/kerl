@@ -22,6 +22,11 @@ script:
   - ./kerl status
   - source $(./kerl path install_$_KERL_VSN)/activate
   - erl -s crypto -s init stop
+  - |
+    otp_major=$(echo "$TRAVIS_OTP_RELEASE" | cut -d. -f1)
+    if ((travis_otp_major >= 18)); then
+      ./kerl install-docsh
+    fi
   - kerl_deactivate
   - ./kerl delete installation $(./kerl path install_$_KERL_VSN)
   - ./kerl delete build "$_KERL_VSN"

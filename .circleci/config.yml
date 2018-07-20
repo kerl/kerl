@@ -17,7 +17,7 @@ jobs:
     docker:
       - image: alpine
     environment:
-      - _KERL_VSN: '21.0.1'
+      - _KERL_VSN: '21.0.3'
       - KERL_BUILD_BACKEND: git
       - KERL_BUILD_DOCS: 'yes'
     steps: &alpine_steps
@@ -42,6 +42,11 @@ jobs:
           |
             source $(./kerl path install_$_KERL_VSN)/activate
             erl -s crypto -s init stop
+            kerl_deactivate
+      - run: &activate_then_test_docsh
+          |
+            source $(./kerl path install_$_KERL_VSN)/activate
+            ./kerl install-docsh
             kerl_deactivate
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
@@ -75,6 +80,7 @@ jobs:
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
       - run: *activate_then_test_for_crypto
+      - run: *activate_then_test_docsh
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
 
@@ -102,6 +108,7 @@ jobs:
       - run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - run: ./kerl status
       - run: *activate_then_test_for_crypto
+      - run: *activate_then_test_docsh
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
 
