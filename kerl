@@ -1152,7 +1152,7 @@ install_docsh() {
 
     OTP_VERSION=$(get_otp_version "$1")
     # This has to be updated with docsh updates
-    DOCSH_SUPPORTED='^1[89]\|20$'
+    DOCSH_SUPPORTED='^1[89]\|2[01]$'
     if ! echo "$OTP_VERSION" | grep "$DOCSH_SUPPORTED" >/dev/null 2>&1; then
         echo "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
         exit 1
