@@ -47,6 +47,7 @@ jobs:
           |
             source $(./kerl path install_$_KERL_VSN)/activate
             ./kerl install-docsh
+            erl -noshell -eval 'h(proplists).' -s init stop
             kerl_deactivate
       - run: ./kerl delete installation $(./kerl path install_$_KERL_VSN)
       - run: ./kerl delete build "$_KERL_VSN"
