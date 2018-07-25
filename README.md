@@ -282,12 +282,21 @@ Acceptable value: any github fork of OTP, e.g. `https://github.com/basho/otp`
 
 
 ### KERL_BUILD_DOCS
-### KERL_INSTALL_MANPAGES
-### KERL_INSTALL_HTMLDOCS
 
 If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang version regardless of origin (`tarball` backend from erlang.org or via `kerl build git`, or via `git` backend).
 
 If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing a build created via `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `KERL_INSTALL_MANPAGES`.
+
+### KERL_INSTALL_MANPAGES
+
+Install man pages when not building from git source.
+
+It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be up to 120MB.
+
+
+### KERL_INSTALL_HTMLDOCS
+
+Install HTML documentation when not building from git source.
 
 It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be up to 120MB.
 
