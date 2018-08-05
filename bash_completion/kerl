@@ -12,9 +12,11 @@ _kerl()
 
     case $prev in
         kerl)
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W 'build install update list delete active path status' -- "$cur"))
             ;;
         list)
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W 'releases builds installations' -- "$cur"))
             ;;
         build)
@@ -22,11 +24,13 @@ _kerl()
                 if [ -f "$HOME"/.kerl/otp_releases ]; then
                     RELEASES=$(cat "$HOME"/.kerl/otp_releases)
                 fi
+                # shellcheck disable=SC2207
                 COMPREPLY=($(compgen -W "git $RELEASES" -- "$cur"))
             else
                 if [ -f "$HOME"/.kerl/otp_builds ]; then
                     BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
                 fi
+                # shellcheck disable=SC2207
                 COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
             fi
             ;;
@@ -34,12 +38,14 @@ _kerl()
             if [ -f "$HOME"/.kerl/otp_installations ]; then
                 PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
             fi
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
             ;;
         install)
             if [ -f "$HOME"/.kerl/otp_builds ]; then
                 BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
             fi
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
             ;;
          path)
@@ -47,6 +53,7 @@ _kerl()
             if [ -f "$INSTALL_LIST" ]; then
                 NAMES=$(cut -d ' ' -f 2 "$INSTALL_LIST" | xargs basename)
             fi
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W "$NAMES" -- "$cur"))
             ;;
          deploy)
@@ -55,12 +62,15 @@ _kerl()
                     PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
                 fi
             fi
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
             ;;
         delete)
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W 'build installation' -- "$cur"))
             ;;
         update)
+            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W 'releases' -- "$cur"))
             ;;
         *)
