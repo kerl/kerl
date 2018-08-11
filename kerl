@@ -409,7 +409,7 @@ do_git_build() {
     rm -Rf "${KERL_BUILD_DIR:?}/$3"
     mkdir -p "$KERL_BUILD_DIR/$3" || exit 1
     cd "$KERL_BUILD_DIR/$3" || exit 1
-    if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
+    if ! git clone -l --depth=1 "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
         echo 'Error cloning local git repository'
         exit 1
     fi
@@ -1176,7 +1176,7 @@ install_docsh() {
     rm -Rf "$DOCSH_DIR"
     mkdir -p "$DOCSH_DIR" || exit 1
     cd "$DOCSH_DIR" || exit 1
-    if ! git clone -l "$KERL_GIT_DIR/$GIT" "$DOCSH_DIR" >/dev/null 2>&1; then
+    if ! git clone -l --depth=1 "$KERL_GIT_DIR/$GIT" "$DOCSH_DIR" >/dev/null 2>&1; then
         echo 'Error cloning local git repository'
         exit 1
     fi
