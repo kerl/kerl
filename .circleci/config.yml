@@ -33,7 +33,7 @@ jobs:
         command:
           |
             export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
-            ./kerl build git git@github.com:erlang/otp.git "$_KERL_VSN" "$_KERL_VSN"
+            ./kerl build git https://github.com/erlang/otp.git "$_KERL_VSN" "$_KERL_VSN"
     - run: &kerl_install ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
     - run: &kerl_status  ./kerl status
     - run: &activate_then_test_for_crypto
