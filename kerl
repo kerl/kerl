@@ -33,6 +33,7 @@ DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://www.erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
+TMP_DIR=${TMP_DIR:-'/tmp'}
 if [ -z "$HOME" ]; then
     # shellcheck disable=SC2016
     echo 'Error: $HOME is empty or not set.' 1>&2
@@ -213,7 +214,7 @@ get_git_releases() {
 }
 
 get_tarball_releases() {
-    tmp="$(mktemp /tmp/kerl.XXXXXX)"
+    tmp="$(mktemp ${TMP_DIR}/kerl.XXXXXX)"
     if [ 200 = "$(curl -qsL --output "$tmp" --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL/)" ]; then
         sed $SED_OPT \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
@@ -703,7 +704,7 @@ _do_build() {
     fi
 
     # Check to see if configuration options need to be stored or have changed
-    TMPOPT="/tmp/kerloptions.$$"
+    TMPOPT="${TMP_DIR}/kerloptions.$$"
     echo "$CFLAGS" >"$TMPOPT"
     echo "$KERL_CONFIGURE_OPTIONS" >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f $MD5SUM_FIELD)
