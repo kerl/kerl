@@ -458,6 +458,11 @@ after activating a kerl installation of Erlang/OTP. Here is an example of
     # compilation options
     KERL_CONFIGURE_OPTIONS="--disable-native-libs --enable-vm-probes --with-dynamic-trace=dtrace --with-ssl=/usr/local --with-javac --enable-hipe --enable-kernel-poll --with-wx-config=/usr/local/bin/wxgtk2u-2.8-config --without-odbc --enable-threads --enable-sctp --enable-smp-support"
 
+
+In case you cannot access the default directory for temporary files (`/tmp`) or simply want them somewhere else, you can also provide your own directory with the variable `TMP_DIR`
+
+    export TMP_DIR=/your/custom/temporary/dir
+
 #### Building documentation
 
 Prior to kerl 1.0, kerl always downloaded prepared documentation from erlang.org. Now if `KERL_BUILD_DOCS=yes` is set, kerl will build the man pages and HTML
