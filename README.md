@@ -691,6 +691,17 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+25 September 2018 - 1.8.5
+
+  - Support Mojave builds (#301)
+  - Disable SC2207 for Bash completion (#296)
+
+3 August 2018 - 1.8.4
+
+  - Support docsh 0.6.1 (#290)
+  - Update docs about KERL_INSTALL_MANPAGES & HTML_DOCS (#292)
+  - Fix bash completion for Bash 3 (#295)
+
 3 July 2018 - 1.8.3
 
   - Update testing to include OTP 21 (#286)
