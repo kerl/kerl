@@ -590,13 +590,13 @@ do_normal_build() {
 }
 
 _flags() {
-    # We need to munge the LD and DED flags for clang 9 shipped with
-    # High Sierra (macOS 10.13)
+    # We need to munge the LD and DED flags for clang 9/10 shipped with
+    # High Sierra (macOS 10.13) and Mojave (macOS 10.14)
     case "$KERL_SYSTEM" in
         Darwin)
             osver=$(uname -r)
             case "$osver" in
-                17*)
+                18*|17*)
                     # Make sure we don't overwrite values that someone who
                     # knows better than us set.
                     if [ -z "$DED_LD" ]; then
@@ -635,7 +635,7 @@ _do_build() {
             fi
 
             case "$OSVERSION" in
-                17*|16*|15*)
+                18*|17*|16*|15*)
                     if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'ssl' >/dev/null 2>&1; then
                         whichbrew=$(command -v brew)
                         if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
