@@ -748,7 +748,7 @@ _do_build() {
         # shellcheck disable=SC2086
         case "$KERL_SYSTEM" in
         Linux)
-            _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS --host="$3" --build="$4" erl_xcomp_sysroot=/home/ostratila/openssl-0.9.8zb/ >>"$LOGFILE" 2>&1
+            _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS --host="$3" --build="$4" erl_xcomp_sysroot=/home/ostratila/openssl-0.9.8zb/ --without-odbc >>"$LOGFILE" 2>&1
         ;;
         *)
             _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
