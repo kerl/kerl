@@ -1147,12 +1147,12 @@ install_docsh() {
     GIT=$(printf '%s' $REPO_URL | $MD5SUM | cut -d' ' -f $MD5SUM_FIELD)
     BUILDNAME="$1"
     DOCSH_DIR="$KERL_BUILD_DIR/$BUILDNAME/docsh"
-    DOCSH_REF='0.6.1'
+    DOCSH_REF='0.7.1'
     ACTIVE_PATH="$2"
 
     OTP_VERSION=$(get_otp_version "$1")
     # This has to be updated with docsh updates
-    DOCSH_SUPPORTED='^1[89]\|2[01]$'
+    DOCSH_SUPPORTED='^1[9]\|2[01]$'
     if ! echo "$OTP_VERSION" | grep "$DOCSH_SUPPORTED" >/dev/null 2>&1; then
         echo "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
         exit 1
