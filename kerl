@@ -286,7 +286,7 @@ get_newest_valid_release() {
 
     rel=$(tail -1 "$KERL_BASE_DIR"/otp_releases)
 
-    if [ ! -z "$rel" ]; then
+    if [ -n "$rel" ]; then
         echo "$rel"
         return 0
     fi
@@ -1303,7 +1303,7 @@ do_deploy() {
     path="$2"
     remotepath="$path"
 
-    if [ ! -z "$3" ]; then
+    if [ -n "$3" ]; then
         remotepath="$3"
     fi
 
