@@ -28,12 +28,23 @@ feel free to join and ask support or implementation questions any time. If
 no one is around, feel free to open an issue with your question or problem
 instead.
 
-Downloading
------------
+Installing
+----------
+
+### From brew
 
 If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew), you can install kerl, along with shell completion, by running:
 
     $ brew install kerl
+
+### From pypi
+
+You can choose to install `kerl` from [pypi](https://pypi.org), by using a python
+environment and by running:
+
+    $ pip install pykerl
+
+### From source
 
 Alternatively, you can download the script directly from github:
 

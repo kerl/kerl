@@ -1,7 +1,6 @@
 language: bash
 sudo: false
 os: osx
-
 env:
   global:
   - KERL_BASE_DIR="$TMPDIR"/.kerl
@@ -14,7 +13,6 @@ env:
   - _KERL_VSN=18.3
   - _KERL_VSN=17.5
   - _KERL_VSN=R16B03-1
-
 before_script: set -e
 after_script: set +e
 script:
@@ -38,3 +36,12 @@ script:
   fi
 - ./kerl delete installation $(./kerl path install_$_KERL_VSN)
 - ./kerl delete build "$_KERL_VSN"
+
+deploy:
+  - provider: pypi
+    user: kerl
+    password: your-secure-password
+    on:
+      tags: true
+    distributions: sdist bdist_wheel
+    skip_existing: true
