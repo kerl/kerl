@@ -214,7 +214,7 @@ get_git_releases() {
 }
 
 get_tarball_releases() {
-    tmp="$(mktemp ${TMP_DIR}/kerl.XXXXXX)"
+    tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
     if [ 200 = "$(curl -qsL --output "$tmp" --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL/)" ]; then
         sed $SED_OPT \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
