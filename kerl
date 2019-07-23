@@ -209,8 +209,10 @@ get_git_releases() {
     git ls-remote --tags --refs "$OTP_GITHUB_URL" \
     | grep -E -o 'OTP[_-][^^{}]+' \
     | sed $SED_OPT 's/OTP[_-]//' \
-    | sort -n \
-    | uniq
+    | sed -e 's/^\(R\([^ \]\+\).*\)/:\2 \1/' \
+    | sed -e 's/^\(\([^:][^ \]*\).*\)/:\2 \1/' \
+    | (sort -V 2>/dev/null || LC_ALL=C sort -n) \
+    | cut -d' ' -f2-
 }
 
 get_tarball_releases() {
