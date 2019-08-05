@@ -210,22 +210,87 @@ get_git_releases() {
     | cut -f2 \
     | cut -d'/' -f3- \
     | sed $SED_OPT \
-       -e 's/^(OTP[-_](R?([0-9][^ :]*).*))/:\3 \2/' \
-       -e '/^[^:]/d' \
-       -e 's/^:([^ ]+) /\1 :/' \
-       -e ':loop' \
+        -e '# Delete all tags starting with ":" as to not mix' \
+        -e '# them with the prefixed lines we`re generating next.' \
+        -e '/^:/d' \
+        \
+        -e '# Prefix "OTP*" release lines with the crux of their versions.' \
+        -e '#  - "OTP_R16B01_RC1"  =>  ":16B01_RC1 OTP_R16B01_RC1"' \
+        -e '#  - "OTP_R16B03"      =>  ":16B03 OTP_R16B03"' \
+        -e '#  - "OTP-17.0"        =>  ":17.0 OTP-17.0"' \
+        -e '#  - "OTP-17.3.1"      =>  ":17.3.1 OTP-17.3.1"' \
+        -e '#  - "OTP-19.0-rc1"    =>  ":19.0-rc1 OTP-19.0-rc1"' \
+        -e '#  - "OTP-19.0-rc2"    =>  ":19.0-rc2 OTP-19.0-rc2"' \
+        -e 's/^(OTP[-_](R?([0-9][^ :]*).*))/:\3 \2/' \
+        \
+        -e '# Delete all lines that didn`t get prefixed above.' \
+        -e '/^[^:]/d' \
+        \
+        -e '# Move the colon markers preceding each version prefix' \
+        -e '# as to preceed the tag suffix instead, which will make' \
+        -e '# throwing the version prefixes easier later on.' \
+        -e '#  - ":16B01_RC1 OTP_R16B03"  =>  "16B01_RC1 :OTP_R16B01_RC1"' \
+        -e '#  -     ":16B03 OTP_R16B03"  =>  "16B03 :OTP_R16B03"' \
+        -e '#  -      ":17.0 OTP_R16B03"  =>  "17.0 :OTP-17.0"' \
+        -e '#  -    ":17.3.1 OTP_R16B03"  =>  "17.3.1 :OTP-17.3.1"' \
+        -e '#  -  ":19.0-rc1 OTP_R16B03"  =>  "19.0-rc1 :OTP-19.0-rc1"' \
+        -e '#  -  ":19.0-rc2 OTP_R16B03"  =>  "19.0-rc2 :OTP-19.0-rc2"' \
+        -e 's/^:([^ ]+) /\1 :/' \
+        \
+        -e '# Repeatedly replace sequences of one or more dots, dashes' \
+        -e '# or underscores, within each version prefix, with single' \
+        -e '# space characters.' \
+        -e '#  - "16B01_RC1 :OTP_R16B01_RC1"  =>  "16B01 RC1 :OTP_R16B01_RC1"' \
+        -e '#  -     "16B03 :OTP_R16B03"      =>  "16B03 :OTP_R16B03"' \
+        -e '#  -      "17.0 :OTP-17.0"        =>  "17 0 :OTP-17.0"' \
+        -e '#  -    "17.3.1 :OTP-17.3.1"      =>  "17 3 1 :OTP-17.3.1"' \
+        -e '#  -  "19.0-rc1 :OTP-19.0-rc1"    =>  "19 0 rc1 :OTP-19.0-rc1"' \
+        -e '#  -  "19.0-rc2 :OTP-19.0-rc2"    =>  "19 0 rc2 :OTP-19.0-rc2"' \
+        -e ':loop' \
            -e 's/^([^:]*)[.-]+([^:]*) :/\1 \2 :/' \
-       -e 't loop' \
-       -e ':loop2' \
-           -e 's/^(.*[0-9]+)A([^:]*) :/\1 0 \2 :/' \
-           -e 's/^(.*[0-9]+)B([^:]*) :/\1 1 \2 :/' \
-           -e 's/^(.*[0-9]+)C([^:]*) :/\1 2 \2 :/' \
-           -e 's/^([^:]* )rc([0-9])(( [^:]*)?) :/\10 \2\3 :/' \
-       -e 't loop2' \
-       -e ':loop3' \
-           -e 's/^([^:]*[^0-9:])([0-9])(([^0-9][^:]*)?) :/\10\2\3 :/' \
-       -e 't loop3' \
-       -e 's/^([^:]+) :/\1 00 :/' \
+        -e 't loop' \
+        \
+        -e '# Repeatedly replace "A", "B", or "C" separators, within each' \
+        -e '# version prefix, with " 0 ", " 1 " and " 2 ", respectively.' \
+        -e '#  - "16B01 RC1 :OTP_R16B01_RC1"  =>  "16 1 01 RC1 :OTP_R16B01_RC1"' \
+        -e '#  -     "16B03 :OTP_R16B03"      =>  "16 1 03 :OTP_R16B03"' \
+        -e ':loop2' \
+            -e 's/^(.*[0-9]+)A([^:]*) :/\1 0 \2 :/' \
+            -e 's/^(.*[0-9]+)B([^:]*) :/\1 1 \2 :/' \
+            -e 's/^(.*[0-9]+)C([^:]*) :/\1 2 \2 :/' \
+        -e ':t loop2' \
+        \
+        -e '# Repeatedly replace space-release candidate infixes, within' \
+        -e '# each version prefix, with a leading zero followed by' \
+        -e '# the candidate number.' \
+        -e '# - "16 1 01 RC1 :OTP_R16B01_RC1"  =>  "16 1 01 0 1 :OTP_R16B01_RC1"' \
+        -e '# -      "19 0 rc1 :OTP-19.0-rc1"  =>  "19 0 0 1 :OTP-19.0-rc1"' \
+        -e '# -      "19 0 rc2 :OTP-19.0-rc2"  =>  "19 0 0 2 :OTP-19.0-rc2"' \
+        -e ':loop3' \
+            -e 's/^([^:]* )rc([0-9]+)(( [^:]*)?) :/\10 \2\3 :/I' \
+        -e 't loop3' \
+        \
+        -e '# Repeatedly prefix single digits, within each version prefix,' \
+        -e '# with leading zeroes.' \
+        -e '#  - "16 1 01 0 1 :OTP_R16B01_RC1"  =>  "16 01 01 00 01 :OTP_R16B01_RC1"' \
+        -e '#  -     "16 1 03 :OTP_R16B03"      =>  "16 01 03 :OTP_R16B03"' \
+        -e '#  -        "17 0 :OTP-17.0"        =>  "17 00 :OTP-17.0"' \
+        -e '#  -      "17 3 1 :OTP-17.3.1"      =>  "17 03 01 :OTP-17.3.1"' \
+        -e '#  -    "19 0 0 1 :OTP-19.0-rc1"    =>  "19 00 00 01 :OTP-19.0-rc.1"' \
+        -e '#  -    "19 0 0 2 :OTP-19.0-rc2"    =>  "19 00 00 02 :OTP-19.0-rc.2"' \
+        -e ':loop4' \
+            -e 's/^([^:]*[^0-9:])([0-9])(([^0-9][^:]*)?) :/\10\2\3 :/' \
+        -e 't loop4' \
+        \
+        -e '# Suffix each version prefix with 00 as to not compare ':' with a number.' \
+        -e '#  - "16 01 01 00 01 :OTP_R16B01_RC1"  =>  "16 01 01 00 01 00 :OTP_R16B01_RC1"' \
+        -e '#  -       "16 01 03 :OTP_R16B03"      =>  "16 01 03 00 :OTP_R16B03"' \
+        -e '#  -          "17 00 :OTP-17.0""       =>  "17 00 00 :OTP-17.0"' \
+        -e '#  -       "17 03 01 :OTP-17.3.1"      =>  "17 03 01 00 :OTP-17.3.1"' \
+        -e '#  -    "19 00 00 01 :OTP-19.0-rc.1"   =>  "19 00 00 01 00 :OTP-19.0-rc.1"' \
+        -e '#  -    "19 00 00 02 :OTP-19.0-rc.2"   =>  "19 00 00 02 00 :OTP-19.0-rc.2"' \
+        -e 's/^([^:]+) :/\1 00 :/' \
+        \
      | LC_ALL=C sort -n \
      | cut -d':' -f2-
 }
