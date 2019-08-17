@@ -267,7 +267,7 @@ get_git_releases() {
         -e '# -      "19 0 rc1 :OTP-19.0-rc1"  =>  "19 0 0 1 :OTP-19.0-rc1"' \
         -e '# -      "19 0 rc2 :OTP-19.0-rc2"  =>  "19 0 0 2 :OTP-19.0-rc2"' \
         -e ':loop3' \
-            -e 's/^([^:]* )rc([0-9]+)(( [^:]*)?) :/\10 \2\3 :/I' \
+            -e 's/^([^:]* )(rc|RC)([0-9]+)(( [^:]*)?) :/\10 \3\4 :/' \
         -e 't loop3' \
         \
         -e '# Repeatedly prefix single digits, within each version prefix,' \
