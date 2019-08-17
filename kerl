@@ -258,7 +258,7 @@ get_git_releases() {
             -e 's/^(.*[0-9]+)A([^:]*) :/\1 0 \2 :/' \
             -e 's/^(.*[0-9]+)B([^:]*) :/\1 1 \2 :/' \
             -e 's/^(.*[0-9]+)C([^:]*) :/\1 2 \2 :/' \
-        -e ':t loop2' \
+        -e 't loop2' \
         \
         -e '# Repeatedly replace space-release candidate infixes, within' \
         -e '# each version prefix, with a leading zero followed by' \
