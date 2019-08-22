@@ -597,7 +597,7 @@ _flags() {
         Darwin)
             osver=$(uname -r)
             case "$osver" in
-                18*|17*)
+                19*|18*|17*)
                     # Make sure we don't overwrite values that someone who
                     # knows better than us set.
                     if [ -z "$DED_LD" ]; then
@@ -636,7 +636,7 @@ _do_build() {
             fi
 
             case "$OSVERSION" in
-                18*|17*|16*|15*)
+                19*|18*|17*|16*|15*)
                     if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'ssl' >/dev/null 2>&1; then
                         whichbrew=$(command -v brew)
                         if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
