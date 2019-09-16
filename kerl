@@ -592,12 +592,15 @@ do_normal_build() {
 
 _flags() {
     # We need to munge the LD and DED flags for clang 9/10 shipped with
-    # High Sierra (macOS 10.13) and Mojave (macOS 10.14)
+    # High Sierra (macOS 10.13) and Mojave (macOS 10.14) and quite
+    # probably for Catalina (macOS 10.15)
     case "$KERL_SYSTEM" in
         Darwin)
             osver=$(uname -r)
             case "$osver" in
-                18*|17*)
+                # TODO: Remove this in a future kerl release, probably
+                # after Catalina (10.15)
+                19*|18*|17*)
                     # Make sure we don't overwrite values that someone who
                     # knows better than us set.
                     if [ -z "$DED_LD" ]; then
@@ -626,8 +629,6 @@ _flags() {
 _do_build() {
     case "$KERL_SYSTEM" in
         Darwin)
-            OSVERSION=$(uname -r)
-
             # Ensure that the --enable-darwin-64bit flag is set on all macOS
             # That way even on older Erlangs we get 64 bit Erlang builds
             # macOS has been mandatory 64 bit for a while
@@ -635,29 +636,17 @@ _do_build() {
                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS "--enable-darwin-64bit
             fi
 
-            case "$OSVERSION" in
-                18*|17*|16*|15*)
-                    if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'ssl' >/dev/null 2>&1; then
-                        whichbrew=$(command -v brew)
-                        if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
-                            brew_prefix=$(brew --prefix openssl)
-                            if [ -n "$brew_prefix" ] && [ -d "$brew_prefix" ]; then
-                                KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS "--with-ssl=$brew_prefix
-                            fi
-                        elif [ ! -d /usr/include/openssl ] || [ ! -d /usr/local/include/openssl ]; then
-                            # Apple removed OpenSSL from El Capitan, but its still in this
-                            # funky location, so set ssl headers to look here
-                            xc_ssl='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr'
-                            if [ -d "$xc_ssl"/include/openssl ]; then
-                                KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-ssl=$xc_ssl"
-                            fi
-                            unset xc_ssl
-                        fi
-                     fi
-                ;;
-                *)
-                ;;
-            esac
+            # Attempt to use brew to discover if and where openssl has been
+            # installed unless the user has already explictly set it.
+            if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'ssl' >/dev/null 2>&1; then
+                whichbrew=$(command -v brew)
+                if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
+                    brew_prefix=$(brew --prefix openssl)
+                    if [ -n "$brew_prefix" ] && [ -d "$brew_prefix" ]; then
+                        KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS "--with-ssl=$brew_prefix
+                    fi
+                fi
+            fi
         ;;
         Linux)
             # we are going to check here to see if the Linux uses dpkg or rpms
