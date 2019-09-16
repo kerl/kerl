@@ -696,6 +696,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+16 September 2019 - 1.8.6
+
+  - Remove almost all special cases for older macOS releases
+
 25 September 2018 - 1.8.5
 
   - Support Mojave builds (#301)
