@@ -600,7 +600,7 @@ _flags() {
             case "$osver" in
                 # TODO: Remove this in a future kerl release, probably
                 # after Catalina (10.15)
-                19*|18*|17*)
+                18*|17*)
                     # Make sure we don't overwrite values that someone who
                     # knows better than us set.
                     if [ -z "$DED_LD" ]; then
