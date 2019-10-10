@@ -151,11 +151,13 @@ fi
 
 if [ -z "$KERL_BUILD_BACKEND" ]; then
     KERL_BUILD_BACKEND='git'
-else
-    KERL_BUILD_BACKEND='tarball'
 fi
 if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
     KERL_USE_AUTOCONF=1
+elif [ "$KERL_BUILD_BACKEND" != 'tarball' ]; then
+    echo "Unhandled value KERL_BUILD_BACKEND='${KERL_BUILD_BACKEND}'"
+    echo "KERL_BUILD_BACKEND must be one of 'git' (default) or 'tarball'"
+    exit 1
 fi
 
 KERL_SYSTEM=$(uname -s)
