@@ -600,7 +600,7 @@ _flags() {
             case "$osver" in
                 # TODO: Remove this in a future kerl release, probably
                 # after Catalina (10.15)
-                18*|17*)
+                19*|18*|17*)
                     # Make sure we don't overwrite values that someone who
                     # knows better than us set.
                     if [ -z "$DED_LD" ]; then
@@ -613,7 +613,10 @@ _flags() {
                         host=$(./erts/autoconf/config.guess)
                         DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp"
                     fi
-                    CFLAGS="$CFLAGS" DED_LD="$DED_LD" CC="$CC" DED_LDFLAGS="$DED_LDFLAGS" "$@"
+                    # disable stack check in CFLAGS; it causes erlc to segfault on Catalina
+                    # see https://github.com/erlang/otp/pull/2413
+                    # Setting it here for >= High Sierra *should* be harmless...
+                    CFLAGS="-fno-stack-check $CFLAGS" DED_LD="$DED_LD" CC="$CC" DED_LDFLAGS="$DED_LDFLAGS" "$@"
                     ;;
                 *)
                     CFLAGS="$CFLAGS" "$@"
