@@ -25,6 +25,7 @@ script:
 - |
   source $(./kerl path install_$_KERL_VSN)/activate
   erl -s crypto -s init stop
+  erl_call
   kerl_deactivate
 - |
   otp_major=$(echo "$_KERL_VSN" | cut -d. -f1)

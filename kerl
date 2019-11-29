@@ -933,6 +933,12 @@ kerl_deactivate() {
         unset DOCSH_USER_DEFAULT
         unset _KERL_DOCSH_USER_DEFAULT
     fi
+    if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
+        # shellcheck disable=SC2001
+        PATH="\$(echo "\$PATH" | sed -e "s#\$_KERL_ERL_CALL_REMOVABLE:##")"
+        export PATH
+        unset _KERL_ERL_CALL_REMOVABLE
+    fi
     if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
@@ -956,6 +962,9 @@ REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
 _KERL_ACTIVE_DIR="$absdir"
 export _KERL_ACTIVE_DIR
+_KERL_ERL_CALL_REMOVABLE=\$(find $absdir -type d -wholename "*erl_interface*/bin")
+PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+export PATH _KERL_ERL_CALL_REMOVABLE
 # https://twitter.com/mononcqc/status/877544929496629248
 export _KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
 kernel_history=\$(echo "\$ERL_AFLAGS" | grep 'kernel shell_history' || true)
@@ -1043,6 +1052,10 @@ function kerl_deactivate --description "deactivate erlang environment"
         set --erase DOCSH_USER_DEFAULT
         set --erase _KERL_DOCSH_USER_DEFAULT
     end
+    if set --query _KERL_ERL_CALL_REMOVABLE
+        _kerl_remove_el PATH "\$_KERL_ERL_CALL_REMOVABLE"
+        set --erase _KERL_ERL_CALL_REMOVABLE
+    end
     if test "\$argv[1]" != "nondestructive"
         functions --erase kerl_deactivate
         functions --erase _kerl_remove_el
@@ -1057,6 +1070,9 @@ set -x _KERL_MANPATH_REMOVABLE "$absdir/lib/erlang/man" "$absdir/man"
 set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
 set -x REBAR_PLT_DIR "$absdir"
 set -x _KERL_ACTIVE_DIR "$absdir"
+set -x _KERL_ERL_CALL_REMOVABLE (find "$absdir" -type d -wholename "*erl_interface*/bin")
+set -x PATH "\$_KERL_ERL_CALL_REMOVABLE" \$PATH
+
 if test -f "$KERL_CONFIG.fish"
     source "$KERL_CONFIG.fish"
 end
@@ -1088,7 +1104,7 @@ ACTIVATE_FISH
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
-alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_DOCSH_USER_DEFAULT != 0 && unsetenv DOCSH_USER_DEFAULT && unset _KERL_DOCSH_USER_DEFAULT; test \$?_KERL_DOCSH_DOT_ERLANG != 0 && rm "\$HOME/.erlang" && unset _KERL_DOCSH_DOT_ERLANG; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "!:*" != "nondestructive" && unalias deactivate'
+alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_DOCSH_USER_DEFAULT != 0 && unsetenv DOCSH_USER_DEFAULT && unset _KERL_DOCSH_USER_DEFAULT; test \$?_KERL_ERL_CALL_REMOVABLE != 0 && unset _KERL_ERL_CALL_REMOVABLE; test \$?_KERL_DOCSH_DOT_ERLANG != 0 && rm "\$HOME/.erlang" && unset _KERL_DOCSH_DOT_ERLANG; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "!:*" != "nondestructive" && unalias deactivate'
 
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
@@ -1113,6 +1129,9 @@ setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 setenv REBAR_PLT_DIR "$absdir"
 
 set _KERL_ACTIVE_DIR = "$absdir"
+
+set _KERL_ERL_CALL_REMOVABLE = $(find "$absdir" -type d -wholename "*erl_interface*/bin")
+setenv PATH "\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 
 if ( -f "$KERL_CONFIG.csh" ) then
     source "$KERL_CONFIG.csh"

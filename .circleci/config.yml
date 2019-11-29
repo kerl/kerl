@@ -40,6 +40,7 @@ jobs:
         |
           source $(./kerl path install_"$_KERL_VSN")/activate
           erl -s crypto -s init stop
+          erl_call
           kerl_deactivate
     - run: &kerl_delete_installation
         |
