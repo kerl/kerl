@@ -19,7 +19,7 @@ install:
 # https://github.com/kerl/kerl/issues/226#issuecomment-327915702
 # https://github.com/Homebrew/homebrew-core/issues/47348
 - |
-  if [[ "_KERL_VSN" = 2* ]]; then
+  if [[ "$_KERL_VSN" != 2* ]]; then
     brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/64555220bfbf4a25598523c2e4d3a232560eaad7/Formula/openssl.rb -f
     brew --prefix openssl || true
     brew link openssl || true
