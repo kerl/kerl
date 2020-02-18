@@ -15,8 +15,7 @@ env:
   - _KERL_VSN=17.5
   - _KERL_VSN=R16B03-1
 
-before_script: set -e
-after_script: set +e
+before_script: set -x
 script:
 - ./kerl update releases
 - travis_wait 45 ./kerl build "$_KERL_VSN" "$_KERL_VSN"
