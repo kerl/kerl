@@ -11,10 +11,9 @@ installation is as fast as possible.
 
 OTP Support Policy
 ------------------
-As of 2017 November 8, we are supporting OTP builds back to R15. Older builds
+As of 2020 March 3, we are supporting OTP builds back to 20. Older builds
 may or may not work. We will advance release support as new releases of OTP
-become available.  For example, when OTP 21 is released, we will support Erlang
-builds R16 and newer.
+become available.
 
 Triage cadence
 --------------
@@ -31,7 +30,8 @@ instead.
 Downloading
 -----------
 
-If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew), you can install kerl, along with shell completion, by running:
+If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew),
+you can install kerl, along with shell completion, by running:
 
     $ brew install kerl
 
@@ -45,9 +45,11 @@ Then ensure it is executable
 
 and drop it in your $PATH
 
-Optionally download and install kerl's bash_completion file from https://github.com/kerl/kerl/raw/master/bash_completion/kerl
+Optionally download and install kerl's bash_completion file from
+https://github.com/kerl/kerl/raw/master/bash_completion/kerl
 
-Optionally download and install kerl's zsh-completion file from https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl
+Optionally download and install kerl's zsh-completion file from
+https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl
 
 
 How it works
@@ -696,6 +698,12 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+3 March 2020 - 1.8.7
+
+  - Implement version sorting (#319)
+  - Fix CI breakage (#327)
+  - Include `erl_call` in the path (#330)
+
 16 September 2019 - 1.8.6
 
   - Remove almost all special cases for older macOS releases
