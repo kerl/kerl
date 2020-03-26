@@ -47,6 +47,7 @@ KERL_CONFIG=${KERL_CONFIG:="$HOME"/.kerlrc}
 KERL_DOWNLOAD_DIR=${KERL_DOWNLOAD_DIR:="${KERL_BASE_DIR:?}"/archives}
 KERL_BUILD_DIR=${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
 KERL_GIT_DIR=${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
+KERL_DOC_TARGETS=${KERL_DOC_TARGETS:="chunks"}
 
 if [ -n "$OTP_GITHUB_URL" ]; then
     _OGU="$OTP_GITHUB_URL"
@@ -81,9 +82,13 @@ fi
 if [ -n "$KERL_BUILD_DOCS" ]; then
     _KBD="$KERL_BUILD_DOCS"
 fi
+if [ -n "$KERL_DOC_TARGETS" ]; then
+    _KDT="$KERL_DOC_TARGETS"
+fi
 if [ -n "$KERL_BUILD_BACKEND" ]; then
     _KBB="$KERL_BUILD_BACKEND"
 fi
+
 OTP_GITHUB_URL=
 KERL_CONFIGURE_OPTIONS=
 KERL_CONFIGURE_APPLICATIONS=
@@ -95,6 +100,7 @@ KERL_INSTALL_MANPAGES=
 KERL_INSTALL_HTMLDOCS=
 KERL_BUILD_PLT=
 KERL_BUILD_DOCS=
+KERL_DOC_TARGETS=
 KERL_BUILD_BACKEND=
 
 # ensure the base dir exists
@@ -138,6 +144,9 @@ if [ -n "$_KBPLT" ]; then
 fi
 if [ -n "$_KBD" ]; then
     KERL_BUILD_DOCS="$_KBD"
+fi
+if [ -n "$_KDT" ]; then
+    KERL_DOC_TARGETS="$_KDT"
 fi
 if [ -n "$_KBB" ]; then
     KERL_BUILD_BACKEND="$_KBB"
@@ -855,7 +864,14 @@ _do_build() {
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
         echo 'Building docs...'
-        if ! make docs >>"$LOGFILE" 2>&1; then
+        release=$(get_otp_version "$2")
+        if [ "$release" -ge 23 ]; then
+            cmd="make docs DOC_TARGETS=$KERL_DOC_TARGETS"
+        else
+            cmd="make docs"
+        fi
+
+        if ! $cmd >>"$LOGFILE" 2>&1; then
             show_logfile 'Building docs failed.' "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
@@ -1173,7 +1189,7 @@ ACTIVATE_CSH
         DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel"/lib/erlang
         if [ -d "$DOC_DIR" ]; then
             echo 'Installing docs...'
-            cp $CP_OPT "$DOC_DIR/" "$absdir"/lib
+            cp $CP_OPT "$DOC_DIR/" "$absdir"
             if [ -d "$absdir"/lib/erlang/man ]; then
                 ln -s "$absdir"/lib/erlang/man "$absdir"/man
                 ln -s "$absdir"/lib/erlang/doc "$absdir"/html
