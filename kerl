@@ -865,19 +865,16 @@ _do_build() {
     if [ -n "$KERL_BUILD_DOCS" ]; then
         echo 'Building docs...'
         release=$(get_otp_version "$2")
-        if [ "$release" -ge 23 ]; then
-            cmd="make docs DOC_TARGETS=$KERL_DOC_TARGETS"
-        else
-            cmd="make docs"
-        fi
+        cmd="make docs DOC_TARGETS=$KERL_DOC_TARGETS"
+        release_cmd="make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1"
 
         if ! $cmd >>"$LOGFILE" 2>&1; then
             show_logfile 'Building docs failed.' "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
         fi
-        if ! make install-docs >>"$LOGFILE" 2>&1; then
-            show_logfile 'Installing docs failed.' "$LOGFILE"
+        if ! $release_cmd >>"$LOGFILE" 2>&1; then
+            show_logfile 'Release of docs failed.' "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
         fi
@@ -1186,17 +1183,10 @@ rehash
 ACTIVATE_CSH
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
-        DOC_DIR="$KERL_BUILD_DIR/$1/release_$rel"/lib/erlang
-        if [ -d "$DOC_DIR" ]; then
-            echo 'Installing docs...'
-            cp $CP_OPT "$DOC_DIR/" "$absdir"
-            if [ -d "$absdir"/lib/erlang/man ]; then
-                ln -s "$absdir"/lib/erlang/man "$absdir"/man
-                ln -s "$absdir"/lib/erlang/doc "$absdir"/html
-            elif [ -d "$absdir"/lib/man ]; then
-                ln -s "$absdir"/lib/man "$absdir"/man
-                ln -s "$absdir"/lib/doc "$absdir"/html
-            fi
+        release_docs="make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$absdir"
+        if ! (ERL_TOP="$ERL_TOP" $release_docs >/dev/null 2>&1); then
+            echo "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir"
+            exit 1
         fi
     else
         if [ "$KERL_BUILD_BACKEND" = 'tarball' ]; then
