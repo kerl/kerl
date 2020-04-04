@@ -9,7 +9,6 @@ workflows:
       - centos7_19.3
       - centos6_18.3
       - debian9_17.5__wx_odbc__shellcheck
-      - trusty_17.0
       - debian8_R15B03-1
 
 jobs:
@@ -193,29 +192,6 @@ jobs:
             echo PASS app $app
           done
           kerl_deactivate
-      - run: *activate_then_test_docsh
-      - run: *kerl_delete_installation
-      - run: *kerl_delete_build
-
-  trusty_17.0:
-    docker: [{image: 'ubuntu:trusty'}]
-    environment:
-      - _KERL_VSN: '17.0'
-    # - KERL_BUILD_BACKEND: git ## This would cause the build to fail?!
-      - KERL_CONFIGURE_DISABLE_APPLICATIONS: 'wx odbc'
-    steps:
-      - run: apt update && apt upgrade -y
-      - run: |
-          apt install -y --no-install-recommends \
-             curl ca-certificates \
-             git autoconf automake dpkg-dev gcc g++ make libncurses-dev \
-             libssl1.0.0 libssl-dev libsctp1 libsctp-dev
-      - checkout
-      - run: *kerl_update_releases
-      - run: *build_on_all_cores
-      - run: *kerl_install
-      - run: *kerl_status
-      - run: *activate_then_test_for_crypto
       - run: *activate_then_test_docsh
       - run: *kerl_delete_installation
       - run: *kerl_delete_build
