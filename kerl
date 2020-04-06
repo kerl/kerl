@@ -742,6 +742,8 @@ _do_build() {
                     fi
                 fi
             fi
+
+
         ;;
         Linux)
             # we are going to check here to see if the Linux uses dpkg or rpms
@@ -765,9 +767,9 @@ _do_build() {
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
 
-    if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'catalina' >/dev/null 2>&1; then
+    if [[ $KERL_SYSTEM == "Darwin" ]] && [[ $(uname -r) == "19"* ]]; then
         cd "$ERL_TOP"
-        
+            
         sed -i '.bak' ':t
             /case $host_os in/,/esac/ {    
                 /esac/!{         
@@ -779,14 +781,14 @@ _do_build() {
             /LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"/c\
             case $host_os in \
             \ \darwin19*) \
-	        \ \AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)]) \
-	        \ \CFLAGS="-fno-stack-check $CFLAGS" \
-	        \ \;; \
+            \ \AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)]) \
+            \ \CFLAGS="-fno-stack-check $CFLAGS" \
+            \ \;; \
             \ \*) \
-	        \ \;; \
+            \ \;; \
             esac
             }
-            ' test_file
+            ' erts/configure.in
     fi
 
     # Set configuation flags given applications white/black lists
