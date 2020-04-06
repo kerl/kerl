@@ -742,8 +742,6 @@ _do_build() {
                     fi
                 fi
             fi
-
-
         ;;
         Linux)
             # we are going to check here to see if the Linux uses dpkg or rpms
@@ -792,7 +790,6 @@ _do_build() {
     fi
 
     # Set configuation flags given applications white/black lists
-
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
         for app in $KERL_CONFIGURE_APPLICATIONS; do
             case "$KERL_CONFIGURE_OPTIONS" in
