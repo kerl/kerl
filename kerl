@@ -768,29 +768,25 @@ _do_build() {
     if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'catalina' >/dev/null 2>&1; then
         cd "$ERL_TOP"
         
-        sed -i '.bak' '/banana/ a\
-            \
+        sed -i '.bak' ':t
+            /case $host_os in/,/esac/ {    
+                /esac/!{         
+                    $!{          
+                        N;        
+                        bt
+                    }               
+                }               
+            /LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"/c\
             case $host_os in \
             \ \darwin19*) \
-	        AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)]) \
-	        CFLAGS="-fno-stack-check $CFLAGS" \
-	        ;; \
-            *) \
-	        ;; \
-            esac \
-            \
-            ' erts/configure.in
-        
-        sed ':t
-     /case $host_os in/,/esac/ {    
-        /esac/!{         
-           $!{          
-              N;        
-              bt
-           }            
-        }               
-        /LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"/d;       
-     }' test_file
+	        \ \AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)]) \
+	        \ \CFLAGS="-fno-stack-check $CFLAGS" \
+	        \ \;; \
+            \ \*) \
+	        \ \;; \
+            esac
+            }
+            ' test_file
     fi
 
     # Set configuation flags given applications white/black lists
