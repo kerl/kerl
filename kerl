@@ -599,8 +599,11 @@ maybe_patch() {
     release=$(get_otp_version "$2")
     case "$1" in
         Darwin)
+            # Catalina and clang require a "no-weaks-import" flag during build
+            if [[ $(uname -r) == "19"* ]]; then
+                apply_catalina_no_weak_imports_patch >>"$LOGFILE"
+            fi
             maybe_patch_darwin "$release"
-            maybe_patch_osx_catalina
             ;;
         SunOS)
             maybe_patch_sunos "$release"
@@ -656,30 +659,43 @@ maybe_patch_darwin() {
     fi
 }
 
-maybe_patch_osx_catalina() {
-    if [[ $(uname -r) == "19"* ]]; then
-    cd "$ERL_TOP"
-        
-    sed -i '.bak' ':t
-        /case $host_os in/,/esac/ {    
-            /esac/!{         
-                $!{          
-                    N;        
-                    bt
-                }               
-            }               
-        /LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"/c\
-        case $host_os in \
-        \ \darwin19*) \
-        \ \AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)]) \
-        \ \CFLAGS="-fno-stack-check $CFLAGS" \
-        \ \;; \
-        \ \*) \
-        \ \;; \
-        esac
-        }
-        ' erts/configure.in
-    fi
+apply_catalina_no_weak_imports_patch() {
+    patch -p1 <<'_END_PATCH'
+diff --git a/erts/configure.in b/erts/configure.in
+index 3ba8216a19..d7cebc5ebc 100644
+--- a/erts/configure.in
++++ b/erts/configure.in
+@@ -926,20 +926,16 @@ dnl for now that is the way we do it.
+ USER_LD=$LD
+ USER_LDFLAGS="$LDFLAGS"
+ LD='$(CC)'
++
+ case $host_os in
+-     darwin*)
+-	saved_LDFLAGS="$LDFLAGS"
+-	LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"
+-	AC_TRY_LINK([],[],
+-		[
+-			LD_MAY_BE_WEAK=no
+-		],
+-		[
+-			LD_MAY_BE_WEAK=yes
+-			LDFLAGS="$saved_LDFLAGS"
+-		]);;
+-    *)
+-	LD_MAY_BE_WEAK=no;;
++        darwin19*)
++	    # Disable stack checking to avoid crashing with a segment fault
++	    # in macOS Catalina.
++	    AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)])
++	    CFLAGS="-fno-stack-check $CFLAGS"
++	    ;;
++        *)
++	    ;;
+ esac
+ 
+ AC_SUBST(LD)
+_END_PATCH
 }
 
 maybe_patch_sunos() {
