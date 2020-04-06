@@ -600,6 +600,7 @@ maybe_patch() {
     case "$1" in
         Darwin)
             maybe_patch_darwin "$release"
+            maybe_patch_osx_catalina
             ;;
         SunOS)
             maybe_patch_sunos "$release"
@@ -652,6 +653,32 @@ maybe_patch_darwin() {
         apply_r16_wx_ptr_patch >>"$LOGFILE"
     elif [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
         apply_wx_ptr_patch >>"$LOGFILE"
+    fi
+}
+
+maybe_patch_osx_catalina() {
+    if [[ $(uname -r) == "19"* ]]; then
+    cd "$ERL_TOP"
+        
+    sed -i '.bak' ':t
+        /case $host_os in/,/esac/ {    
+            /esac/!{         
+                $!{          
+                    N;        
+                    bt
+                }               
+            }               
+        /LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"/c\
+        case $host_os in \
+        \ \darwin19*) \
+        \ \AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)]) \
+        \ \CFLAGS="-fno-stack-check $CFLAGS" \
+        \ \;; \
+        \ \*) \
+        \ \;; \
+        esac
+        }
+        ' erts/configure.in
     fi
 }
 
@@ -764,30 +791,6 @@ _do_build() {
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
-
-    if [[ $KERL_SYSTEM == "Darwin" ]] && [[ $(uname -r) == "19"* ]]; then
-        cd "$ERL_TOP"
-            
-        sed -i '.bak' ':t
-            /case $host_os in/,/esac/ {    
-                /esac/!{         
-                    $!{          
-                        N;        
-                        bt
-                    }               
-                }               
-            /LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"/c\
-            case $host_os in \
-            \ \darwin19*) \
-            \ \AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)]) \
-            \ \CFLAGS="-fno-stack-check $CFLAGS" \
-            \ \;; \
-            \ \*) \
-            \ \;; \
-            esac
-            }
-            ' erts/configure.in
-    fi
 
     # Set configuation flags given applications white/black lists
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
