@@ -600,7 +600,7 @@ maybe_patch() {
     case "$1" in
         Darwin)
             # Catalina and clang require a "no-weaks-import" flag during build
-            if [[ $(uname -r) == "19"* ]]; then
+            if [[ $(uname -r) == "19"* ]] && [[ "$release" -le 23 ]] && [[ $2 != "22.3.1" ]]; then
                 apply_catalina_no_weak_imports_patch >>"$LOGFILE"
             fi
             maybe_patch_darwin "$release"
