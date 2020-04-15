@@ -600,11 +600,13 @@ maybe_patch() {
     case "$1" in
         Darwin)
             xcode_version=$(/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -version | head -n 1 | awk '{print $2}')
+            command_line_tools_version=$(xcode-select -v | awk '{print $3}' | sed 's/.$//')
             # Catalina and clang require a "no-weaks-import" flag during build
             if [[ $(uname -r) == "19"* ]] && \
                [[ "$release" -lt 23 ]] && \
-               [[ $(printf "$2\n22.3.1" | sort | head -n 1) != "22.3.1" ]] && \
-               [[ $(printf "$xcode_version\n11.4" | sort | head -n 1) == "11.4" ]]; then
+               [[ $(printf "$2\n22.3.1" | sort --version-sort | head -n 1) != "22.3.1" ]] && \
+               [[ $(printf "$xcode_version\n11.4" | sort --version-sort | head -n 1) == "11.4" ]] && \
+               [[ "$command_line_tools_version" -le 2373 ]]; then
                 apply_catalina_no_weak_imports_patch >>"$LOGFILE"
             fi
             maybe_patch_darwin "$release"
