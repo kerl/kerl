@@ -599,17 +599,9 @@ maybe_patch() {
     release=$(get_otp_version "$2")
     case "$1" in
         Darwin)
-            xcode_version=$(/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -version | head -n 1 | awk '{print $2}')
-            command_line_tools_version=$(xcode-select -v | awk '{print $3}' | sed 's/.$//')
-            # Catalina and clang require a "no-weaks-import" flag during build
-            if [[ $(uname -r) == "19"* ]] && \
-               [[ "$release" -lt 23 ]] && \
-               [[ $(printf "$2\n22.3.1" | sort --version-sort | head -n 1) != "22.3.1" ]] && \
-               [[ $(printf "$xcode_version\n11.4" | sort --version-sort | head -n 1) == "11.4" ]] && \
-               [[ "$command_line_tools_version" -le 2373 ]]; then
-                apply_catalina_no_weak_imports_patch >>"$LOGFILE"
-            fi
             maybe_patch_darwin "$release"
+            # Catalina and clang require a "no-weaks-import" flag during build
+            maybe_patch_catalina "$release" "$2"
             ;;
         SunOS)
             maybe_patch_sunos "$release"
@@ -663,6 +655,40 @@ maybe_patch_darwin() {
     elif [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
         apply_wx_ptr_patch >>"$LOGFILE"
     fi
+}
+
+maybe_patch_catalina() {
+    xcode_version=$(/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -version | head -n 1 | awk '{print $2}')
+    command_line_tools_version=$(xcode-select -v | awk '{print $3}' | sed 's/.$//')
+    release="$1"
+    otp_version="$2"
+
+    if is_osx_catalina && \
+        [[ "$release" -lt 23 ]] && \
+        compare_sem_version $otp_version "<" "22.3.1" && \
+        compare_sem_version $xcode_version ">" "11.4" && \
+        [[ "$command_line_tools_version" -le 2373 ]]; then
+        apply_catalina_no_weak_imports_patch >>"$LOGFILE"
+    fi
+}
+
+is_osx_catalina() {
+    [[ $(uname -r) == "19"* ]]
+}
+
+compare_sem_version() {
+    version=$1
+    operator=$2
+    baseline=$3
+
+    case $operator in
+        '<')
+            [[ $(printf "$version\n$baseline" | sort --version-sort | head -n 1) != "$baseline" ]]
+            ;;
+        ('>' | "==")
+            [[ $(printf "$version\n$baseline" | sort --version-sort | head -n 1) == "$baseline" ]]
+            ;;
+    esac
 }
 
 apply_catalina_no_weak_imports_patch() {
