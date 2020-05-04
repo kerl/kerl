@@ -698,6 +698,15 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+4 May 2020 - 2.0.0
+
+  - **Important**: possible breaking change - releases are now fetched
+                   through github tags by default (#277)
+  - Fix documentation building, especially for inline REPL help (#336)
+  - Fix builds on Catalina (#337, #339) - if you are on Catalina and
+    need to build older Erlangs, you should downgrade your XCode to an
+    earlier version.
+
 3 March 2020 - 1.8.7
 
   - Implement version sorting (#319)
