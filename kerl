@@ -27,7 +27,7 @@ unset ERL_TOP
 # Make sure CDPATH doesn't affect cd in case path is relative.
 unset CDPATH
 
-KERL_VERSION='2.0.0'
+KERL_VERSION='2.0.1'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://www.erlang.org/download'
@@ -641,6 +641,10 @@ maybe_patch_all() {
     # Maybe apply zlib patch
     if [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
         apply_zlib_patch >> "$LOGFILE"
+    fi
+
+    if [ "$1" -ge 22 ] && [ "$1" -le 23 ]; then
+        apply_in6addr_test_patch >> "$LOGFILE"
     fi
 }
 
@@ -2058,6 +2062,34 @@ index 656de7c49ad..4491d486837 100644
  		ctx->state = B2TBadArg;
  	    }
              break;
+_END_PATCH
+}
+
+# https://github.com/erlang/otp/commit/4b0467c.patch
+apply_in6addr_test_patch()
+{
+
+    patch -p1 <<'_END_PATCH'
+diff --git a/erts/configure.in b/erts/configure.in
+index caa1ce568b..6ebb3d3a25 100644
+--- a/erts/configure.in
++++ b/erts/configure.in
+@@ -2191,6 +2191,7 @@ AC_CACHE_CHECK(
+ 		#include <sys/types.h>
+ 		#include <sys/socket.h>
+ 		#include <netinet/in.h>
++		#include <stdio.h>
+ 	    ]],
+ 	    [[printf("%d", in6addr_any.s6_addr[16]);]]
+ 	)],
+@@ -2214,6 +2215,7 @@ AC_CACHE_CHECK(
+ 		#include <sys/types.h>
+ 		#include <sys/socket.h>
+ 		#include <netinet/in.h>
++		#include <stdio.h>
+ 	    ]],
+ 	    [[printf("%d", in6addr_loopback.s6_addr[16]);]]
+ 	)],
 _END_PATCH
 }
 
