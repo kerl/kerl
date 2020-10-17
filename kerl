@@ -27,7 +27,7 @@ unset ERL_TOP
 # Make sure CDPATH doesn't affect cd in case path is relative.
 unset CDPATH
 
-KERL_VERSION='2.0.1'
+KERL_VERSION='2.0.0'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://www.erlang.org/download'
@@ -642,10 +642,6 @@ maybe_patch_all() {
     if [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
         apply_zlib_patch >> "$LOGFILE"
     fi
-
-    if [ "$1" -ge 22 ] && [ "$1" -le 23 ]; then
-        apply_in6addr_test_patch >> "$LOGFILE"
-    fi
 }
 
 maybe_patch_darwin() {
@@ -654,15 +650,16 @@ maybe_patch_darwin() {
         CFLAGS='-DERTS_DO_INCL_GLB_INLINE_FUNC_DEF'
         apply_darwin_compiler_patch >>"$LOGFILE"
     elif [ "$1" -eq 16 ]; then
-        # TODO: Maybe check if clang version == 9
         apply_r16_wx_ptr_patch >>"$LOGFILE"
     elif [ "$1" -ge 17 ] && [ "$1" -le 19 ]; then
         apply_wx_ptr_patch >>"$LOGFILE"
+    elif [ "$1" -ge 21 ] && [ "$1" -le 23 ]; then
+        apply_in6addr_test_patch >> "$LOGFILE"
     fi
 }
 
 maybe_patch_catalina() {
-    xcode_version=$(/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -version | head -n 1 | awk '{print $2}')
+    clang_version=$(/usr/bin/clang --version  | head -1  | awk '{print $4}')
     command_line_tools_version=$(xcode-select -v | awk '{print $3}' | sed 's/.$//')
     release="$1"
     otp_version="$2"
@@ -670,7 +667,7 @@ maybe_patch_catalina() {
     if is_osx_catalina && \
         [[ "$release" -lt 23 ]] && \
         compare_sem_version $otp_version "<" "22.3.1" && \
-        compare_sem_version $xcode_version ">" "11.4" && \
+        compare_sem_version $clang_version ">" "11.4" && \
         [[ "$command_line_tools_version" -le 2373 ]]; then
         apply_catalina_no_weak_imports_patch >>"$LOGFILE"
     fi
@@ -724,7 +721,7 @@ index 3ba8216a19..d7cebc5ebc 100644
 +	    # Disable stack checking to avoid crashing with a segment fault
 +	    # in macOS Catalina.
 +	    AC_MSG_NOTICE([Turning off stack check on macOS 10.15 (Catalina)])
-+	    CFLAGS="-fno-stack-check $CFLAGS"
++	    CFLAGS="-Wno-error=implicit-function-declaration -fno-stack-check $CFLAGS"
 +	    ;;
 +        *)
 +	    ;;
