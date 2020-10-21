@@ -698,6 +698,12 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+20 October 2020 - 2.0.1
+
+  - Use `-path` in `find` (#345)
+  - Redownload a tarball if it's corrupted (#348)
+  - Update to build on Catalina and Big Sur (#355)
+
 4 May 2020 - 2.0.0
 
   - **Important**: possible breaking change - releases are now fetched
