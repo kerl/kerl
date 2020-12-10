@@ -698,6 +698,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+10 December 2020 - 2.0.2
+
+  - Fix Big Sur build issue (#356) (see also [OTP #2871](https://github.com/erlang/otp/pull/2871))
+
 20 October 2020 - 2.0.1
 
   - Use `-path` in `find` (#345)
