@@ -1037,6 +1037,11 @@ _do_build() {
     ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
     cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
+    if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
+        echo 'Building debug VM...'
+        cd $ERL_TOP/erts/emulator || exit 1
+        make debug ERL_TOP=$ERL_TOP >>"$LOGFILE" 2>&1
+    fi
 }
 
 do_install() {
@@ -1056,6 +1061,14 @@ do_install() {
               cd "$absdir" && ./Install $INSTALL_OPT "$absdir" >/dev/null 2>&1); then
         echo "Couldn't install Erlang/OTP $rel ($1) in $absdir"
         exit 1
+    fi
+    BEAM_DEBUG_SMP=$(find . -name beam.debug.smp)
+    if [ "$BEAM_DEBUG_SMP" != "" ]; then
+        ERL_CHILD_SETUP_DEBUG=$(find . -name erl_child_setup.debug)
+        echo "Also installing Erlang/OTP $rel ($1) debug VM in $absdir..."
+        cp $BEAM_DEBUG_SMP $absdir/erts-*/bin/
+        cp $ERL_CHILD_SETUP_DEBUG $absdir/erts-*/bin/
+        cp bin/cerl $absdir/bin
     fi
     list_add installations "$1 $absdir";
     cat <<ACTIVATE >"$absdir"/activate
