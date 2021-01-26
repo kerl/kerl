@@ -704,6 +704,11 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+26 January 2021 - 2.1.0
+
+  - Fix Big Sur build issues again (#358)
+  - Automate building a debug Erlang (#360)
+
 10 December 2020 - 2.0.2
 
   - Fix Big Sur build issue (#356) (see also [OTP #2871](https://github.com/erlang/otp/pull/2871))
