@@ -224,6 +224,12 @@ Default: `${KERL_BASE_DIR}/archives`
 Directory in which to place downloaded artefacts
 
 
+### KERL_BUILD_DEBUG_VM
+
+Allows building, alongside the regular VM, a debug VM (available via `cerl -debug`).
+NB: Enable this build using `KERL_BUILD_DEBUG_VM=true`
+
+
 ### KERL_BUILD_DIR
 
 Default: `${KERL_BASE_DIR}/builds
