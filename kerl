@@ -1038,7 +1038,7 @@ _do_build() {
     cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
     if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
-        echo 'Building debug VM...'
+        echo "Also building Erlang/OTP $1 ($2) debug VM, please wait..."
         cd $ERL_TOP/erts/emulator || exit 1
         make debug ERL_TOP=$ERL_TOP >>"$LOGFILE" 2>&1
     fi
