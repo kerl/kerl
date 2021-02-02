@@ -310,7 +310,7 @@ get_git_releases() {
 
 get_tarball_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
-    if [ 200 = "$(curl -qsL --output "$tmp" --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL/)" ]; then
+    if [ 200 = "$(\curl -qsL --output "$tmp" --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL/)" ]; then
         sed $SED_OPT \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
             -e '/^R1|^[0-9]/!d' "$tmp" \
@@ -444,7 +444,7 @@ _dpkg_is_installed() {
     # gratefully stolen from
     # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
     # returns 0 (true) if found, 1 otherwise
-    dpkg-query -Wf'${db:Status-abbrev}' "$1" 2>/dev/null | grep -q '^i'
+    dpkg-query -Wf'${db:Status-abbrev}' "$1" 2>/dev/null | \grep -q '^i'
 }
 
 _check_dpkg() {
@@ -570,7 +570,7 @@ show_configuration_warnings() {
     # $1 is logfile
     # $2 is section header (E.g. "APPLICATIONS DISABLED")
     # Find the row number for the section we are looking for
-    INDEX=$(grep -n -m1 "$2" "$1" | cut -d: -f1)
+    INDEX=$(\grep -n -m1 "$2" "$1" | cut -d: -f1)
 
     # If there are no warnings, the section won't appear in the log
     if [ -n "$INDEX" ]; then
@@ -829,13 +829,13 @@ _do_build() {
             # Ensure that the --enable-darwin-64bit flag is set on all macOS
             # That way even on older Erlangs we get 64 bit Erlang builds
             # macOS has been mandatory 64 bit for a while
-            if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'darwin-64bit' >/dev/null 2>&1; then
+            if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep 'darwin-64bit' >/dev/null 2>&1; then
                 KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS "--enable-darwin-64bit
             fi
 
             # Attempt to use brew to discover if and where openssl has been
             # installed unless the user has already explictly set it.
-            if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'ssl' >/dev/null 2>&1; then
+            if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep 'ssl' >/dev/null 2>&1; then
                 whichbrew=$(command -v brew)
                 if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                     brew_prefix=$(brew --prefix openssl)
@@ -927,7 +927,7 @@ _do_build() {
         _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
 
     fi
-    if ! echo "$KERL_CONFIGURE_OPTIONS" | grep '--enable-native-libs' >/dev/null 2>&1; then
+    if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep '--enable-native-libs' >/dev/null 2>&1; then
         make clean >>"$LOGFILE" 2>&1
         # shellcheck disable=SC2086
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
@@ -944,7 +944,7 @@ _do_build() {
     done
 
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
-        find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
+        \find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
         for app in $KERL_CONFIGURE_APPLICATIONS; do
             if ! rm ./lib/"$app"/SKIP; then
                 echo "Couldn't prepare '$app' application for building"
@@ -1014,9 +1014,9 @@ do_install() {
         echo "Couldn't install Erlang/OTP $rel ($1) in $absdir"
         exit 1
     fi
-    BEAM_DEBUG_SMP=$(find . -name beam.debug.smp)
+    BEAM_DEBUG_SMP=$(\find . -name beam.debug.smp)
     if [ "$BEAM_DEBUG_SMP" != "" ]; then
-        ERL_CHILD_SETUP_DEBUG=$(find . -name erl_child_setup.debug)
+        ERL_CHILD_SETUP_DEBUG=$(\find . -name erl_child_setup.debug)
         echo "Also installing Erlang/OTP $rel ($1) debug VM in $absdir..."
         cp $BEAM_DEBUG_SMP $absdir/erts-*/bin/
         cp $ERL_CHILD_SETUP_DEBUG $absdir/erts-*/bin/
@@ -1094,12 +1094,12 @@ REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
 _KERL_ACTIVE_DIR="$absdir"
 export _KERL_ACTIVE_DIR
-_KERL_ERL_CALL_REMOVABLE=\$(find $absdir -type d -wholename "*erl_interface*/bin")
+_KERL_ERL_CALL_REMOVABLE=\$(\\find $absdir -type d -wholename "*erl_interface*/bin")
 PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 export PATH _KERL_ERL_CALL_REMOVABLE
 # https://twitter.com/mononcqc/status/877544929496629248
 export _KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
-kernel_history=\$(echo "\$ERL_AFLAGS" | grep 'kernel shell_history' || true)
+kernel_history=\$(echo "\$ERL_AFLAGS" | \\grep 'kernel shell_history' || true)
 if [ -z "\$kernel_history" ]; then
     export ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
 fi
@@ -1202,7 +1202,7 @@ set -x _KERL_MANPATH_REMOVABLE "$absdir/lib/erlang/man" "$absdir/man"
 set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
 set -x REBAR_PLT_DIR "$absdir"
 set -x _KERL_ACTIVE_DIR "$absdir"
-set -x _KERL_ERL_CALL_REMOVABLE (find "$absdir" -type d -path "*erl_interface*/bin")
+set -x _KERL_ERL_CALL_REMOVABLE (\\find "$absdir" -type d -path "*erl_interface*/bin")
 set -x PATH "\$_KERL_ERL_CALL_REMOVABLE" \$PATH
 
 if test -f "$KERL_CONFIG.fish"
@@ -1262,7 +1262,7 @@ setenv REBAR_PLT_DIR "$absdir"
 
 set _KERL_ACTIVE_DIR = "$absdir"
 
-set _KERL_ERL_CALL_REMOVABLE = $(find "$absdir" -type d -wholename "*erl_interface*/bin")
+set _KERL_ERL_CALL_REMOVABLE = $(\find "$absdir" -type d -wholename "*erl_interface*/bin")
 setenv PATH "\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 
 if ( -f "$KERL_CONFIG.csh" ) then
@@ -1336,9 +1336,9 @@ ACTIVATE_CSH
         SHELL_SUFFIX=''
     else
         PID=$$
-        PARENT_PID=$(ps -p $PID -o ppid=) || exit 1
+        PARENT_PID=$(\ps -p $PID -o ppid=) || exit 1
         # shellcheck disable=SC2086
-        PARENT_CMD=$(ps -p $PARENT_PID -o ucomm | tail -n 1)
+        PARENT_CMD=$(\ps -p $PARENT_PID -o ucomm | tail -n 1)
         case "$PARENT_CMD" in
             fish)
                 SHELL_SUFFIX='.fish'
@@ -1369,7 +1369,7 @@ install_docsh() {
     OTP_VERSION=$(get_otp_version "$1")
     # This has to be updated with docsh updates
     DOCSH_SUPPORTED='^1[9]\|2[01]$'
-    if ! echo "$OTP_VERSION" | grep "$DOCSH_SUPPORTED" >/dev/null 2>&1; then
+    if ! echo "$OTP_VERSION" | \grep "$DOCSH_SUPPORTED" >/dev/null 2>&1; then
         echo "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
         exit 1
     fi
@@ -1463,8 +1463,8 @@ build_plt() {
     mkdir -p "$dialyzerd" || exit 1
     plt="$dialyzerd"/plt
     build_log="$dialyzerd"/build.log
-    dirs=$(find "$1"/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
-    apps=$(for app in $dirs; do basename "$app" | cut -d- -f1 ; done | grep -Ev 'erl_interface|jinterface' | xargs echo)
+    dirs=$(\find "$1"/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
+    apps=$(for app in $dirs; do basename "$app" | cut -d- -f1 ; done | \grep -Ev 'erl_interface|jinterface' | xargs echo)
     # shellcheck disable=SC2086
     "$1"/bin/dialyzer --output_plt "$plt" --build_plt --apps $apps >>"$build_log" 2>&1
     status=$?
@@ -1661,7 +1661,7 @@ is_valid_install_path() {
             echo "ERROR: $1 is not a directory."
             return 1
         else
-            count=$(find "$1" | wc -l)
+            count=$(\find "$1" | wc -l)
             if [ "$count" -ne 1 ]; then
                 echo "ERROR: $1 does not appear to be an empty directory."
                 return 1
@@ -1692,7 +1692,7 @@ maybe_remove() {
 
 list_print() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        if [ "$(wc -l "$KERL_BASE_DIR/otp_$1")" != '0' ]; then
+        if [ "$(\wc -l "$KERL_BASE_DIR/otp_$1")" != '0' ]; then
             cat "$KERL_BASE_DIR/otp_$1"
             return 0
         fi
@@ -1721,7 +1721,7 @@ list_remove() {
 
 list_has() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        grep "$2" "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1 && return 0
+        \grep "$2" "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1 && return 0
     fi
     return 1
 }
@@ -1755,14 +1755,14 @@ get_active_path() {
 
 get_name_from_install_path() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
-        grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
+        \grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
     fi
     return 0
 }
 
 get_install_path_from_name() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
-        grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f2
+        \grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f2
     fi
     return 0
 }
@@ -1826,7 +1826,7 @@ tarball_download() {
     ensure_checksum_file
     echo 'Verifying archive checksum...'
     SUM="$($MD5SUM "$KERL_DOWNLOAD_DIR/$1" | cut -d' ' -f $MD5SUM_FIELD)"
-    ORIG_SUM="$(grep -F "$1" "$KERL_DOWNLOAD_DIR"/MD5 | cut -d' ' -f2)"
+    ORIG_SUM="$(\grep -F "$1" "$KERL_DOWNLOAD_DIR"/MD5 | cut -d' ' -f2)"
     if [ "$SUM" != "$ORIG_SUM" ]; then
         echo "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
         exit 1
@@ -2303,7 +2303,7 @@ case "$1" in
                 else
                     maybe_remove "$(get_install_path_from_name "$3")"
                 fi
-                escaped="$(echo "$3" | sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
+                escaped="$(echo "$3" | \sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
                 list_remove "$2"s "$escaped"
                 echo "The installation \"$3\" has been deleted"
                 ;;
