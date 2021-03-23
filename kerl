@@ -971,15 +971,12 @@ _do_build() {
     if [ -n "$KERL_BUILD_DOCS" ]; then
         echo 'Building docs...'
         release=$(get_otp_version "$2")
-        cmd="make docs DOC_TARGETS=$KERL_DOC_TARGETS"
-        release_cmd="make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1"
-
-        if ! $cmd >>"$LOGFILE" 2>&1; then
+        if ! make docs "DOC_TARGETS=$KERL_DOC_TARGETS" >>"$LOGFILE" 2>&1; then
             show_logfile 'Building docs failed.' "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
         fi
-        if ! $release_cmd >>"$LOGFILE" 2>&1; then
+        if ! make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1" >>"$LOGFILE" 2>&1; then
             show_logfile 'Release of docs failed.' "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
@@ -1302,8 +1299,7 @@ rehash
 ACTIVATE_CSH
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
-        release_docs="make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$absdir"
-        if ! (ERL_TOP="$ERL_TOP" $release_docs >/dev/null 2>&1); then
+        if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >/dev/null 2>&1); then
             echo "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir"
             exit 1
         fi
