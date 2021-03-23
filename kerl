@@ -835,7 +835,7 @@ _do_build() {
 
             # Attempt to use brew to discover if and where openssl has been
             # installed unless the user has already explictly set it.
-            if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'ssl' >/dev/null 2>&1; then
+            if ! echo "$KERL_CONFIGURE_OPTIONS" | grep 'with-ssl' >/dev/null 2>&1; then
                 whichbrew=$(command -v brew)
                 if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                     brew_prefix=$(brew --prefix openssl)
