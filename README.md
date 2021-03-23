@@ -704,6 +704,12 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+22 March 2021 - 2.1.1
+
+  - grep `with-ssl` (#367)
+  - Add a `\` to commands to bypass any shell alias (#363)
+  - Enable multiple doc targets (#362)
+
 26 January 2021 - 2.1.0
 
   - Fix Big Sur build issues again (#358)
