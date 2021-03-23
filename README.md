@@ -224,15 +224,9 @@ Default: `${KERL_BASE_DIR}/archives`
 Directory in which to place downloaded artefacts
 
 
-### KERL_BUILD_DEBUG_VM
-
-Allows building, alongside the regular VM, a debug VM (available via `cerl -debug`).
-NB: Enable this build using `KERL_BUILD_DEBUG_VM=true`
-
-
 ### KERL_BUILD_DIR
 
-Default: `${KERL_BASE_DIR}/builds
+Default: `${KERL_BASE_DIR}/builds`
 Directory in which kerl will perform builds
 
 
@@ -281,6 +275,12 @@ Acceptable values: `tarball`, `git`
 NB: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to `git`, one must also set [`$KERL_BUILD_DOCS`](#kerl_build_docs).
 
 NB: This setting has no effect when using `kerl build git...`, which invokes kerl to directly clone a git repository and build from there.
+
+
+### KERL_BUILD_DEBUG_VM
+
+Allows building, alongside the regular VM, a debug VM (available via `cerl -debug`).
+NB: Enable this build using `KERL_BUILD_DEBUG_VM=true`
 
 
 ### OTP_GITHUB_URL
