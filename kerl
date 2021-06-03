@@ -788,34 +788,22 @@ do_normal_build() {
 }
 
 _flags() {
-    # We need to munge the LD and DED flags for clang 9/10 shipped with
-    # High Sierra (macOS 10.13) and Mojave (macOS 10.14) and quite
-    # probably for Catalina (macOS 10.15)
+    # We used to munge the LD and DED flags for clang 9/10 shipped with
+    # High Sierra (macOS 10.13), Mojave (macOS 10.14) and Catalina
+    # (macOS 10.15)
+    #
+    # As of OTP 20.1 that is (apparently) no longer necessary and
+    # in OTP 24 breaks stuff. See thread and comment here:
+    # https://github.com/erlang/otp/issues/4821#issuecomment-845914942
     case "$KERL_SYSTEM" in
         Darwin)
-            osver=$(uname -r)
-            case "$osver" in
-                # TODO: Remove this in a future kerl release, probably
-                # after Catalina (10.15)
-                19*|18*|17*)
-                    # Make sure we don't overwrite values that someone who
-                    # knows better than us set.
-                    if [ -z "$DED_LD" ]; then
-                        DED_LD='clang'
-                    fi
-                    if [ -z "$CC" ]; then
-                        CC='clang'
-                    fi
-                    if [ -z "$DED_LDFLAGS" ]; then
-                        host=$(./erts/autoconf/config.guess)
-                        DED_LDFLAGS="-m64 -bundle -bundle_loader ${ERL_TOP}/bin/$host/beam.smp"
-                    fi
-                    CFLAGS="$CFLAGS" DED_LD="$DED_LD" CC="$CC" DED_LDFLAGS="$DED_LDFLAGS" "$@"
-                    ;;
-                *)
-                    CFLAGS="$CFLAGS" "$@"
-                    ;;
-            esac
+            # Make sure we don't overwrite stuff that someone who
+            # knows better than us set.
+            if [ -z "$CC" ]; then
+                CC='clang'
+            fi
+
+            CFLAGS="$CFLAGS" CC="$CC" "$@"
             ;;
         *)
             CFLAGS="$CFLAGS" "$@"
