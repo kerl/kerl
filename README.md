@@ -704,6 +704,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+3 June 2021 - 2.1.2
+
+  - Do not munge `LD_` flags on macOS any more (#372)
+
 22 March 2021 - 2.1.1
 
   - grep `with-ssl` (#367)
