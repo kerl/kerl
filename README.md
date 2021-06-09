@@ -295,6 +295,17 @@ If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang versio
 
 If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing a build created via `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `KERL_INSTALL_MANPAGES`.
 
+### KERL_DOC_TARGETS
+
+Default: `chunks`
+Available targets:
+ - `man`: install manpage docs.
+ - `html`: install HTML docs.
+ - `pdf`: install PDF docs.
+ - `chunks`: install chunnks format for get documentation from `erl`.
+
+You can set multiple type of targets separated by space, example `$KERL_DOC_TARGETS="man html pdf chunks"`
+
 ### KERL_INSTALL_MANPAGES
 
 Install man pages when not building from git source.
