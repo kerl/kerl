@@ -916,7 +916,7 @@ _do_build() {
         _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
 
     fi
-    if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep '--enable-native-libs' >/dev/null 2>&1; then
+    if echo "$KERL_CONFIGURE_OPTIONS" | \grep -- '--enable-native-libs' >/dev/null 2>&1; then
         make clean >>"$LOGFILE" 2>&1
         # shellcheck disable=SC2086
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
