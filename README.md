@@ -11,7 +11,8 @@ installation is as fast as possible.
 
 OTP Support Policy
 ------------------
-As of 2020 March 3, we are supporting OTP builds back to 20. Older builds
+As of 2021 September 17, we are supporting the current OTP release version
+and 2 prior release versions (same as upstream OTP.) Older OTP releases
 may or may not work. We will advance release support as new releases of OTP
 become available.
 
@@ -22,7 +23,7 @@ the fourth Tuesday of the month at 1 pm US/Pacific or 8 pm UTC.
 
 IRC channel
 -----------
-We have a channel on [freenode](http://webchat.freenode.net) called `#kerl` -
+We have a channel on [Libera](https://web.libera.chat/gamja/) called `#kerl` -
 feel free to join and ask support or implementation questions any time. If
 no one is around, feel free to open an issue with your question or problem
 instead.
