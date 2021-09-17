@@ -715,6 +715,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+17 September 2021 - 2.2.0
+
+  - Download prebuilt binaries (if available) from github to speed builds (#376)
+
 3 June 2021 - 2.1.2
 
   - Do not munge `LD_` flags on macOS any more (#372)
