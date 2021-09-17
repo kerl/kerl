@@ -1,4 +1,4 @@
-kerl [![TravisCI build status](https://travis-ci.org/kerl/kerl.svg?branch=master)](https://travis-ci.org/kerl/kerl) [![CircleCI](https://circleci.com/gh/kerl/kerl.svg?style=svg)](https://circleci.com/gh/kerl/kerl)
+kerl [![CircleCI](https://circleci.com/gh/kerl/kerl.svg?style=svg)](https://circleci.com/gh/kerl/kerl)
 ====
 
 Easy building and installing of [Erlang/OTP](https://www.erlang.org) instances.
