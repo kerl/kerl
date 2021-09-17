@@ -777,7 +777,7 @@ do_normal_build() {
         # github tarballs have a directory in the form of "otp[_-]TAGNAME"
         # Ericsson tarballs have the classic otp_src_RELEASE pattern
         # Standardize on Ericsson format because that's what the rest of the script expects
-        (cd "$UNTARDIRNAME" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME".tar.gz && mv -f ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
+        (cd "$UNTARDIRNAME" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME".tar.gz && cp -rfp ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
         rm -rf "$UNTARDIRNAME"
     fi
 
@@ -916,7 +916,7 @@ _do_build() {
         _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
 
     fi
-    if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep '--enable-native-libs' >/dev/null 2>&1; then
+    if echo "$KERL_CONFIGURE_OPTIONS" | \grep -- '--enable-native-libs' >/dev/null 2>&1; then
         make clean >>"$LOGFILE" 2>&1
         # shellcheck disable=SC2086
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
@@ -1777,7 +1777,7 @@ download() {
     mkdir -p "$KERL_DOWNLOAD_DIR" || exit 1
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         FILENAME=$(make_filename "$1")
-        github_download "$FILENAME".tar.gz
+        github_download "$1" "$FILENAME".tar.gz
     else
         FILENAME="otp_src_$1"
         tarball_download "$FILENAME".tar.gz
@@ -1785,8 +1785,12 @@ download() {
 }
 
 github_download() {
-    tarball_file="$KERL_DOWNLOAD_DIR/$1"
-    tarball_url="$OTP_GITHUB_URL/archive/$1"
+    tarball_file="$KERL_DOWNLOAD_DIR/$2"
+    tarball_url="$OTP_GITHUB_URL/archive/$2"
+    prebuilt_url="$OTP_GITHUB_URL/releases/download/OTP-$1/otp_src_$1.tar.gz"
+    if ! curl --silent --location --fail -I $prebuilt_url > /dev/null; then
+        tarball_url=$prebuilt_url
+    fi
     # if the file doesn't exist or the file has no size
     if [ ! -s $tarball_file ]; then
         echo "Downloading $1 to $KERL_DOWNLOAD_DIR..."
