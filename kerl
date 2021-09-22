@@ -428,11 +428,12 @@ assert_build_name_unused() {
 _check_required_pkgs() {
     has_dpkg=$(command -v dpkg)
     has_rpm=$(command -v rpm)
+    has_pacman=$(command -v pacman)
     if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ]; then
         # found either dpkg or rpm (or maybe even both!)
         if [ -n "$has_dpkg" ] && [ -n "$has_rpm" ]; then
             echo 'WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done.'
-        elif [ -n "$has_dpkg" ]; then
+        elif [ -n "$has_dpkg" ] && [ -z "$has_pacman" ]; then
             _check_dpkg
         elif [ -n "$has_rpm" ]; then
             _check_rpm
