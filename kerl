@@ -1788,7 +1788,7 @@ github_download() {
     tarball_file="$KERL_DOWNLOAD_DIR/$2"
     tarball_url="$OTP_GITHUB_URL/archive/$2"
     prebuilt_url="$OTP_GITHUB_URL/releases/download/OTP-$1/otp_src_$1.tar.gz"
-    if ! curl --silent --location --fail -I $prebuilt_url > /dev/null; then
+    if curl --silent --location --fail -I $prebuilt_url > /dev/null; then
         tarball_url=$prebuilt_url
         unset KERL_USE_AUTOCONF
     fi
