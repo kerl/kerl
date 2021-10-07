@@ -1,41 +1,128 @@
-version: 2
+version: 2.1
+
+executors:
+  alpine: &alpine
+    docker:
+      - image: 'alpine'
+  alpine_old: &alpine_old
+    docker:
+      - image: 'alpine:3.12'
+  debian: &debian
+    docker:
+      - image: 'debian'
+
 workflows:
   version: 2
-  test-workflow:
+  test-supported:
     jobs:
-      - alpine_master
+      - test:
+          matrix:
+            parameters:
+              os: [alpine, debian]
+              version: [master, latest, "23", "22", "21"]
+      - test:
+          matrix:
+            parameters:
+              os: [alpine_old]
+              version: ["20"]
+      - test:
+          matrix:
+            parameters:
+              os: [debian]
+              version: ["20"]
+              ## We use gcc-9 for Erlang/OTP 20 as this fix is needed for gcc-10 and later.
+              ## https://github.com/erlang/otp/pull/1692/commits/2207e5248bbaf2961f179ddcc1dabbab292ca3c9
+              config: ["export CC=gcc-9 LD=gcc-9"]
 
 jobs:
-
-  alpine_master:
-    docker: [{image: 'alpine'}]
+  test:
+    parameters:
+      os:
+        type: executor
+      version:
+        type: string
+      config:
+        type: string
+        default: ""
+    executor: << parameters.os >>
     environment:
-    - _KERL_VSN: master
-    - KERL_BUILD_DOCS: 'yes'
+      - _VERSION: << parameters.version >>
+      - _CONFIG: << parameters.config >>
+      - MAKEFLAGS: '-j2'
+      - ERLC_USE_SERVER: 'true'
     steps:
-    - run: apk update && apk upgrade
-    - run: |
-        apk add curl ca-certificates \
-                dpkg-dev dpkg \
-                gcc g++ libc-dev linux-headers make autoconf ncurses-dev tar \
-                openssl-dev lksctp-tools-dev lksctp-tools \
-                libxslt git
-    - checkout
-    - run:
-        no_output_timeout: 45m
-        command:
+      - run: echo "${_CONFIG}" >> $BASH_ENV
+      - when:
+          condition:
+            or:
+              - equal: [<< parameters.os >>,*alpine]
+              - equal: [<< parameters.os >>,*alpine_old]
+          steps:
+              - run: |
+                  apk update && apk upgrade
+                  apk add curl ca-certificates \
+                    dpkg-dev dpkg \
+                    gcc g++ libc-dev linux-headers make autoconf ncurses-dev tar \
+                    openssl-dev lksctp-tools-dev lksctp-tools \
+                    libxslt git
+                  echo "export KERL_CONFIGURE_OPTIONS=--disable-hipe" >> $BASH_ENV
+      - when:
+          condition:
+            equal: [<< parameters.os >>,*debian]
+          steps:
+          - run: |
+              apt update && apt upgrade -y
+              apt install -y --no-install-recommends \
+                curl ca-certificates git autoconf dpkg-dev \
+                zlib1g-dev libncurses5-dev libssl-dev unixodbc-dev libgmp3-dev \
+                libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libsctp-dev lksctp-tools \
+                build-essential gcc-9 m4 autoconf fop xsltproc default-jdk libxml2-utils procps
+      - checkout
+      - run: ./kerl update releases
+      - run: |
+          case "$_VERSION" in
+            master)
+              echo 'export _KERL_PREFIX="git https://github.com/erlang/otp.git"' >> $BASH_ENV
+              echo 'export KERL_BUILD_DOCS=true' >> $BASH_ENV
+              ;;
+            latest)
+              _VERSION=$(./kerl list releases | grep '^[0-9]' | tail -1)
+              echo 'export KERL_BUILD_DOCS=true' >> $BASH_ENV
+              ;;
+            *)
+              _VERSION=$(./kerl list releases | grep "^${_VERSION}" | tail -1)
+              ;;
+          esac
+          echo "export _KERL_VSN=${_VERSION}" >> $BASH_ENV
+      - run:
+          no_output_timeout: 45m
+          command: |
+            . $BASH_ENV
+            if ! ./kerl build ${_KERL_PREFIX} "${_KERL_VSN}" "${_KERL_VSN}"; then
+              ## Print build log if it fails
+              cat ~/.kerl/builds/*/*.log
+              exit 1
+            fi
+      - run: . $BASH_ENV && ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - run: . $BASH_ENV && ./kerl status
+      - run:
           |
-            export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
-            ./kerl build git https://github.com/erlang/otp.git "$_KERL_VSN" "$_KERL_VSN"
-    - run: &kerl_install ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
-    - run: &kerl_status  ./kerl status
-    - run: &activate_then_test_for_crypto
-        |
-          source $(./kerl path install_"$_KERL_VSN")/activate
-          erl -s crypto -s init stop
-          erl_call
-          kerl_deactivate
-    - run: &kerl_delete_installation
-        |
-          ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
-    - run: &kerl_delete_build ./kerl delete build "$_KERL_VSN"
+            . $BASH_ENV
+            source $(./kerl path install_"$_KERL_VSN")/activate
+            erl -s crypto -s init stop
+            erl_call
+            kerl_deactivate
+      - run:
+          |
+            . $BASH_ENV
+            otp_major=$(echo "$_KERL_VSN" | cut -d. -f1)
+            if ((travis_otp_major >= 18)); then
+              source $(./kerl path install_"$_KERL_VSN")/activate
+              ./kerl install-docsh
+              kerl_deactivate
+              source $(./kerl path install_"$_KERL_VSN")/activate
+              erl -noshell -eval 'h(proplists).' -s init stop
+              kerl_deactivate
+            fi
+      - run: . $BASH_ENV && ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
+      - run: . $BASH_ENV && ./kerl delete build "$_KERL_VSN"
