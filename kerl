@@ -30,7 +30,7 @@ unset CDPATH
 KERL_VERSION='2.2.0'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
-ERLANG_DOWNLOAD_URL='https://www.erlang.org/download'
+ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
 TMP_DIR=${TMP_DIR:-'/tmp'}
