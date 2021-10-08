@@ -827,7 +827,7 @@ _do_build() {
             if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep 'with-ssl' >/dev/null 2>&1; then
                 whichbrew=$(command -v brew)
                 if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
-                    brew_prefix=$(brew --prefix openssl)
+                    brew_prefix=$(brew --prefix openssl@1.1)
                     if [ -n "$brew_prefix" ] && [ -d "$brew_prefix" ]; then
                         KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS "--with-ssl=$brew_prefix
                     fi
