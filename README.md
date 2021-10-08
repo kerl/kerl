@@ -716,6 +716,11 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+8 October 2021 - 2.2.1
+
+  - Fix downloads for certain OTP releases (#383)
+  - Pin openssl to version 1.1 (#380)
+
 17 September 2021 - 2.2.0
 
   - Download prebuilt binaries (if available) from github to speed builds (#376)
