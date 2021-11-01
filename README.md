@@ -716,6 +716,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+1 November 2021 - 2.2.2
+
+  - Enable autoconf when patches are applied on macOS; fixes #384 (#385)
+
 8 October 2021 - 2.2.1
 
   - Fix downloads for certain OTP releases (#383)
