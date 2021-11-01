@@ -656,6 +656,7 @@ maybe_patch_darwin() {
         apply_wx_ptr_patch >>"$LOGFILE"
     elif [ "$1" -ge 21 ] && [ "$1" -le 23 ]; then
         apply_in6addr_test_patch >> "$LOGFILE"
+        KERL_USE_AUTOCONF=1
     fi
 }
 
@@ -671,6 +672,7 @@ maybe_patch_catalina() {
         compare_sem_version $clang_version ">" "11.4" && \
         [[ "$command_line_tools_version" -le 2373 ]]; then
         apply_catalina_no_weak_imports_patch >>"$LOGFILE"
+        KERL_USE_AUTOCONF=1
     fi
 }
 
@@ -738,6 +740,7 @@ maybe_patch_bigsur() {
     if is_osx_bigsur && \
         [[ "$release" -lt 24 ]]; then
         apply_bigsur_bypass_version_check >>"$LOGFILE"
+        KERL_USE_AUTOCONF=1
     fi
 }
 
