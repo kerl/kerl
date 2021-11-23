@@ -1083,7 +1083,7 @@ REBAR_PLT_DIR="$absdir"
 export REBAR_PLT_DIR
 _KERL_ACTIVE_DIR="$absdir"
 export _KERL_ACTIVE_DIR
-_KERL_ERL_CALL_REMOVABLE=\$(\\find $absdir -type d -wholename "*erl_interface*/bin")
+_KERL_ERL_CALL_REMOVABLE=\$(\\find $absdir -type d -path "*erl_interface*/bin")
 PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 export PATH _KERL_ERL_CALL_REMOVABLE
 # https://twitter.com/mononcqc/status/877544929496629248
@@ -1251,7 +1251,7 @@ setenv REBAR_PLT_DIR "$absdir"
 
 set _KERL_ACTIVE_DIR = "$absdir"
 
-set _KERL_ERL_CALL_REMOVABLE = $(\find "$absdir" -type d -wholename "*erl_interface*/bin")
+set _KERL_ERL_CALL_REMOVABLE = $(\find "$absdir" -type d -path "*erl_interface*/bin")
 setenv PATH "\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 
 if ( -f "$KERL_CONFIG.csh" ) then
