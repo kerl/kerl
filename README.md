@@ -716,6 +716,11 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+27 November 2021 - 2.2.3
+
+  - Use `-path` in find to be more POSIX friendly (#388)
+  - Do not let default values override config values (#389)
+
 1 November 2021 - 2.2.2
 
   - Enable autoconf when patches are applied on macOS; fixes #384 (#385)
