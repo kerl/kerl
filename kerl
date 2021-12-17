@@ -1189,7 +1189,7 @@ set -x _KERL_MANPATH_REMOVABLE "$absdir/lib/erlang/man" "$absdir/man"
 set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
 set -x REBAR_PLT_DIR "$absdir"
 set -x _KERL_ACTIVE_DIR "$absdir"
-set -x _KERL_ERL_CALL_REMOVABLE (\\find "$absdir" -type d -path "*erl_interface*/bin")
+set -x _KERL_ERL_CALL_REMOVABLE (find "$absdir" -type d -path "*erl_interface*/bin")
 set -x PATH "\$_KERL_ERL_CALL_REMOVABLE" \$PATH
 
 if test -f "$KERL_CONFIG.fish"
