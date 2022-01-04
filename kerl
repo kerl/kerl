@@ -752,12 +752,12 @@ is_osx_monterey() {
 
 apply_bypass_version_check() {
     if [ -f make/configure.in ]; then
-        echo "Bypassing version check in make/configure.in for Big Sur"
+        echo "Bypassing version check in make/configure.in"
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' make/configure.in
     elif [ -f configure.in ]; then
-        echo "Bypassing version check in configure.in for Big Sur"
+        echo "Bypassing version check in configure.in"
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' configure.in
-        echo "Removng no_weak_imports from LDFLAGS in erts/configure.in for Big Sur"
+        echo "Removing no_weak_imports from LDFLAGS in erts/configure.in"
         sed -i '' 's/LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"//' erts/configure.in
     fi
 }
