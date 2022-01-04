@@ -600,7 +600,7 @@ maybe_patch() {
             maybe_patch_darwin "$release"
             # Catalina and clang require a "no-weaks-import" flag during build
             maybe_patch_catalina "$release" "$2"
-            maybe_patch_bigsur "$release"
+            maybe_patch_macos_version_check "$release"
             ;;
         SunOS)
             maybe_patch_sunos "$release"
@@ -733,11 +733,11 @@ _END_PATCH
 }
 
 # https://github.com/erlang/otp/commit/f1044ef9e35da26f276b8127640e177d67aade6a.diff
-maybe_patch_bigsur() {
+maybe_patch_macos_version_check() {
     release="$1"
-    if is_osx_bigsur && \
+    if is_osx_bigsur || is_osx_monterey && \
         [[ "$release" -lt 24 ]]; then
-        apply_bigsur_bypass_version_check >>"$LOGFILE"
+        apply_bypass_version_check >>"$LOGFILE"
         KERL_USE_AUTOCONF=1
     fi
 }
@@ -746,7 +746,11 @@ is_osx_bigsur() {
     [[ $(uname -r) == "20"* ]]
 }
 
-apply_bigsur_bypass_version_check() {
+is_osx_monterey() {
+    [[ $(uname -r) == "21"* ]]
+}
+
+apply_bypass_version_check() {
     if [ -f make/configure.in ]; then
         echo "Bypassing version check in make/configure.in for Big Sur"
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' make/configure.in
