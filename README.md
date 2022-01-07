@@ -716,6 +716,11 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+7 January 2022 - 2.2.4
+
+  - Fix fish activation error (#392)
+  - Fix build issue on macOS Monterey (#395)
+
 27 November 2021 - 2.2.3
 
   - Use `-path` in find to be more POSIX friendly (#388)
