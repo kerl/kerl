@@ -34,15 +34,15 @@ Downloading
 If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew),
 you can install kerl, along with shell completion, by running:
 
-    $ brew install kerl
+    brew install kerl
 
 Alternatively, you can download the script directly from github:
 
-    $ curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
+    curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
 
 Then ensure it is executable
 
-    $ chmod a+x kerl
+    chmod a+x kerl
 
 and drop it in your $PATH
 
@@ -488,7 +488,7 @@ In case you cannot access the default directory for temporary files (`/tmp`) or 
 Prior to kerl 1.0, kerl always downloaded prepared documentation from erlang.org. Now if `KERL_BUILD_DOCS=yes` is set, kerl will build the man pages and HTML
 documentation from the source repository in which is working.
 
-**Note**: This variable takes precedent over the other documentation parameters. 
+**Note**: This variable takes precedent over the other documentation parameters.
 
 ### install
 
@@ -508,7 +508,7 @@ If path is omitted the current working directory will be used. However, if
 If you later delete it with the `kerl delete` command, the whole directory will
 be deleted, along with anything you may have added to it!
 
-So please only install kerl in an empty (or non-existant) directory.  
+So please only install kerl in an empty (or non-existant) directory.
 
 If you attempt to install kerl in `$HOME` or `.erlang` or `$KERL_BASE_DIR`,
 then kerl will give you an error and refuse to proceed. If you try to install
@@ -543,7 +543,7 @@ Man pages will be installed to `[path]/man` and HTML docs will be installed in
 `[path]/html`.  The kerl `activate` script manipulates the MANPATH of the current
 shell such that `man 3 gen_server` or `erl -man gen_server` should work perfectly.
 
-(Do not fret - `kerl_deactivate` restores your shell's MANPATH to whatever its 
+(Do not fret - `kerl_deactivate` restores your shell's MANPATH to whatever its
 original value was.)
 
 ### deploy
