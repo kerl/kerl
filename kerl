@@ -2132,8 +2132,8 @@ _END_PATCH
 
 upgrade_kerl() {
     install_folder=$1
-    wget -q -O $install_folder/kerl $KERL_GIT_BASE/kerl
-    chmod +x $install_folder/kerl
+    wget -q -O "$install_folder/kerl" $KERL_GIT_BASE/kerl
+    chmod +x "$install_folder/kerl"
     version=$(kerl version)
     current_kerl_path="$(which kerl)"
     echo "kerl $version is now available at $current_kerl_path."
@@ -2248,8 +2248,8 @@ case "$1" in
             echo "remote kerl found at version $latest."
             if [ "$version" != "$latest" ]; then
                 echo "Versions are different. Upgrading to $latest."
-                current_kerl_path=$(dirname $current_kerl_path)
-                upgrade_kerl $current_kerl_path
+                current_kerl_path=$(dirname "$current_kerl_path")
+                upgrade_kerl "$current_kerl_path"
             else
                 echo "No upgrade required."
             fi
