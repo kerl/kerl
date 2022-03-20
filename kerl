@@ -33,10 +33,18 @@ DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
+# Redirect to stderr only if it is a terminal, otherwise mute
+stderr()
+{
+if [ -t 1 ] ; then
+    echo "$*" 1>&2
+fi
+}
+
 TMP_DIR=${TMP_DIR:-'/tmp'}
 if [ -z "$HOME" ]; then
     # shellcheck disable=SC2016
-    echo 'Error: $HOME is empty or not set.' 1>&2
+    stderr 'Error: $HOME is empty or not set.'
     exit 1
 fi
 
@@ -162,8 +170,8 @@ fi
 if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
     KERL_USE_AUTOCONF=1
 elif [ "$KERL_BUILD_BACKEND" != 'tarball' ]; then
-    echo "Unhandled value KERL_BUILD_BACKEND='${KERL_BUILD_BACKEND}'"
-    echo "KERL_BUILD_BACKEND must be one of 'git' (default) or 'tarball'"
+    stderr "Unhandled value KERL_BUILD_BACKEND='${KERL_BUILD_BACKEND}'"
+    stderr "KERL_BUILD_BACKEND must be one of 'git' (default) or 'tarball'"
     exit 1
 fi
 
@@ -185,24 +193,26 @@ esac
 
 
 usage() {
-    echo 'kerl: build and install Erlang/OTP'
-    echo "usage: $0 <command> [options ...]"
-    printf '\n  <command>       Command to be executed\n\n'
-    echo 'Valid commands are:'
-    echo '  build           Build specified release or git repository'
-    echo '  install         Install the specified release at the given location'
-    echo '  deploy          Deploy the specified installation to the given host and location'
-    echo '  update          Update the list of available releases from your source provider'
-    echo '  list            List releases, builds and installations'
-    echo '  delete          Delete builds and installations'
-    echo '  install-docsh   Install erl shell documentation access extension - docsh'
-    echo '  path            Print the path of a given installation'
-    echo '  active          Print the path of the active installation'
-    echo '  plt             Print Dialyzer PLT path for the active installation'
-    echo '  status          Print available builds and installations'
-    echo '  prompt          Print a string suitable for insertion in prompt'
-    echo '  cleanup         Remove compilation artifacts (use after installation)'
-    echo "  version         Print current version (current: $KERL_VERSION)"
+    stderr 'kerl: build and install Erlang/OTP'
+    stderr "usage: $0 <command> [options ...]"
+    stderr ''
+    stderr '  <command>       Command to be executed'
+    stderr ''
+    stderr 'Valid commands are:'
+    stderr '  build           Build specified release or git repository'
+    stderr '  install         Install the specified release at the given location'
+    stderr '  deploy          Deploy the specified installation to the given host and location'
+    stderr '  update          Update the list of available releases from your source provider'
+    stderr '  list            List releases, builds and installations'
+    stderr '  delete          Delete builds and installations'
+    stderr '  install-docsh   Install erl shell documentation access extension - docsh'
+    stderr '  path            Print the path of a given installation'
+    stderr '  active          Print the path of the active installation'
+    stderr '  plt             Print Dialyzer PLT path for the active installation'
+    stderr '  status          Print available builds and installations'
+    stderr '  prompt          Print a string suitable for insertion in prompt'
+    stderr '  cleanup         Remove compilation artifacts (use after installation)'
+    stderr "  version         Print current version (current: $KERL_VERSION)"
     exit 1
 }
 
@@ -326,7 +336,7 @@ update_checksum_file() {
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         return 0
     else
-        echo 'Getting checksum file from erlang.org...'
+        stderr 'Getting checksum file from erlang.org...'
         curl -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5 || exit 1
     fi
 }
@@ -355,7 +365,7 @@ is_valid_release() {
 
 assert_valid_release() {
     if ! is_valid_release "$1"; then
-        echo "$1 is not a valid Erlang/OTP release"
+        stderr "$1 is not a valid Erlang/OTP release"
         exit 1
     fi
     return 0
@@ -405,7 +415,7 @@ is_valid_installation() {
 
 assert_valid_installation() {
     if ! is_valid_installation "$1"; then
-        echo "$1 is not a kerl-managed Erlang/OTP installation"
+        stderr "$1 is not a kerl-managed Erlang/OTP installation"
         exit 1
     fi
     return 0
@@ -416,7 +426,7 @@ assert_build_name_unused() {
         while read -r l; do
             name=$(echo "$l" | cut -d, -f2)
             if [ "$name" = "$1" ]; then
-                echo "There's already a build named $1"
+                stderr "There's already a build named $1"
                 exit 1
             fi
         done <"$KERL_BASE_DIR"/otp_builds
@@ -429,7 +439,7 @@ _check_required_pkgs() {
     if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ]; then
         # found either dpkg or rpm (or maybe even both!)
         if [ -n "$has_dpkg" ] && [ -n "$has_rpm" ]; then
-            echo 'WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done.'
+            stderr 'WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done.'
         elif [ -n "$has_dpkg" ]; then
             _check_dpkg
         elif [ -n "$has_rpm" ]; then
@@ -456,7 +466,7 @@ gcc
 '
     for pkg in $required; do
         if ! _dpkg_is_installed "$pkg"; then
-            echo "WARNING: It appears that a required development package '$pkg' is not installed."
+            stderr "WARNING: It appears that a required development package '$pkg' is not installed."
         fi
     done
 }
@@ -476,7 +486,7 @@ gcc
 '
     for pkg in $required; do
         if ! _rpm_is_installed "$pkg"; then
-            echo "WARNING: It appears a required development package '$pkg' is not installed."
+            stderr "WARNING: It appears a required development package '$pkg' is not installed."
         fi
     done
 }
@@ -487,16 +497,16 @@ do_git_build() {
     GIT=$(printf '%s' "$1" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
-    echo "Checking out Erlang/OTP git repository from $1..."
+    stderr "Checking out Erlang/OTP git repository from $1..."
     if [ ! -d "$GIT" ]; then
         if ! git clone -q --mirror "$1" "$GIT" >/dev/null 2>&1; then
-            echo 'Error mirroring remote git repository'
+            stderr 'Error mirroring remote git repository'
             exit 1
         fi
     fi
     cd "$GIT" || exit 1
     if ! git remote update --prune >/dev/null 2>&1; then
-        echo 'Error updating remote git repository'
+        stderr 'Error updating remote git repository'
         exit 1
     fi
 
@@ -504,28 +514,28 @@ do_git_build() {
     mkdir -p "$KERL_BUILD_DIR/$3" || exit 1
     cd "$KERL_BUILD_DIR/$3" || exit 1
     if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
-        echo 'Error cloning local git repository'
+        stderr 'Error cloning local git repository'
         exit 1
     fi
     cd otp_src_git || exit 1
     if ! git checkout "$2" >/dev/null 2>&1; then
         if ! git checkout -b "$2" "$2" >/dev/null 2>&1; then
-            echo 'Could not checkout specified version'
+            stderr 'Could not checkout specified version'
             rm -Rf "${KERL_BUILD_DIR:?}/$3"
             exit 1
         fi
     fi
     if [ ! -x otp_build ]; then
-        echo 'Not a valid Erlang/OTP repository'
+        stderr 'Not a valid Erlang/OTP repository'
         rm -Rf "${KERL_BUILD_DIR:?}/$3"
         exit 1
     fi
-    echo "Building Erlang/OTP $3 from git, please wait..."
+    stderr "Building Erlang/OTP $3 from git, please wait..."
     if [ -z "$KERL_BUILD_AUTOCONF" ]; then
         KERL_USE_AUTOCONF=1
     fi
     _do_build 'git' "$3"
-    echo "Erlang/OTP $3 from git has been successfully built"
+    stderr "Erlang/OTP $3 from git has been successfully built"
     list_add builds git,"$3"
 }
 
@@ -538,7 +548,7 @@ get_perl_version() {
         # This is really evil but it's portable and it works. Don't @ me bro
         perl -e 'print int(($] - 5)*1000)'
     else
-        echo 'FATAL: could not find perl which is required to compile Erlang.'
+        stderr 'FATAL: could not find perl which is required to compile Erlang.'
         exit 1
     fi
 }
@@ -752,12 +762,12 @@ is_osx_monterey() {
 
 apply_bypass_version_check() {
     if [ -f make/configure.in ]; then
-        echo "Bypassing version check in make/configure.in"
+        stderr "Bypassing version check in make/configure.in"
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' make/configure.in
     elif [ -f configure.in ]; then
-        echo "Bypassing version check in configure.in"
+        stderr "Bypassing version check in configure.in"
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' configure.in
-        echo "Removing no_weak_imports from LDFLAGS in erts/configure.in"
+        stderr "Removing no_weak_imports from LDFLAGS in erts/configure.in"
         sed -i '' 's/LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"//' erts/configure.in
     fi
 }
@@ -775,7 +785,7 @@ do_normal_build() {
     download "$1"
     mkdir -p "$KERL_BUILD_DIR/$2" || exit 1
     if [ ! -d "$KERL_BUILD_DIR/$2/$FILENAME" ]; then
-        echo 'Extracting source code'
+        stderr 'Extracting source code'
         UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
         rm -rf "$UNTARDIRNAME"
         mkdir -p "$UNTARDIRNAME" || exit 1
@@ -786,9 +796,9 @@ do_normal_build() {
         rm -rf "$UNTARDIRNAME"
     fi
 
-    echo "Building Erlang/OTP $1 ($2), please wait..."
+    stderr "Building Erlang/OTP $1 ($2), please wait..."
     _do_build "$1" "$2"
-    echo "Erlang/OTP $1 ($2) has been successfully built"
+    stderr "Erlang/OTP $1 ($2) has been successfully built"
     list_add builds "$1,$2"
 }
 
@@ -866,7 +876,7 @@ _do_build() {
         for app in $KERL_CONFIGURE_APPLICATIONS; do
             case "$KERL_CONFIGURE_OPTIONS" in
                 *"--with-$app"*)
-                    echo "Option '--with-$app' in KERL_CONFIGURE_OPTIONS is superfluous" ;;
+                    stderr "Option '--with-$app' in KERL_CONFIGURE_OPTIONS is superfluous" ;;
                 *)
                     KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --with-$app" ;;
             esac
@@ -876,7 +886,7 @@ _do_build() {
         for app in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
             case "$KERL_CONFIGURE_OPTIONS" in
                 *"--without-$app"*)
-                    echo "Option '--without-$app' in KERL_CONFIGURE_OPTIONS is superfluous" ;;
+                    stderr "Option '--without-$app' in KERL_CONFIGURE_OPTIONS is superfluous" ;;
                 *)
                     KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --without-$app" ;;
             esac
@@ -893,7 +903,7 @@ _do_build() {
         # Compare our current options to the saved ones
         read -r OLD_SUM <./"$KERL_CONFIG_STORAGE_FILENAME".md5
         if [ "$SUM" != "$OLD_SUM" ]; then
-            echo 'Configure options have changed. Reconfiguring...'
+            stderr 'Configure options have changed. Reconfiguring...'
             rm -f configure
             mv "$TMPOPT" ./"$KERL_CONFIG_STORAGE_FILENAME"
             echo "$SUM" >./"$KERL_CONFIG_STORAGE_FILENAME".md5
@@ -941,7 +951,7 @@ _do_build() {
         \find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
         for app in $KERL_CONFIGURE_APPLICATIONS; do
             if ! rm ./lib/"$app"/SKIP; then
-                echo "Couldn't prepare '$app' application for building"
+                stderr "Couldn't prepare '$app' application for building"
                 list_remove builds "$1 $2"
                 exit 1
             fi
@@ -950,7 +960,7 @@ _do_build() {
     if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
         for app in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
             if ! touch -f ./lib/"$app"/SKIP; then
-                echo "Couldn't disable '$app' application for building"
+                stderr "Couldn't disable '$app' application for building"
                 exit 1
             fi
         done
@@ -963,7 +973,7 @@ _do_build() {
         exit 1
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
-        echo 'Building docs...'
+        stderr 'Building docs...'
         release=$(get_otp_version "$2")
         if ! make docs "DOC_TARGETS=$KERL_DOC_TARGETS" >>"$LOGFILE" 2>&1; then
             show_logfile 'Building docs failed.' "$LOGFILE"
@@ -981,7 +991,7 @@ _do_build() {
     cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
     if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
-        echo "Also building Erlang/OTP $1 ($2) debug VM, please wait..."
+        stderr "Also building Erlang/OTP $1 ($2) debug VM, please wait..."
         cd $ERL_TOP/erts/emulator || exit 1
         make debug ERL_TOP=$ERL_TOP >>"$LOGFILE" 2>&1
     fi
@@ -989,7 +999,7 @@ _do_build() {
 
 do_install() {
     if ! rel=$(get_release_from_name "$1"); then
-        echo "No build named $1"
+        stderr "No build named $1"
         exit 1
     fi
     if ! is_valid_install_path "$2"; then
@@ -997,18 +1007,18 @@ do_install() {
     fi
     mkdir -p "$2" || exit 1
     absdir=$(cd "$2" && pwd)
-    echo "Installing Erlang/OTP $rel ($1) in $absdir..."
+    stderr "Installing Erlang/OTP $rel ($1) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
     cd "$ERL_TOP" || exit 1
     if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >/dev/null 2>&1 &&
               cd "$absdir" && ./Install $INSTALL_OPT "$absdir" >/dev/null 2>&1); then
-        echo "Couldn't install Erlang/OTP $rel ($1) in $absdir"
+        stderr "Couldn't install Erlang/OTP $rel ($1) in $absdir"
         exit 1
     fi
     BEAM_DEBUG_SMP=$(\find . -name beam.debug.smp)
     if [ "$BEAM_DEBUG_SMP" != "" ]; then
         ERL_CHILD_SETUP_DEBUG=$(\find . -name erl_child_setup.debug)
-        echo "Also installing Erlang/OTP $rel ($1) debug VM in $absdir..."
+        stderr "Also installing Erlang/OTP $rel ($1) debug VM in $absdir..."
         cp $BEAM_DEBUG_SMP $absdir/erts-*/bin/
         cp $ERL_CHILD_SETUP_DEBUG $absdir/erts-*/bin/
         cp bin/cerl $absdir/bin
@@ -1114,10 +1124,10 @@ if [ -d "$absdir/lib/docsh" ]; then
     if [ -f "\$HOME/.erlang" ]; then
         # shellcheck disable=SC2153
         if [ ! x"\$KERL_DOCSH_DOT_ERLANG" = x'exists' ]; then
-            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
-            echo "Please make sure \$HOME/.erlang contains code"
-            echo "from $absdir/lib/docsh/dot.erlang"
-            echo 'and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning.'
+            stderr "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
+            stderr "Please make sure \$HOME/.erlang contains code"
+            stderr "from $absdir/lib/docsh/dot.erlang"
+            stderr 'and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning.'
         fi
     else
         ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
@@ -1211,10 +1221,10 @@ if test -d "$absdir/lib/docsh"
     set -x _KERL_DOCSH_USER_DEFAULT yes
     if test -f "\$HOME/.erlang"
         if test ! x"\$KERL_DOCSH_DOT_ERLANG" = x"exists"
-            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
-            echo "Please make sure \$HOME/.erlang contains code"
-            echo "from $absdir/lib/docsh/dot.erlang"
-            echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
+            stderr "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
+            stderr "Please make sure \$HOME/.erlang contains code"
+            stderr "from $absdir/lib/docsh/dot.erlang"
+            stderr "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
         end
     else
         ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
@@ -1278,10 +1288,10 @@ if ( -d "$absdir/lib/docsh" ) then
     set _KERL_DOCSH_USER_DEFAULT = "yes"
     if ( -f "\$HOME/.erlang" ) then
         if ( \$?KERL_DOCSH_DOT_ERLANG == 0 ) then
-            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
-            echo "Please make sure \$HOME/.erlang contains code"
-            echo "from $absdir/lib/docsh/dot.erlang"
-            echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
+            stderr "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
+            stderr "Please make sure \$HOME/.erlang contains code"
+            stderr "from $absdir/lib/docsh/dot.erlang"
+            stderr "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
         endif
     else
         ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
@@ -1294,19 +1304,19 @@ ACTIVATE_CSH
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
         if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >/dev/null 2>&1); then
-            echo "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir"
+            stderr "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir"
             exit 1
         fi
     else
         if [ "$KERL_BUILD_BACKEND" = 'tarball' ]; then
             if [ "$rel" != 'git' ]; then
                 if [ -n "$KERL_INSTALL_MANPAGES" ]; then
-                    echo 'Fetching and installing manpages...'
+                    stderr 'Fetching and installing manpages...'
                     download_manpages "$rel"
                 fi
 
                 if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
-                    echo 'Fetching and installing HTML docs...'
+                    stderr 'Fetching and installing HTML docs...'
                     download_htmldocs "$rel"
                 fi
             fi
@@ -1317,7 +1327,7 @@ ACTIVATE_CSH
     [ -e "$KERL_CONFIG_STORAGE_PATH" ] && cp "$KERL_CONFIG_STORAGE_PATH" "$absdir/$KERL_CONFIG_STORAGE_FILENAME"
 
     if [ -n "$KERL_BUILD_PLT" ]; then
-        echo 'Building Dialyzer PLT...'
+        stderr 'Building Dialyzer PLT...'
         build_plt "$absdir"
     fi
 
@@ -1342,10 +1352,10 @@ ACTIVATE_CSH
         esac
     fi
 
-    echo 'You can activate this installation running the following command:'
+    stderr 'You can activate this installation running the following command:'
     echo ". $absdir/activate$SHELL_SUFFIX"
-    echo 'Later on, you can leave the installation typing:'
-    echo 'kerl_deactivate'
+    stderr 'Later on, you can leave the installation typing:'
+    stderr 'kerl_deactivate'
 }
 
 install_docsh() {
@@ -1360,22 +1370,22 @@ install_docsh() {
     # This has to be updated with docsh updates
     DOCSH_SUPPORTED='^1[9]\|2[01]$'
     if ! echo "$OTP_VERSION" | \grep "$DOCSH_SUPPORTED" >/dev/null 2>&1; then
-        echo "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
+        stderr "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
         exit 1
     fi
 
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
-    echo "Checking out docsh git repository from $REPO_URL..."
+    stderr "Checking out docsh git repository from $REPO_URL..."
     if [ ! -d "$GIT" ]; then
         if ! git clone -q --mirror "$REPO_URL" "$GIT" >/dev/null 2>&1; then
-            echo 'Error mirroring remote git repository'
+            stderr 'Error mirroring remote git repository'
             exit 1
         fi
     fi
     cd "$GIT" || exit 1
     if ! git remote update --prune >/dev/null 2>&1; then
-        echo 'Error updating remote git repository'
+        stderr 'Error updating remote git repository'
         exit 1
     fi
 
@@ -1383,27 +1393,27 @@ install_docsh() {
     mkdir -p "$DOCSH_DIR" || exit 1
     cd "$DOCSH_DIR" || exit 1
     if ! git clone -l "$KERL_GIT_DIR/$GIT" "$DOCSH_DIR" >/dev/null 2>&1; then
-        echo 'Error cloning local git repository'
+        stderr 'Error cloning local git repository'
         exit 1
     fi
     cd "$DOCSH_DIR" || exit 1
     if ! git checkout "$DOCSH_REF" >/dev/null 2>&1; then
         if ! git checkout -b "$DOCSH_REF" "$DOCSH_REF" >/dev/null 2>&1; then
-            echo 'Could not checkout specified version'
+            stderr 'Could not checkout specified version'
             rm -Rf "$DOCSH_DIR"
             exit 1
         fi
     fi
 
     if ! ./rebar3 compile; then
-        echo 'Could not compile docsh'
+        stderr 'Could not compile docsh'
         rm -Rf "$DOCSH_DIR"
         exit 1
     fi
 
     ## Install docsh
     if [ -f "$ACTIVE_PATH"/lib/docsh ]; then
-        echo "Couldn't install $ACTIVE_PATH/lib/docsh - the directory already exists"
+        stderr "Couldn't install $ACTIVE_PATH/lib/docsh - the directory already exists"
         rm -Rf "$DOCSH_DIR"
         exit 1
     else
@@ -1411,7 +1421,7 @@ install_docsh() {
     fi
     ## Prepare dot.erlang for linking as $HOME/.erlang
     if [ -f "$ACTIVE_PATH"/lib/docsh/dot.erlang ]; then
-        echo "Couldn't install $ACTIVE_PATH/lib/docsh/dot.erlang - the file already exists"
+        stderr "Couldn't install $ACTIVE_PATH/lib/docsh/dot.erlang - the file already exists"
         rm -Rf "$DOCSH_DIR"
         exit 1
     else
@@ -1419,14 +1429,14 @@ install_docsh() {
     fi
     ## Warn if $HOME/.erlang exists
     if [ -f "$HOME"/.erlang ]; then
-        echo "$HOME/.erlang exists - kerl won't be able to symlink a docsh-compatible version."
-        echo "Please make sure your $HOME/.erlang contains code"
-        echo "from $ACTIVE_PATH/lib/docsh/dot.erlang"
-        echo 'and export KERL_DOCSH_DOT_ERLANG=exists to suppress further warnings'
+        stderr "$HOME/.erlang exists - kerl won't be able to symlink a docsh-compatible version."
+        stderr "Please make sure your $HOME/.erlang contains code"
+        stderr "from $ACTIVE_PATH/lib/docsh/dot.erlang"
+        stderr 'and export KERL_DOCSH_DOT_ERLANG=exists to suppress further warnings'
     fi
     ## Install docsh user_default
     if [ -f "$ACTIVE_PATH"/lib/docsh/user_default.beam ]; then
-        echo "Couldn't install $ACTIVE_PATH/lib/docsh/user_default.beam - the file already exists"
+        stderr "Couldn't install $ACTIVE_PATH/lib/docsh/user_default.beam - the file already exists"
         rm -Rf "$DOCSH_DIR"
         exit 1
     else
@@ -1437,14 +1447,14 @@ install_docsh() {
 download_manpages() {
     FILENAME=otp_doc_man_$1.tar.gz
     tarball_download "$FILENAME"
-    echo 'Extracting manpages'
+    stderr 'Extracting manpages'
     cd "$absdir" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME"
 }
 
 download_htmldocs() {
     FILENAME=otp_doc_html_"$1".tar.gz
     tarball_download "$FILENAME"
-    echo 'Extracting HTML docs'
+    stderr 'Extracting HTML docs'
     (cd "$absdir" && mkdir -p html && tar -C "$absdir"/html -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
 }
 
@@ -1459,10 +1469,10 @@ build_plt() {
     "$1"/bin/dialyzer --output_plt "$plt" --build_plt --apps $apps >>"$build_log" 2>&1
     status=$?
     if [ $status -eq 0 ] || [ $status -eq 2 ]; then
-        echo "Done building $plt"
+        stderr "Done building $plt"
         return 0
     else
-        echo "Error building PLT, see $build_log for details"
+        stderr "Error building PLT, see $build_log for details"
         return 1
     fi
 }
@@ -1472,15 +1482,15 @@ do_plt() {
     if [ -n "$ACTIVE_PATH" ]; then
         plt="$ACTIVE_PATH"/dialyzer/plt
         if [ -f "$plt" ]; then
-            echo 'Dialyzer PLT for the active installation is:'
-            echo "$plt"
+            stderr 'Dialyzer PLT for the active installation is:'
+            stderr "$plt"
             return 0
         else
-            echo 'There is no Dialyzer PLT for the active installation'
+            stderr 'There is no Dialyzer PLT for the active installation'
             return 1
         fi
     else
-        echo 'No Erlang/OTP installation is currently active'
+        stderr 'No Erlang/OTP installation is currently active'
         return 2
     fi
 }
@@ -1488,18 +1498,18 @@ do_plt() {
 print_buildopts() {
     buildopts="$1/$KERL_CONFIG_STORAGE_FILENAME"
     if [ -f "$buildopts" ]; then
-        echo 'The build options for the active installation are:'
+        stderr 'The build options for the active installation are:'
         cat "$buildopts"
         return 0
     else
-        echo 'The build options for the active installation are not available.'
+        stderr 'The build options for the active installation are not available.'
         return 1
     fi
 }
 
 do_deploy() {
     if [ -z "$1" ]; then
-        echo 'No host given'
+        stderr 'No host given'
         exit 1
     fi
     host="$1"
@@ -1515,34 +1525,34 @@ do_deploy() {
 
     # shellcheck disable=SC2086
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true >/dev/null 2>&1; then
-        echo "Couldn't ssh to $host"
+        stderr "Couldn't ssh to $host"
         exit 1
     fi
 
-    echo "Cloning Erlang/OTP $rel ($path) to $host ($remotepath) ..."
+    stderr "Cloning Erlang/OTP $rel ($path) to $host ($remotepath) ..."
 
     # shellcheck disable=SC2086
     if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"; then
-        echo "Couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)"
+        stderr "Couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)"
         exit 1
     fi
 
     # shellcheck disable=SC2086,SC2029
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\$(pwd)\" ./Install $INSTALL_OPT \"\$(pwd)\" >/dev/null 2>&1"; then
-        echo "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
+        stderr "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
 
     # shellcheck disable=SC2086,SC2029
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && sed -i -e \"s#$path#\"\$(pwd)\"#g\" activate"; then
-        echo "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
+        stderr "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
 
-    echo "On $host, you can activate this installation running the following command:"
-    echo ". $remotepath/activate"
-    echo 'Later on, you can leave the installation typing:'
-    echo 'kerl_deactivate'
+    stderr "On $host, you can activate this installation running the following command:"
+    stderr ". $remotepath/activate"
+    stderr 'Later on, you can leave the installation typing:'
+    stderr 'kerl_deactivate'
 }
 
 
@@ -1618,7 +1628,7 @@ is_valid_install_path() {
     # don't allow installs into .erlang because
     # it's a special configuration file location for OTP
     if [ "$(basename -- "$1")" = '.erlang' ]; then
-        echo 'ERROR: You cannot install a build into .erlang. (It is a special configuration file location for OTP.)'
+        stderr 'ERROR: You cannot install a build into .erlang. (It is a special configuration file location for OTP.)'
         return 1
     fi
 
@@ -1628,19 +1638,19 @@ is_valid_install_path() {
 
     # don't allow installs into home directory
     if [ "$candidate" = "$canonical_home" ]; then
-        echo "ERROR: You cannot install a build into $HOME. It's a really bad idea."
+        stderr "ERROR: You cannot install a build into $HOME. It's a really bad idea."
         return 1
     fi
 
     # don't install into our base directory either.
     if [ "$candidate" = "$canonical_base_dir" ]; then
-        echo "ERROR: You cannot install a build into $KERL_BASE_DIR."
+        stderr "ERROR: You cannot install a build into $KERL_BASE_DIR."
         return 1
     fi
 
     INSTALLED_NAME=$(get_name_from_install_path "$candidate")
     if [ -n "$INSTALLED_NAME" ]; then
-        echo "ERROR: Installation ($INSTALLED_NAME) already registered for this location ($1)"
+        stderr "ERROR: Installation ($INSTALLED_NAME) already registered for this location ($1)"
         return 1
     fi
 
@@ -1648,12 +1658,12 @@ is_valid_install_path() {
     # do not allow installs into a directory that is not empty
     if [ -e "$1" ]; then
         if [ ! -d "$1" ]; then
-            echo "ERROR: $1 is not a directory."
+            stderr "ERROR: $1 is not a directory."
             return 1
         else
             count=$(\find "$1" | wc -l)
             if [ "$count" -ne 1 ]; then
-                echo "ERROR: $1 does not appear to be an empty directory."
+                stderr "ERROR: $1 does not appear to be an empty directory."
                 return 1
             fi
         fi
@@ -1667,13 +1677,13 @@ maybe_remove() {
     canonical_home=$(realpath "$HOME")
 
     if [ "$candidate" = "$canonical_home" ]; then
-        echo "WARNING: You cannot remove an install from $HOME; it's your home directory."
+        stderr "WARNING: You cannot remove an install from $HOME; it's your home directory."
         return 0
     fi
 
     ACTIVE_PATH="$(get_active_path)"
     if [ "$candidate" = "$ACTIVE_PATH" ]; then
-	echo 'ERROR: You cannot delete the active installation. Deactivate it first.'
+	stderr 'ERROR: You cannot delete the active installation. Deactivate it first.'
 	exit 1
     fi
 
@@ -1687,7 +1697,7 @@ list_print() {
             return 0
         fi
     fi
-    echo "There are no $1 available"
+    stderr "There are no $1 available"
 }
 
 list_add() {
@@ -1717,23 +1727,23 @@ list_has() {
 }
 
 path_usage() {
-    echo "usage: $0 path [<install_name>]"
+    stderr "usage: $0 path [<install_name>]"
 }
 
 list_usage() {
-    echo "usage: $0 list <releases|builds|installations>"
+    stderr "usage: $0 list <releases|builds|installations>"
 }
 
 delete_usage() {
-    echo "usage: $0 delete <build|installation> <build_name or path>"
+    stderr "usage: $0 delete <build|installation> <build_name or path>"
 }
 
 cleanup_usage() {
-    echo "usage: $0 cleanup <build_name|all>"
+    stderr "usage: $0 cleanup <build_name|all>"
 }
 
 update_usage() {
-    echo "usage: $0 update releases"
+    stderr "usage: $0 update releases"
 }
 
 get_active_path() {
@@ -1760,11 +1770,11 @@ get_install_path_from_name() {
 do_active() {
     ACTIVE_PATH="$(get_active_path)"
     if [ -n "$ACTIVE_PATH" ]; then
-        echo 'The current active installation is:'
+        stderr 'The current active installation is:'
         echo "$ACTIVE_PATH"
         return 0
     else
-        echo 'No Erlang/OTP installation is currently active'
+        stderr 'No Erlang/OTP installation is currently active'
         return 1
     fi
 }
@@ -1799,13 +1809,13 @@ github_download() {
     fi
     # if the file doesn't exist or the file has no size
     if [ ! -s $tarball_file ]; then
-        echo "Downloading $1 to $KERL_DOWNLOAD_DIR..."
+        stderr "Downloading $1 to $KERL_DOWNLOAD_DIR..."
         curl -f -L -o $tarball_file $tarball_url || exit 1
     else
         # If the downloaded tarball was corrupted due to interruption while
         # downloading.
         if ! gunzip -t $tarball_file 2>/dev/null; then
-            echo "$tarball_file corrupted and redownloading..."
+            stderr "$tarball_file corrupted and redownloading..."
             rm -rf $tarball_file
             curl -f -L -o $tarball_file $tarball_url || exit 1
         fi
@@ -1814,19 +1824,19 @@ github_download() {
 
 tarball_download() {
     if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
-        echo "Downloading $1 to $KERL_DOWNLOAD_DIR"
+        stderr "Downloading $1 to $KERL_DOWNLOAD_DIR"
         curl -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || exit 1
         update_checksum_file
     fi
     ensure_checksum_file
-    echo 'Verifying archive checksum...'
+    stderr 'Verifying archive checksum...'
     SUM="$($MD5SUM "$KERL_DOWNLOAD_DIR/$1" | cut -d' ' -f $MD5SUM_FIELD)"
     ORIG_SUM="$(\grep -F "$1" "$KERL_DOWNLOAD_DIR"/MD5 | cut -d' ' -f2)"
     if [ "$SUM" != "$ORIG_SUM" ]; then
-        echo "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
+        stderr "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
         exit 1
     fi
-    echo "Checksum verified ($SUM)"
+    stderr "Checksum verified ($SUM)"
 }
 
 apply_solaris_networking_patch() {
@@ -2132,7 +2142,7 @@ case "$1" in
     build)
         if [ "$2" = 'git' ]; then
             if [ $# -ne 5 ]; then
-                echo "usage: $0 $1 $2 <git_url> <git_version> <build_name>"
+                stderr "usage: $0 $1 $2 <git_url> <git_version> <build_name>"
                 exit 1
             fi
             do_git_build "$3" "$4" "$5"
@@ -2142,14 +2152,14 @@ case "$1" in
             elif [ $# -eq 3 ]; then
                 do_normal_build "$2" "$3"
             else
-                echo "usage: $0 $1 <release> <build_name>"
+                stderr "usage: $0 $1 <release> <build_name>"
                 exit 1
             fi
         fi
         ;;
     install)
         if [ $# -lt 2 ]; then
-            echo "usage: $0 $1 <build_name> [directory]"
+            stderr "usage: $0 $1 <build_name> [directory]"
             exit 1
         fi
         if [ $# -eq 3 ]; then
@@ -2170,21 +2180,21 @@ case "$1" in
                 ## TODO: Are git builds installed the usual way
                 ##       or do we need this clause to provide a fallback?
                 #BUILDNAME="$(basename "$ACTIVE_PATH")"
-                echo "$ACTIVE_PATH is not a kerl installation"
+                stderr "$ACTIVE_PATH is not a kerl installation"
                 exit 1
             else
                 BUILDNAME="$ACTIVE_NAME"
             fi
             install_docsh "$BUILDNAME" "$ACTIVE_PATH"
-            echo 'Please kerl_deactivate and activate again to enable docsh'
+            stderr 'Please kerl_deactivate and activate again to enable docsh'
         else
-            echo 'No Erlang/OTP installation is currently active - cannot install docsh'
+            stderr 'No Erlang/OTP installation is currently active - cannot install docsh'
             exit 1
         fi
         ;;
     deploy)
         if [ $# -lt 2 ]; then
-            echo "usage: $0 $1 <[user@]host> [directory] [remote_directory]"
+            stderr "usage: $0 $1 <[user@]host> [directory] [remote_directory]"
             exit 1
         fi
         if [ $# -eq 4 ]; then
@@ -2206,7 +2216,7 @@ case "$1" in
             releases)
                 rm -f "${KERL_BASE_DIR:?}"/otp_releases
                 check_releases
-                echo 'The available releases are:'
+                stderr 'The available releases are:'
                 list_print releases
                 ;;
             *)
@@ -2224,7 +2234,7 @@ case "$1" in
             releases)
                 check_releases
                 list_print "$2"
-                echo "Run '$0 update releases' to update this list from erlang.org"
+                stderr "Run '$0 update releases' to update this list from erlang.org"
                 ;;
             builds)
                 list_print "$2"
@@ -2233,7 +2243,7 @@ case "$1" in
                 list_print "$2"
                 ;;
             *)
-                echo "Cannot list $2"
+                stderr "Cannot list $2"
                 list_usage
                 exit 1
                 ;;
@@ -2248,7 +2258,7 @@ case "$1" in
         if [ -z "$2" ]; then
             activepath=$(get_active_path)
             if [ -z "$activepath" ]; then
-                echo 'No active kerl-managed erlang installation'
+                stderr 'No active kerl-managed erlang installation'
                 exit 1
             fi
             echo "$activepath"
@@ -2263,13 +2273,13 @@ case "$1" in
                     if [ -z "$match" ]; then
                         match="$ins"
                     else
-                        echo 'Error: too many matching installations' >&2
+                        stderr 'Error: too many matching installations' >&2
                         exit 2
                     fi
                 fi
             done
             [ -n "$match" ] && echo "$match" && exit 0
-            echo 'Error: no matching installation found' >&2 && exit 1
+            stderr 'Error: no matching installation found' >&2 && exit 1
         fi
         ;;
     delete)
@@ -2284,12 +2294,12 @@ case "$1" in
                     maybe_remove "${KERL_BUILD_DIR:?}/$3"
                 else
                     if [ -z "$rel" ]; then
-                      echo "No build named $3"
+                      stderr "No build named $3"
                       exit 1
                     fi
                 fi
                 list_remove "$2"s "$rel,$3"
-                echo "The $3 build has been deleted"
+                stderr "The $3 build has been deleted"
                 ;;
             installation)
                 assert_valid_installation "$3"
@@ -2300,10 +2310,10 @@ case "$1" in
                 fi
                 escaped="$(echo "$3" | \sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
                 list_remove "$2"s "$escaped"
-                echo "The installation \"$3\" has been deleted"
+                stderr "The installation \"$3\" has been deleted"
                 ;;
             *)
-                echo "Cannot delete $2"
+                stderr "Cannot delete $2"
                 delete_usage
                 exit 1
                 ;;
@@ -2321,10 +2331,10 @@ case "$1" in
         fi
         ;;
     status)
-        echo 'Available builds:'
+        stderr 'Available builds:'
         list_print builds
         echo '----------'
-        echo 'Available installations:'
+        stderr 'Available installations:'
         list_print installations
         echo '----------'
         if do_active; then
@@ -2333,7 +2343,7 @@ case "$1" in
                 do_plt "$ACTIVE_PATH"
                 print_buildopts "$ACTIVE_PATH"
             else
-                echo 'No Erlang/OTP installation is currently active'
+                stderr 'No Erlang/OTP installation is currently active'
                 exit 1
             fi
         fi
@@ -2364,20 +2374,20 @@ case "$1" in
         fi
         case "$2" in
             all)
-                echo 'Cleaning up compilation products for ALL builds'
+                stderr 'Cleaning up compilation products for ALL builds'
                 rm -rf "${KERL_BUILD_DIR:?}"/*
                 rm -rf "${KERL_DOWNLOAD_DIR:?}"/*
                 rm -rf "${KERL_GIT_DIR:?}"/*
-                echo "Cleaned up all compilation products under $KERL_BUILD_DIR"
+                stderr "Cleaned up all compilation products under $KERL_BUILD_DIR"
                 ;;
             *)
-                echo "Cleaning up compilation products for $3"
+                stderr "Cleaning up compilation products for $3"
                 rm -rf "${KERL_BUILD_DIR:?}/$3"
-                echo "Cleaned up compilation products for $3 under $KERL_BUILD_DIR"
+                stderr "Cleaned up compilation products for $3 under $KERL_BUILD_DIR"
                 ;;
         esac
         ;;
     *)
-        echo "unknown command: $1"; usage; exit 1
+        stderr "unknown command: $1"; usage; exit 1
         ;;
 esac
