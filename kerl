@@ -936,6 +936,7 @@ _do_build() {
         # shellcheck disable=SC2086
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
             show_logfile 'Configure failed.' "$LOGFILE"
+            stderr 'TIP: See https://www.erlang.org/doc/installation_guide/install'
             list_remove builds "$1 $2"
             exit 1
         fi
@@ -969,6 +970,7 @@ _do_build() {
     # shellcheck disable=SC2086
     if ! _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
         show_logfile 'Build failed.' "$LOGFILE"
+        stderr 'TIP: See https://www.erlang.org/doc/installation_guide/install'
         list_remove builds "$1 $2"
         exit 1
     fi
@@ -977,11 +979,13 @@ _do_build() {
         release=$(get_otp_version "$2")
         if ! make docs "DOC_TARGETS=$KERL_DOC_TARGETS" >>"$LOGFILE" 2>&1; then
             show_logfile 'Building docs failed.' "$LOGFILE"
+            stderr 'TIP: See https://www.erlang.org/doc/installation_guide/install'
             list_remove builds "$1 $2"
             exit 1
         fi
         if ! make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1" >>"$LOGFILE" 2>&1; then
             show_logfile 'Release of docs failed.' "$LOGFILE"
+            stderr 'TIP: See https://www.erlang.org/doc/installation_guide/install'
             list_remove builds "$1 $2"
             exit 1
         fi
