@@ -2132,7 +2132,7 @@ _END_PATCH
 
 upgrade_kerl() {
     install_folder=$1
-    wget -q -O "$install_folder/kerl" $KERL_GIT_BASE/kerl
+    curl -s -o "$install_folder/kerl" $KERL_GIT_BASE/kerl
     chmod +x "$install_folder/kerl"
     version=$(kerl version)
     current_kerl_path="$(which kerl)"
