@@ -356,6 +356,14 @@ If unset, `$PWD` is used.
 
 If set, install the build under `$KERL_DEFAULT_INSTALL_DIR/${buildname}`.
 
+### KERL_APP_INSTALL_DIR
+
+Effective when calling `kerl upgrade`. This is the folder where the `kerl` application
+resides.
+
+If unset, `$PWD` is used.
+
+If set, `kerl` is installed at `$KERL_APP_INSTALL_DIR/kerl`.
 
 ### KERL_DEPLOY_SSH_OPTIONS
 ### KERL_DEPLOY_RSYNC_OPTIONS

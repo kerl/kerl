@@ -46,6 +46,7 @@ KERL_CONFIG=${KERL_CONFIG:="$HOME"/.kerlrc}
 KERL_DOWNLOAD_DIR=${KERL_DOWNLOAD_DIR:="${KERL_BASE_DIR:?}"/archives}
 KERL_BUILD_DIR=${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
 KERL_GIT_DIR=${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
+KERL_GIT_BASE=https://raw.githubusercontent.com/kerl/kerl/master
 
 if [ -n "$OTP_GITHUB_URL" ]; then
     _OGU="$OTP_GITHUB_URL"
@@ -193,6 +194,7 @@ usage() {
     echo '  install         Install the specified release at the given location'
     echo '  deploy          Deploy the specified installation to the given host and location'
     echo '  update          Update the list of available releases from your source provider'
+    echo '  upgrade         Upgrade kerl to the latest available version'
     echo '  list            List releases, builds and installations'
     echo '  delete          Delete builds and installations'
     echo '  install-docsh   Install erl shell documentation access extension - docsh'
@@ -1736,6 +1738,10 @@ update_usage() {
     echo "usage: $0 update releases"
 }
 
+upgrade_usage() {
+    echo "upgrade: $0 upgrade"
+}
+
 get_active_path() {
     if [ -n "$_KERL_ACTIVE_DIR" ]; then
         echo "$_KERL_ACTIVE_DIR"
@@ -2124,6 +2130,15 @@ index caa1ce568b..6ebb3d3a25 100644
 _END_PATCH
 }
 
+upgrade_kerl() {
+    install_folder=$1
+    curl -s -o "$install_folder/kerl" $KERL_GIT_BASE/kerl
+    chmod +x "$install_folder/kerl"
+    version=$(kerl version)
+    current_kerl_path="$(which kerl)"
+    echo "kerl $version is now available at $current_kerl_path."
+}
+
 case "$1" in
     version)
         echo "$KERL_VERSION"
@@ -2214,6 +2229,38 @@ case "$1" in
                 exit 1
                 ;;
         esac
+        ;;
+    upgrade)
+        if [ $# -ne 1 ]; then
+            upgrade_usage
+            exit 1
+        fi
+        current_kerl_path="$(which kerl)"
+        which_status=$?
+        if [ $which_status != 0 ]; then
+            if [ -z ${KERL_APP_INSTALL_DIR+x} ]; then
+                install_folder="$PWD"
+            else
+                install_folder="$KERL_APP_INSTALL_DIR"
+            fi
+            echo "kerl not installed. Dropping it into $install_folder/kerl..."
+            upgrade_kerl "$install_folder"
+        else
+            version=$(kerl version)
+            echo "local kerl found ($current_kerl_path) at version $version."
+            latest=$(curl -s $KERL_GIT_BASE/LATEST)
+            echo "remote kerl found at version $latest."
+            if [ "$version" != "$latest" ]; then
+                echo "Versions are different. Upgrading to $latest."
+                current_kerl_path=$(dirname "$current_kerl_path")
+                upgrade_kerl "$current_kerl_path"
+            else
+                echo "No upgrade required."
+            fi
+            printf "Updating list of available releases... "
+            kerl update releases > /dev/null
+            echo "Done!"
+        fi
         ;;
     list)
         if [ $# -ne 2 ]; then

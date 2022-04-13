@@ -40,6 +40,7 @@ _1st_arguments=(
   'install:Install the specified release at the given location'
   'deploy:Deploy the specified installation to the given host and location'
   'update:Update the list of available releases from erlang.org'
+  'upgrade:Upgrade kerl to the latest available version'
   'list:List releases, builds and installations'
   'delete:Delete builds and installations'
   'active:Print the path of the active installation'
