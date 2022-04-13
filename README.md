@@ -724,6 +724,12 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+13 April 2022 - 2.3.0
+
+  - Fix build of older OTPs on macOS Monterey (#397)
+  - Separate info and error messages onto stdout/stderr (#401 - rebased as #403)
+  - Add a new `upgrade` command to check, download and install kerl upgrades (#400)
+
 7 January 2022 - 2.2.4
 
   - Fix fish activation error (#392)
