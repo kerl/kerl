@@ -227,7 +227,7 @@ get_releases() {
 }
 
 get_git_releases() {
-    git ls-remote --tags --refs "$OTP_GITHUB_URL" \
+    ! git ls-remote --tags --refs "$OTP_GITHUB_URL" \
     | cut -f2 \
     | cut -d'/' -f3- \
     | sed $SED_OPT \
@@ -314,6 +314,7 @@ get_git_releases() {
         \
      | LC_ALL=C sort -n \
      | cut -d':' -f2-
+     return $?
 }
 
 get_tarball_releases() {
@@ -2220,8 +2221,13 @@ case "$1" in
             releases)
                 rm -f "${KERL_BASE_DIR:?}"/otp_releases
                 check_releases
-                stderr 'The available releases are:'
-                list_print releases
+		if [ $? -eq 0 ]; then
+                   stderr 'The available releases are:'
+                   list_print releases
+	        else
+		   stderr 'Releases check failed'
+		   exit 1
+		fi
                 ;;
             *)
                 update_usage
