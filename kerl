@@ -36,7 +36,7 @@ KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 # Check if tput is available for colorize
 tp=$(tput -V 1>/dev/null 2>&1 && echo -n "OK" || echo -n "")
 if [ -z "$tp" ]; then
-    stderr "Colorization disabled as 'tput' (via 'ncurses') seems to unavailable"
+    stderr "Colorization disabled as 'tput' (via 'ncurses') seems to be unavailable"
     KERL_COLOR_AVAILABLE=0
     KERL_COLORIZE=0         # Force disabling colorization
 else
