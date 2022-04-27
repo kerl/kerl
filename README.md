@@ -741,6 +741,11 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+27 April 2022 - 2.4.0
+
+  - Handle a failed github retrieval better (#408)
+  - Colorize kerl output (if available) (#409)
+
 13 April 2022 - 2.3.0
 
   - Fix build of older OTPs on macOS Monterey (#397)
