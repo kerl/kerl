@@ -644,10 +644,10 @@ show_configuration_warnings() {
 }
 
 show_logfile() {
-    echo "$1"
-    tail "$2"
-    echo
-    echo "Please see $2 for full details."
+    l=e stderr "$1"
+    tail "$2" 1>&2
+    stderr ""
+    l=t stderr "Please see $2 for full details."
 }
 
 maybe_patch() {
