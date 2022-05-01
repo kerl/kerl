@@ -82,6 +82,26 @@ colorize()
     echo -n "$ret"
 }
 
+autoclean()
+{
+    if [ ${KERL_AUTOCLEAN:=1} -eq 1 ]; then
+        l=n stderr "Cleaning all artefacts but logfile"
+        l=t stderr "Consider use of KERL_AUTOCLEAN=0 to keep build artefacts on failure if necessary"
+        # Save LOGFILE
+        tmplf="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
+        test -f "$LOGFILE" && cp -f "$LOGFILE" "$tmplf"
+        # Cleaning current build
+        cd - 1>/dev/null 2>&1
+        test -n "$1" && $0 cleanup "$1"
+        # Copy LOGFILE back to keep track of all attempts until success
+        mkdir -p "$(dirname "$LOGFILE")"
+        mv -f "$tmplf" "$LOGFILE"
+        unset tmplf
+    else
+        l=w stderr "Autoclean on failure disabled"
+    fi
+}
+
 TMP_DIR=${TMP_DIR:-'/tmp'}
 if [ -z "$HOME" ]; then
     # shellcheck disable=SC2016
@@ -920,6 +940,9 @@ _do_build() {
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
+    # Add a build date and env in logfile
+    echo "*** $(date) - kerl build $1 ***" >> "$LOGFILE"
+    env | grep KERL_BUILD_ | xargs -n1 echo "*" >> "$LOGFILE"
 
     # Set configuation flags given applications white/black lists
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
@@ -986,6 +1009,7 @@ _do_build() {
         # shellcheck disable=SC2086
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
             show_logfile 'Configure failed.' "$LOGFILE"
+            autoclean "$2"
             list_remove builds "$1 $2"
             exit 1
         fi
@@ -1003,6 +1027,7 @@ _do_build() {
             if ! rm ./lib/"$app"/SKIP; then
                 l=e stderr "Couldn't prepare '$app' application for building"
                 list_remove builds "$1 $2"
+                autoclean "$2"
                 exit 1
             fi
         done
@@ -1019,6 +1044,7 @@ _do_build() {
     # shellcheck disable=SC2086
     if ! _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
         show_logfile 'Build failed.' "$LOGFILE"
+        autoclean "$2"
         list_remove builds "$1 $2"
         exit 1
     fi
@@ -1027,11 +1053,13 @@ _do_build() {
         release=$(get_otp_version "$2")
         if ! make docs "DOC_TARGETS=$KERL_DOC_TARGETS" >>"$LOGFILE" 2>&1; then
             show_logfile 'Building docs failed.' "$LOGFILE"
+            autoclean "$2"
             list_remove builds "$1 $2"
             exit 1
         fi
         if ! make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1" >>"$LOGFILE" 2>&1; then
             show_logfile 'Release of docs failed.' "$LOGFILE"
+            autoclean "$2"
             list_remove builds "$1 $2"
             exit 1
         fi
