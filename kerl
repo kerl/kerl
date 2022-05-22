@@ -526,14 +526,26 @@ _rpm_is_installed() {
 }
 
 _check_rpm() {
-    required='
+    case $(lsb_release -si) in
+        "openSUSE")
+            required='
+libopenssl-devel
+make
+automake
+autoconf
+ncurses-devel
+gcc
+';;
+        *)
+            required='
 openssl-devel
 make
 automake
 autoconf
 ncurses-devel
 gcc
-'
+';;
+    esac
     for pkg in $required; do
         if ! _rpm_is_installed "$pkg"; then
             l=w stderr "WARNING: It appears a required development package '$pkg' is not installed."
