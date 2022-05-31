@@ -756,6 +756,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+31 May 2022 - 2.5.0
+
+  - Add a way to specify a debug/release target build (#411)
+
 27 April 2022 - 2.4.0
 
   - Handle a failed github retrieval better (#408)

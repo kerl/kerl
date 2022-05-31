@@ -27,7 +27,7 @@ unset ERL_TOP
 # Make sure CDPATH doesn't affect cd in case path is relative.
 unset CDPATH
 
-KERL_VERSION='2.4.0'
+KERL_VERSION='2.5.0'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
