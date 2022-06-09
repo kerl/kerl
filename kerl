@@ -1068,8 +1068,7 @@ _do_build() {
     # preferably use "$KERL_RELEASE_TARGET"
     if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
         l=n stderr "Also building Erlang/OTP $1 ($2) debug VM, please wait..."
-        cd "$ERL_TOP/erts/emulator" || exit 1
-        if ! make debug ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
+        if ! make TYPE=debug ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
             show_logfile 'Build of debug VM failed.' "$LOGFILE"
             list_remove builds "$1 $2"
             exit 1
@@ -1081,7 +1080,16 @@ _do_build() {
         for r_type in $KERL_RELEASE_TARGET;
         do
             case $r_type in
-                opt|gcov|gprof|debug|valgrind|asan|lcnt)
+                opt|debug)
+                    l=n stderr "Also building Erlang/OTP $1 ($2) $r_type VM, please wait..."
+                    cd "$ERL_TOP" || exit 1
+                    if ! make TYPE="$r_type" ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
+                        show_logfile "Build of $r_type VM failed." "$LOGFILE"
+                        list_remove builds "$1 $2"
+                        exit 1
+                    fi
+                    ;;
+                gcov|gprof|valgrind|asan|lcnt)
                     l=n stderr "Also building Erlang/OTP $1 ($2) $r_type VM, please wait..."
                     cd "$ERL_TOP/erts/emulator" || exit 1
                     if ! make "$r_type" ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
@@ -1119,15 +1127,29 @@ do_install() {
 
     for r_type in $KERL_RELEASE_TARGET;
     do
-        BEAM_DEBUG_SMP=$(\find . -name "beam.${r_type}.smp")
-        if [ "$BEAM_DEBUG_SMP" != "" ]; then
-            ERL_CHILD_SETUP_DEBUG=$(\find . -name "erl_child_setup.${r_type}")
-            l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
-            cp "$BEAM_DEBUG_SMP" "$absdir"/erts-*/bin/
-            cp "$ERL_CHILD_SETUP_DEBUG" "$absdir"/erts-*/bin/
-        fi
+        case "$r_type" in
+            opt|debug)
+                l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                cd "$ERL_TOP" || exit 1
+                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >/dev/null 2>&1; then
+                    l=e stderr "Couldn't install Erlang/OTP $rel ($1) of type $r_type in $absdir"
+                    exit 1
+                fi
+                ;;
+            *)
+                BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
+                if [ -n "$BEAM_TYPE_SMP" ]; then
+                    ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
+                    l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                    cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
+                    cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
+                fi
+                ;;
+        esac
     done
-    [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
+
+    [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
+
     list_add installations "$1 $absdir";
     cat <<ACTIVATE >"$absdir"/activate
 #!/bin/sh
