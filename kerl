@@ -981,11 +981,20 @@ _do_build() {
     fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         # shellcheck disable=SC2086
-        ./otp_build autoconf $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1 && \
-           _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
+        if ! (./otp_build autoconf && \
+                  _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE") \
+             >> "$LOGFILE" 2>&1; then
+            show_logfile 'Configure failed.' "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
     else
         # shellcheck disable=SC2086
-        _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
+        if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
+            show_logfile 'Configure failed.' "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
 
     fi
     if echo "$KERL_CONFIGURE_OPTIONS" | \grep -- '--enable-native-libs' >/dev/null 2>&1; then
