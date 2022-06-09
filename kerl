@@ -1089,8 +1089,6 @@ _do_build() {
         fi
     fi
 
-    rm -f "$LOGFILE"
-
     # keep for backward compatibility
     # preferably use "$KERL_RELEASE_TARGET"
     if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
@@ -1145,10 +1143,11 @@ do_install() {
     absdir=$(cd "$2" && pwd)
     l=n stderr "Installing Erlang/OTP $rel ($1) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
+    LOGFILE="$KERL_BUILD_DIR/$1/otp_install_$rel.log"
     cd "$ERL_TOP" || exit 1
-    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >/dev/null 2>&1 &&
-              cd "$absdir" && ./Install $INSTALL_OPT "$absdir" >/dev/null 2>&1); then
-        l=e stderr "Couldn't install Erlang/OTP $rel ($1) in $absdir"
+    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
+              cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
+        show_logfile "Install of Erlang/OTP $rel ($1) in $absdir failed" "$LOGFILE"
         exit 1
     fi
 
@@ -1158,8 +1157,8 @@ do_install() {
             opt|debug)
                 l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
                 cd "$ERL_TOP" || exit 1
-                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >/dev/null 2>&1; then
-                    l=e stderr "Couldn't install Erlang/OTP $rel ($1) of type $r_type in $absdir"
+                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >> "$LOGFILE" 2>&1; then
+                    show_logfile "Install Erlang/OTP $rel ($1) of type $r_type in $absdir failed" "$LOGFILE"
                     exit 1
                 fi
                 ;;
@@ -1457,8 +1456,8 @@ rehash
 ACTIVATE_CSH
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
-        if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >/dev/null 2>&1); then
-            l=e stderr "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir"
+        if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >> "$LOGFILE" 2>&1); then
+            show_logfile "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir" "$LOGFILE"
             exit 1
         fi
     else
