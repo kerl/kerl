@@ -33,30 +33,36 @@ DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
+# Redirect to stderr only if it is a terminal, otherwise mute
+stderr()
+{
+if [ -t 1 ] ; then
+    if [ -z "$l" ] || [ "$KERL_COLORIZE" -eq 0 ]; then
+        echo "$*" 1>&2
+    else
+        left="$(colorize "$l")"
+        # shellcheck disable=SC2086
+        right="$(tput $KERL_COLOR_RESET)"
+        echo "${left}$*${right}" 1>&2
+        unset -v l
+    fi
+fi
+}
+
 # Check if tput is available for colorize
-tp=$(tput -V 1>/dev/null 2>&1 && printf "OK" || printf "")
+tp=$(tput sgr0 1> /dev/null 2>&1 && printf "OK" || printf "")
 if [ -z "$tp" ]; then
     stderr "Colorization disabled as 'tput' (via 'ncurses') seems to be unavailable"
     KERL_COLOR_AVAILABLE=0
     KERL_COLORIZE=0         # Force disabling colorization
 else
     KERL_COLOR_AVAILABLE=1
-fi
-
-# Redirect to stderr only if it is a terminal, otherwise mute
-stderr()
-{
-if [ -t 1 ] ; then
-    if [ -z "$l" ] || [ $KERL_COLORIZE -eq 0 ]; then
-        echo "$*" 1>&2
+    if [ -n "$KERL_COLOR_D" ]; then
+        KERL_COLOR_RESET="setaf $KERL_COLOR_D"
     else
-        right="$(tput setaf ${KERL_COLOR_D:=9})"
-        left="$(colorize "$l")"
-        echo "${left}$*${right}" 1>&2
-        unset -v l
+        KERL_COLOR_RESET="sgr0"
     fi
 fi
-}
 
 colorize()
 {
