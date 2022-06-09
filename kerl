@@ -1069,7 +1069,11 @@ _do_build() {
     if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
         l=n stderr "Also building Erlang/OTP $1 ($2) debug VM, please wait..."
         cd "$ERL_TOP/erts/emulator" || exit 1
-        make debug ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1
+        if ! make debug ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
+            show_logfile 'Build of debug VM failed.' "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
     fi
 
     if [ -n "$KERL_RELEASE_TARGET" ]; then
@@ -1080,8 +1084,11 @@ _do_build() {
                 opt|gcov|gprof|debug|valgrind|asan|lcnt)
                     l=n stderr "Also building Erlang/OTP $1 ($2) $r_type VM, please wait..."
                     cd "$ERL_TOP/erts/emulator" || exit 1
-                    make "$r_type" ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1;
-                    [ $? ] || l=w stderr "Build with runtime type: ${r_type} failed, maybe this OTP $1 is not supported"
+                    if ! make "$r_type" ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
+                        show_logfile "Build of $r_type VM failed." "$LOGFILE"
+                        list_remove builds "$1 $2"
+                        exit 1
+                    fi
                     ;;
                 *)
                     l=w stderr "Invalid '$r_type' runtime type"
