@@ -27,6 +27,15 @@ unset ERL_TOP
 # Make sure CDPATH doesn't affect cd in case path is relative.
 unset CDPATH
 
+if [ -n "$KERL_DEBUG" ]; then
+    set -x
+    ## Line numbers do not work in dash (aka debian/ubuntu sh)
+    ## so you may want to change sh to bash to get better debug info
+    if [ -n "${LINENO}" ]; then
+        PS4='+ ${LINENO}: '
+    fi
+fi
+
 KERL_VERSION='2.5.0'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
