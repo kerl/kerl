@@ -28,7 +28,7 @@ workflows:
           matrix:
             parameters:
               os: [alpine, debian]
-              version: [master, latest, "23", "22", "21"]
+              version: [master, latest, "25", "24", "23", "22", "21"]
       - test:
           matrix:
             parameters:
@@ -108,7 +108,7 @@ jobs:
           no_output_timeout: 45m
           command: |
             . $BASH_ENV
-            if ! ./kerl build ${_KERL_PREFIX} "${_KERL_VSN}" "${_KERL_VSN}"; then
+            if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX} "${_KERL_VSN}" "${_KERL_VSN}"; then
               ## Print build log if it fails
               cat ~/.kerl/builds/*/*.log
               exit 1
