@@ -34,7 +34,7 @@ ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
 # Check if tput is available for colorize
-tp=$(tput -V 1>/dev/null 2>&1 && echo -n "OK" || echo -n "")
+tp=$(tput -V 1>/dev/null 2>&1 && printf "OK" || printf "")
 if [ -z "$tp" ]; then
     stderr "Colorization disabled as 'tput' (via 'ncurses') seems to be unavailable"
     KERL_COLOR_AVAILABLE=0
@@ -79,7 +79,7 @@ colorize()
         *) 
             ret="$(tput setaf ${KERL_COLOR_D:=9})"
     esac
-    echo -n "$ret"
+    printf "%b" "$ret"
 }
 
 TMP_DIR=${TMP_DIR:-'/tmp'}
@@ -1294,7 +1294,7 @@ end
 if set --query KERL_ENABLE_PROMPT
     functions --copy fish_prompt _kerl_saved_prompt
     function fish_prompt
-        echo -n "($1)"
+        printf "%b" "($1)"
         _kerl_saved_prompt
     end
 end
