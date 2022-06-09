@@ -505,14 +505,21 @@ assert_build_name_unused() {
 _check_required_pkgs() {
     has_dpkg=$(command -v dpkg)
     has_rpm=$(command -v rpm)
-    if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ]; then
-        # found either dpkg or rpm (or maybe even both!)
+    has_apk=$(command -v apk)
+    if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ] || [ -n "$has_apk" ]; then
+        # found either dpkg, rpm or apk (or maybe even both!)
         if [ -n "$has_dpkg" ] && [ -n "$has_rpm" ]; then
             l=w stderr 'WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done.'
+        elif [ -n "$has_dpkg" ] && [ -n "$has_apk" ]; then
+            l=w stderr 'WARNING: You appear to have BOTH apk and dpkg. This is very strange. No package checks done.'
+        elif [ -n "$has_rpm" ] && [ -n "$has_apk" ]; then
+            l=w stderr 'WARNING: You appear to have BOTH apk and rpm. This is very strange. No package checks done.'
         elif [ -n "$has_dpkg" ]; then
             _check_dpkg
         elif [ -n "$has_rpm" ]; then
             _check_rpm
+        elif [ -n "$has_apk" ]; then
+            _check_apk
         fi
     fi
 }
@@ -532,6 +539,7 @@ automake
 autoconf
 libncurses5-dev
 gcc
+g++
 '
     for pkg in $required; do
         if ! _dpkg_is_installed "$pkg"; then
@@ -552,9 +560,30 @@ automake
 autoconf
 ncurses-devel
 gcc
+g++
 '
     for pkg in $required; do
         if ! _rpm_is_installed "$pkg"; then
+            l=w stderr "WARNING: It appears a required development package '$pkg' is not installed."
+        fi
+    done
+}
+
+_apk_is_installed() {
+    apk -e info "$1" >/dev/null 2>&1
+}
+
+_check_apk() {
+    required='
+openssl-dev
+make
+autoconf
+ncurses-dev
+gcc
+g++
+'
+    for pkg in $required; do
+        if ! _apk_is_installed "$pkg"; then
             l=w stderr "WARNING: It appears a required development package '$pkg' is not installed."
         fi
     done
