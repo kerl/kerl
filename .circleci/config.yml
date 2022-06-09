@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  shellcheck: circleci/shellcheck@2.0.0
+
 executors:
   alpine: &alpine
     docker:
@@ -13,6 +16,12 @@ executors:
 
 workflows:
   version: 2
+  shell-check:
+    jobs:
+      - shellcheck/check:
+          dir: ./
+          pattern: 'kerl'
+
   test-supported:
     jobs:
       - test:
