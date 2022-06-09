@@ -965,10 +965,6 @@ _do_build() {
         ;;
     esac
 
-    if [ -n "$KERL_BUILD_DOCS" ]; then
-        KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --prefix=$KERL_BUILD_DIR/$2/release_$1"
-    fi
-
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
@@ -1091,16 +1087,9 @@ _do_build() {
             list_remove builds "$1 $2"
             exit 1
         fi
-        if ! make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1" >>"$LOGFILE" 2>&1; then
-            show_logfile 'Release of docs failed.' "$LOGFILE"
-            list_remove builds "$1 $2"
-            exit 1
-        fi
     fi
+
     rm -f "$LOGFILE"
-    ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
-    cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
-    ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
 
     # keep for backward compatibility
     # preferably use "$KERL_RELEASE_TARGET"
