@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  shellcheck: circleci/shellcheck@2.0.0
+
 executors:
   alpine: &alpine
     docker:
@@ -13,13 +16,19 @@ executors:
 
 workflows:
   version: 2
+  shell-check:
+    jobs:
+      - shellcheck/check:
+          dir: ./
+          pattern: 'kerl'
+
   test-supported:
     jobs:
       - test:
           matrix:
             parameters:
               os: [alpine, debian]
-              version: [master, latest, "23", "22", "21"]
+              version: [master, latest, "25", "24", "23", "22", "21"]
       - test:
           matrix:
             parameters:
@@ -61,11 +70,11 @@ jobs:
               - run: |
                   apk update && apk upgrade
                   apk add curl ca-certificates \
-                    dpkg-dev dpkg \
                     gcc g++ libc-dev linux-headers make autoconf ncurses-dev tar \
                     openssl-dev lksctp-tools-dev lksctp-tools \
                     libxslt git
                   echo "export KERL_CONFIGURE_OPTIONS=--disable-hipe" >> $BASH_ENV
+                  echo 'export KERL_RELEASE_TARGET="debug opt gcov lcnt"' >> $BASH_ENV
       - when:
           condition:
             equal: [<< parameters.os >>,*debian]
@@ -76,7 +85,9 @@ jobs:
                 curl ca-certificates git autoconf dpkg-dev \
                 zlib1g-dev libncurses5-dev libssl-dev unixodbc-dev libgmp3-dev \
                 libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libsctp-dev lksctp-tools \
-                build-essential gcc-9 m4 autoconf fop xsltproc default-jdk libxml2-utils procps
+                build-essential gcc-9 m4 autoconf fop xsltproc default-jdk libxml2-utils procps \
+                valgrind binutils
+              echo 'export KERL_RELEASE_TARGET="debug opt gcov gprof valgrind lcnt"' >> $BASH_ENV
       - checkout
       - run: ./kerl update releases
       - run: |
@@ -94,12 +105,11 @@ jobs:
               ;;
           esac
           echo "export _KERL_VSN=${_VERSION}" >> $BASH_ENV
-          echo 'export KERL_RELEASE_TARGET="debug opt gcov gprof valgrind lcnt" ' >> $BASH_ENV
       - run:
           no_output_timeout: 45m
           command: |
             . $BASH_ENV
-            if ! ./kerl build ${_KERL_PREFIX} "${_KERL_VSN}" "${_KERL_VSN}"; then
+            if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX} "${_KERL_VSN}" "${_KERL_VSN}"; then
               ## Print build log if it fails
               cat ~/.kerl/builds/*/*.log
               exit 1
@@ -117,10 +127,12 @@ jobs:
           command: |
             . $BASH_ENV
             source $(./kerl path install_"$_KERL_VSN")/activate
-            for r_type in debug opt gcov gprof valgrind lcnt;
+            for r_type in $KERL_RELEASE_TARGET;
             do
-            [[ "${r_type}" == $(cerl -"$r_type" -noshell -eval  'io:format(erlang:system_info(build_type)),halt()') ]] \
-            || exit 1;
+              cerl -"$r_type" -noshell -eval  '{ok, D} = file:open("build_type",[write]),io:format(D, "~s",[erlang:system_info(build_type)]),halt().'
+              if [ "${r_type}" != "$(cat build_type)" ]; then
+                exit 1;
+              fi
             done
             kerl_deactivate
       - run:

@@ -27,59 +27,74 @@ unset ERL_TOP
 # Make sure CDPATH doesn't affect cd in case path is relative.
 unset CDPATH
 
+if [ -n "$KERL_DEBUG" ]; then
+    set -x
+    ## Line numbers do not work in dash (aka debian/ubuntu sh)
+    ## so you may want to change sh to bash to get better debug info
+    if [ -n "${LINENO}" ]; then
+        PS4='+ ${LINENO}: '
+    fi
+fi
+
 KERL_VERSION='2.5.0'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
-# Check if tput is available for colorize
-tp=$(tput -V 1>/dev/null 2>&1 && echo -n "OK" || echo -n "")
-if [ -z "$tp" ]; then
-    stderr "Colorization disabled as 'tput' (via 'ncurses') seems to be unavailable"
-    KERL_COLOR_AVAILABLE=0
-    KERL_COLORIZE=0         # Force disabling colorization
-else
-    KERL_COLOR_AVAILABLE=1
-fi
-
 # Redirect to stderr only if it is a terminal, otherwise mute
 stderr()
 {
 if [ -t 1 ] ; then
-    if [ -z "$l" ] || [ $KERL_COLORIZE -eq 0 ]; then
+    if [ -z "$l" ] || [ "$KERL_COLORIZE" -eq 0 ]; then
         echo "$*" 1>&2
     else
-        left="$(colorize $l)"
-        right="$(tput setaf ${KERL_COLOR_D:=9})"
+        left="$(colorize "$l")"
+        # shellcheck disable=SC2086
+        right="$(tput $KERL_COLOR_RESET)"
         echo "${left}$*${right}" 1>&2
         unset -v l
     fi
 fi
 }
 
+# Check if tput is available for colorize
+tp=$(tput sgr0 1> /dev/null 2>&1 && printf "OK" || printf "")
+if [ -z "$tp" ]; then
+    stderr "Colorization disabled as 'tput' (via 'ncurses') seems to be unavailable"
+    KERL_COLOR_AVAILABLE=0
+    KERL_COLORIZE=0         # Force disabling colorization
+else
+    KERL_COLOR_AVAILABLE=1
+    if [ -n "$KERL_COLOR_D" ]; then
+        KERL_COLOR_RESET="setaf $KERL_COLOR_D"
+    else
+        KERL_COLOR_RESET="sgr0"
+    fi
+fi
+
 colorize()
 {
     case "$1" in
         "error"|"err"|"e")
-            ret="$(tput setaf ${KERL_COLOR_E:=1})"
+            ret="$(tput setaf "${KERL_COLOR_E:=1}")"
             ;;
         "warning"|"warn"|"w")
-            ret="$(tput setaf ${KERL_COLOR_W:=3})"
+            ret="$(tput setaf "${KERL_COLOR_W:=3}")"
             ;;
         "notice"|"note"|"n")
-            ret="$(tput setaf ${KERL_COLOR_N:=4})"
+            ret="$(tput setaf "${KERL_COLOR_N:=4}")"
             ;;
         "tip"|"t")
-            ret="$(tput setaf ${KERL_COLOR_T:=6})"
+            ret="$(tput setaf "${KERL_COLOR_T:=6}")"
             ;;
         "success"|"s")
-            ret="$(tput setaf ${KERL_COLOR_S:=2})"
+            ret="$(tput setaf "${KERL_COLOR_S:=2}")"
             ;;
-        *) 
-            ret="$(tput setaf ${KERL_COLOR_D:=9})"
+        *)
+            ret="$(tput setaf "${KERL_COLOR_D:=9}")"
     esac
-    echo -n "$ret"
+    printf "%b" "$ret"
 }
 
 TMP_DIR=${TMP_DIR:-'/tmp'}
@@ -231,13 +246,11 @@ case "$KERL_SYSTEM" in
         MD5SUM='openssl md5'
         MD5SUM_FIELD=2
         SED_OPT=-E
-        CP_OPT=-a
         ;;
     *)
         MD5SUM=md5sum
         MD5SUM_FIELD=1
         SED_OPT=-r
-        CP_OPT=-pr
         ;;
 esac
 
@@ -281,8 +294,7 @@ get_git_releases() {
     git ls-remote --tags --refs "$OTP_GITHUB_URL" > "$tmp"
     ret=$?
     if [ $ret -eq 0 ]; then
-        cat "$tmp" \
-        | cut -f2 \
+        < "$tmp" cut -f2 \
         | cut -d'/' -f3- \
         | sed $SED_OPT \
             -e '# Delete all tags starting with ":" as to not mix' \
@@ -493,14 +505,21 @@ assert_build_name_unused() {
 _check_required_pkgs() {
     has_dpkg=$(command -v dpkg)
     has_rpm=$(command -v rpm)
-    if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ]; then
-        # found either dpkg or rpm (or maybe even both!)
+    has_apk=$(command -v apk)
+    if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ] || [ -n "$has_apk" ]; then
+        # found either dpkg, rpm or apk (or maybe even both!)
         if [ -n "$has_dpkg" ] && [ -n "$has_rpm" ]; then
             l=w stderr 'WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done.'
+        elif [ -n "$has_dpkg" ] && [ -n "$has_apk" ]; then
+            l=w stderr 'WARNING: You appear to have BOTH apk and dpkg. This is very strange. No package checks done.'
+        elif [ -n "$has_rpm" ] && [ -n "$has_apk" ]; then
+            l=w stderr 'WARNING: You appear to have BOTH apk and rpm. This is very strange. No package checks done.'
         elif [ -n "$has_dpkg" ]; then
             _check_dpkg
         elif [ -n "$has_rpm" ]; then
             _check_rpm
+        elif [ -n "$has_apk" ]; then
+            _check_apk
         fi
     fi
 }
@@ -520,6 +539,7 @@ automake
 autoconf
 libncurses5-dev
 gcc
+g++
 '
     for pkg in $required; do
         if ! _dpkg_is_installed "$pkg"; then
@@ -540,9 +560,30 @@ automake
 autoconf
 ncurses-devel
 gcc
+g++
 '
     for pkg in $required; do
         if ! _rpm_is_installed "$pkg"; then
+            l=w stderr "WARNING: It appears a required development package '$pkg' is not installed."
+        fi
+    done
+}
+
+_apk_is_installed() {
+    apk -e info "$1" >/dev/null 2>&1
+}
+
+_check_apk() {
+    required='
+openssl-dev
+make
+autoconf
+ncurses-dev
+gcc
+g++
+'
+    for pkg in $required; do
+        if ! _apk_is_installed "$pkg"; then
             l=w stderr "WARNING: It appears a required development package '$pkg' is not installed."
         fi
     done
@@ -732,17 +773,17 @@ maybe_patch_catalina() {
     otp_version="$2"
 
     if is_osx_catalina && \
-        [[ "$release" -lt 23 ]] && \
-        compare_sem_version $otp_version "<" "22.3.1" && \
-        compare_sem_version $clang_version ">" "11.4" && \
-        [[ "$command_line_tools_version" -le 2373 ]]; then
+        [ "$release" -lt 23 ] && \
+        compare_sem_version "$otp_version" "<" "22.3.1" && \
+        compare_sem_version "$clang_version" ">" "11.4" && \
+        [ "$command_line_tools_version" -le 2373 ]; then
         apply_catalina_no_weak_imports_patch >>"$LOGFILE"
         KERL_USE_AUTOCONF=1
     fi
 }
 
 is_osx_catalina() {
-    [[ $(uname -r) == "19"* ]]
+    uname -r | grep '^19.*$'
 }
 
 compare_sem_version() {
@@ -752,10 +793,10 @@ compare_sem_version() {
 
     case $operator in
         '<')
-            [[ $(printf "$version\n$baseline" | sort --version-sort | head -n 1) != "$baseline" ]]
+            [ "$(printf "%s\n%s" "$version" "$baseline" | sort --version-sort | head -n 1)" != "$baseline" ]
             ;;
         ('>' | "==")
-            [[ $(printf "$version\n$baseline" | sort --version-sort | head -n 1) == "$baseline" ]]
+            [ "$(printf "%s\n%s" "$version" "$baseline" | sort --version-sort | head -n 1)" = "$baseline" ]
             ;;
     esac
 }
@@ -803,28 +844,31 @@ _END_PATCH
 maybe_patch_macos_version_check() {
     release="$1"
     if is_osx_bigsur || is_osx_monterey && \
-        [[ "$release" -lt 24 ]]; then
+        [ "$release" -lt 24 ]; then
         apply_bypass_version_check >>"$LOGFILE"
         KERL_USE_AUTOCONF=1
     fi
 }
 
 is_osx_bigsur() {
-    [[ $(uname -r) == "20"* ]]
+    uname -r | grep '^20.*$'
 }
 
 is_osx_monterey() {
-    [[ $(uname -r) == "21"* ]]
+    uname -r | grep '^21.*$'
 }
 
 apply_bypass_version_check() {
     if [ -f make/configure.in ]; then
         l=n stderr "Bypassing version check in make/configure.in"
+        # shellcheck disable=SC2016
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' make/configure.in
     elif [ -f configure.in ]; then
         l=n stderr "Bypassing version check in configure.in"
+        # shellcheck disable=SC2016
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' configure.in
         l=n stderr "Removing no_weak_imports from LDFLAGS in erts/configure.in"
+        # shellcheck disable=SC2016
         sed -i '' 's/LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"//' erts/configure.in
     fi
 }
@@ -849,7 +893,8 @@ do_normal_build() {
         # github tarballs have a directory in the form of "otp[_-]TAGNAME"
         # Ericsson tarballs have the classic otp_src_RELEASE pattern
         # Standardize on Ericsson format because that's what the rest of the script expects
-        (cd "$UNTARDIRNAME" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME".tar.gz && cp -rfp ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
+        (cd "$UNTARDIRNAME" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME".tar.gz && \
+             cp -rfp ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
         rm -rf "$UNTARDIRNAME"
     fi
 
@@ -920,10 +965,6 @@ _do_build() {
         ;;
     esac
 
-    if [ -n "$KERL_BUILD_DOCS" ]; then
-        KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS --prefix=$KERL_BUILD_DIR/$2/release_$1"
-    fi
-
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
@@ -981,11 +1022,20 @@ _do_build() {
     fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         # shellcheck disable=SC2086
-        ./otp_build autoconf $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1 && \
-           _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
+        if ! (./otp_build autoconf && \
+                  _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE") \
+             >> "$LOGFILE" 2>&1; then
+            show_logfile 'Configure failed.' "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
     else
         # shellcheck disable=SC2086
-        _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1
+        if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
+            show_logfile 'Configure failed.' "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
 
     fi
     if echo "$KERL_CONFIGURE_OPTIONS" | \grep -- '--enable-native-libs' >/dev/null 2>&1; then
@@ -1037,23 +1087,17 @@ _do_build() {
             list_remove builds "$1 $2"
             exit 1
         fi
-        if ! make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1" >>"$LOGFILE" 2>&1; then
-            show_logfile 'Release of docs failed.' "$LOGFILE"
-            list_remove builds "$1 $2"
-            exit 1
-        fi
     fi
-    rm -f "$LOGFILE"
-    ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
-    cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
-    ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
 
     # keep for backward compatibility
     # preferably use "$KERL_RELEASE_TARGET"
     if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
         l=n stderr "Also building Erlang/OTP $1 ($2) debug VM, please wait..."
-        cd $ERL_TOP/erts/emulator || exit 1
-        make debug ERL_TOP=$ERL_TOP >>"$LOGFILE" 2>&1
+        if ! make TYPE=debug ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
+            show_logfile 'Build of debug VM failed.' "$LOGFILE"
+            list_remove builds "$1 $2"
+            exit 1
+        fi
     fi
 
     if [ -n "$KERL_RELEASE_TARGET" ]; then
@@ -1061,11 +1105,23 @@ _do_build() {
         for r_type in $KERL_RELEASE_TARGET;
         do
             case $r_type in
-                opt|gcov|gprof|debug|valgrind|asan|lcnt)
+                opt|debug)
                     l=n stderr "Also building Erlang/OTP $1 ($2) $r_type VM, please wait..."
-                    cd $ERL_TOP/erts/emulator || exit 1
-                    make "$r_type" ERL_TOP=$ERL_TOP >>"$LOGFILE" 2>&1;
-                    [ $? ] || l=w stderr "Build with runtime type: ${r_type} failed, maybe this OTP $1 is not supported"
+                    cd "$ERL_TOP" || exit 1
+                    if ! make TYPE="$r_type" ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
+                        show_logfile "Build of $r_type VM failed." "$LOGFILE"
+                        list_remove builds "$1 $2"
+                        exit 1
+                    fi
+                    ;;
+                gcov|gprof|valgrind|asan|lcnt)
+                    l=n stderr "Also building Erlang/OTP $1 ($2) $r_type VM, please wait..."
+                    cd "$ERL_TOP/erts/emulator" || exit 1
+                    if ! make "$r_type" ERL_TOP="$ERL_TOP" >>"$LOGFILE" 2>&1; then
+                        show_logfile "Build of $r_type VM failed." "$LOGFILE"
+                        list_remove builds "$1 $2"
+                        exit 1
+                    fi
                     ;;
                 *)
                     l=w stderr "Invalid '$r_type' runtime type"
@@ -1087,24 +1143,39 @@ do_install() {
     absdir=$(cd "$2" && pwd)
     l=n stderr "Installing Erlang/OTP $rel ($1) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
+    LOGFILE="$KERL_BUILD_DIR/$1/otp_install_$rel.log"
     cd "$ERL_TOP" || exit 1
-    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >/dev/null 2>&1 &&
-              cd "$absdir" && ./Install $INSTALL_OPT "$absdir" >/dev/null 2>&1); then
-        l=e stderr "Couldn't install Erlang/OTP $rel ($1) in $absdir"
+    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
+              cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
+        show_logfile "Install of Erlang/OTP $rel ($1) in $absdir failed" "$LOGFILE"
         exit 1
     fi
 
     for r_type in $KERL_RELEASE_TARGET;
     do
-        BEAM_DEBUG_SMP=$(\find . -name "beam.${r_type}.smp")
-        if [ "$BEAM_DEBUG_SMP" != "" ]; then
-            ERL_CHILD_SETUP_DEBUG=$(\find . -name "erl_child_setup.${r_type}")
-            l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
-            cp $BEAM_DEBUG_SMP $absdir/erts-*/bin/
-            cp $ERL_CHILD_SETUP_DEBUG $absdir/erts-*/bin/
-        fi
+        case "$r_type" in
+            opt|debug)
+                l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                cd "$ERL_TOP" || exit 1
+                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >> "$LOGFILE" 2>&1; then
+                    show_logfile "Install Erlang/OTP $rel ($1) of type $r_type in $absdir failed" "$LOGFILE"
+                    exit 1
+                fi
+                ;;
+            *)
+                BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
+                if [ -n "$BEAM_TYPE_SMP" ]; then
+                    ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
+                    l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                    cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
+                    cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
+                fi
+                ;;
+        esac
     done
-    [ -f bin/cerl ] && cp bin/cerl $absdir/bin
+
+    [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
+
     list_add installations "$1 $absdir";
     cat <<ACTIVATE >"$absdir"/activate
 #!/bin/sh
@@ -1294,7 +1365,7 @@ end
 if set --query KERL_ENABLE_PROMPT
     functions --copy fish_prompt _kerl_saved_prompt
     function fish_prompt
-        echo -n "($1)"
+        printf "%b" "($1)"
         _kerl_saved_prompt
     end
 end
@@ -1385,8 +1456,8 @@ rehash
 ACTIVATE_CSH
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
-        if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >/dev/null 2>&1); then
-            l=e stderr "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir"
+        if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >> "$LOGFILE" 2>&1); then
+            show_logfile "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir" "$LOGFILE"
             exit 1
         fi
     else
@@ -1889,21 +1960,21 @@ github_download() {
     tarball_file="$KERL_DOWNLOAD_DIR/$2"
     tarball_url="$OTP_GITHUB_URL/archive/$2"
     prebuilt_url="$OTP_GITHUB_URL/releases/download/OTP-$1/otp_src_$1.tar.gz"
-    if curl --silent --location --fail -I $prebuilt_url > /dev/null; then
+    if curl --silent --location --fail -I "$prebuilt_url" > /dev/null; then
         tarball_url=$prebuilt_url
         unset KERL_USE_AUTOCONF
     fi
     # if the file doesn't exist or the file has no size
-    if [ ! -s $tarball_file ]; then
+    if [ ! -s "$tarball_file" ]; then
         l=n stderr "Downloading $1 to $KERL_DOWNLOAD_DIR..."
-        curl -f -L -o $tarball_file $tarball_url || exit 1
+        curl -f -L -o "$tarball_file" "$tarball_url" || exit 1
     else
         # If the downloaded tarball was corrupted due to interruption while
         # downloading.
-        if ! gunzip -t $tarball_file 2>/dev/null; then
+        if ! gunzip -t "$tarball_file" 2>/dev/null; then
             l=n stderr "$tarball_file corrupted and redownloading..."
-            rm -rf $tarball_file
-            curl -f -L -o $tarball_file $tarball_url || exit 1
+            rm -rf "$tarball_file"
+            curl -f -L -o "$tarball_file" "$tarball_url" || exit 1
         fi
     fi
 }
@@ -2310,8 +2381,7 @@ case "$1" in
         case "$2" in
             releases)
                 rm -f "${KERL_BASE_DIR:?}"/otp_releases
-                check_releases
-                if [ $? -eq 0 ]; then
+                if check_releases; then
                     l=n stderr 'The available releases are:'
                     list_print releases
                 else
