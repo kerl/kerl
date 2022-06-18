@@ -28,20 +28,7 @@ workflows:
           matrix:
             parameters:
               os: [alpine, debian]
-              version: [master, latest, "25", "24", "23", "22", "21"]
-      - test:
-          matrix:
-            parameters:
-              os: [alpine_old]
-              version: ["20"]
-      - test:
-          matrix:
-            parameters:
-              os: [debian]
-              version: ["20"]
-              ## We use gcc-9 for Erlang/OTP 20 as this fix is needed for gcc-10 and later.
-              ## https://github.com/erlang/otp/pull/1692/commits/2207e5248bbaf2961f179ddcc1dabbab292ca3c9
-              config: ["export CC=gcc-9 LD=gcc-9"]
+              version: [master, latest, "25", "24", "23"]
 
 jobs:
   test:

@@ -756,6 +756,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+18 June 2022 - 2.5.1
+
+  - Many shellcheck, ci and bugfixes (#414)
+
 31 May 2022 - 2.5.0
 
   - Add a way to specify a debug/release target build (#411)
