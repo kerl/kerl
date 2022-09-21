@@ -784,7 +784,9 @@ maybe_patch_catalina() {
 
 is_osx() {
     uname="$(uname -r | grep "^$1.*$")"
-    [ "$uname" != "" ] && return
+    if [ "$uname" != "" ]; then
+        return
+    fi
     false
 }
 
