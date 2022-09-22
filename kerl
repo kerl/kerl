@@ -782,8 +782,12 @@ maybe_patch_catalina() {
     fi
 }
 
+is_osx() {
+    uname -r | \grep "^$1.*$" > /dev/null
+}
+
 is_osx_catalina() {
-    uname -r | grep '^19.*$'
+    is_osx 19
 }
 
 compare_sem_version() {
@@ -851,11 +855,11 @@ maybe_patch_macos_version_check() {
 }
 
 is_osx_bigsur() {
-    uname -r | grep '^20.*$'
+    is_osx 20
 }
 
 is_osx_monterey() {
-    uname -r | grep '^21.*$'
+    is_osx 21
 }
 
 apply_bypass_version_check() {
