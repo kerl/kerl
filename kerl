@@ -2357,18 +2357,19 @@ case "$1" in
         fi
         ;;
     build-install)
-        third="$3"
-        fifth="$5"
+        # naming contains _or_ because do_build_install either accepts $1 as "git" or otherwise 
+        build_name_or_git_url="$3"
+        build_name="$5"
         if [ "$2" = "git" ]; then
             if [ $# -eq 4 ]; then
-                fifth="$4"
+                build_name="$4"
             elif [ $# -ne 5 ]; then
                 l=e stderr "usage: $0 $1 $2 <git_url> <git_version> [build_name] [directory]"
                 exit 1
             fi
         else
             if [ $# -eq 2 ]; then
-                third="$2" 
+                build_name_or_git_url="$2" 
             elif [ $# -ne 3 ]; then
                 l=e stderr "usage: $0 $1 <release> [build_name] [directory]"
                 exit 1
@@ -2379,7 +2380,7 @@ case "$1" in
         else
             directory="$KERL_DEFAULT_INSTALL_DIR/$2"
         fi
-        do_build_install "$2" "$third" "$4" "$fifth" "$directory"
+        do_build_install "$2" "$build_name_or_git_url" "$4" "$build_name" "$directory"
         ;;
     install)
         if [ $# -lt 2 ]; then
