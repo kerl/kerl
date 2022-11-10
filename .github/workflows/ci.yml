@@ -1,0 +1,22 @@
+---
+name: ci
+'on':
+  push:
+    branches:
+      - *
+  pull_request:
+    branches:
+      - *
+jobs:
+  ci:
+    name:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        otp_vsn: [23, 24, 25]
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ludeeus/action-shellcheck@1.1.0
+        with:
+          version: v0.8.0
