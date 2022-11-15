@@ -130,15 +130,6 @@ Activation will backup your $PATH, prepend it with the installation's bin/
 directory. Thus it's only valid for the current shell session, and until you
 activate another installation or call `kerl_deactivate`.
 
-**Note**: alternatively you can use `kerl build-install` as a shortcut for
-the two previous actions to be played in sequence.
-
-    $ kerl build-install
-    usage: ./kerl build-install <release> [build_name] [directory]
-
-    $ kerl build-install git
-    usage: ./kerl build-install git <git_url> <git_version> [build_name] [directory]
-
 You're now ready to work with your 19.2 installation:
 
     $ erl -version
