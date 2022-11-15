@@ -103,3 +103,20 @@ jobs:
         run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
       - name: Delete build
         run: ./kerl delete build "$_KERL_VSN"
+      - name: Test build+install chosen version
+        run: |
+           if ! KERL_DEBUG=true ./kerl build-install ${_KERL_PREFIX_GIT} \
+                                                     ${_KERL_PREFIX_GIT_TARGET} \
+                                                     "${_KERL_VSN}" \
+                                                     "${_KERL_VSN}"; then
+             ## Print build log if it fails
+             cat ~/.kerl/builds/*/*.log
+             exit 1
+           fi
+      - name: Check installation status (build+install)
+        run: ./kerl status
+      - name: Validate installation (build+install)
+        run: |
+          source $(./kerl path install_"$_KERL_VSN")/activate
+          erl -s crypto -s init stop
+          erl_call
