@@ -1,0 +1,30 @@
+---
+name: Lint
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@1.1.0
+      # uses .markdownlint.yml for configuration
+      - name: Run markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v7
+        with:
+          globs: |
+           README.md
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .github/workflows/ci.yml
+          strict: true
+          config_file: .yamllint.yml

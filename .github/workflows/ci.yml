@@ -1,0 +1,91 @@
+---
+name: CI
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+env:
+  ERLC_USE_SERVER: true
+jobs:
+  ci:
+    name: CI OTP ${{matrix.otp_vsn}}, on ${{matrix.os}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        otp_vsn: [23, 24, 25, master, latest]
+        os: [ubuntu-18.04, ubuntu-20.04]
+    steps:
+      - name: Update env.
+        run: |
+          sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
+          sudo apt-get update -y
+          sudo apt-get upgrade -y
+          sudo apt-get install -y --no-install-recommends \
+            curl ca-certificates git autoconf dpkg-dev \
+            zlib1g-dev libncurses5-dev libssl-dev unixodbc-dev libgmp3-dev \
+            libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libsctp-dev \
+            lksctp-tools build-essential gcc-9 m4 fop xsltproc \
+            default-jdk libxml2-utils procps valgrind binutils
+          echo 'KERL_RELEASE_TARGET=debug opt gcov gprof valgrind lcnt' >> $GITHUB_ENV
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Update OTP releases
+        run: ./kerl update releases
+      - name: Choose OTP version
+        run: |
+          _VERSION="${{matrix.otp_vsn}}"
+          case "$_VERSION" in
+            master)
+              echo '_KERL_PREFIX_GIT=git' >> $GITHUB_ENV
+              echo '_KERL_PREFIX_GIT_TARGET=https://github.com/erlang/otp.git' >> $GITHUB_ENV
+              echo 'KERL_BUILD_DOCS=true' >> $GITHUB_ENV
+              ;;
+            latest)
+              _VERSION=$(./kerl list releases | grep '^[0-9]' | tail -1)
+              echo "KERL_BUILD_DOCS=true" >> $GITHUB_ENV
+              ;;
+            *)
+              _VERSION=$(./kerl list releases | grep "^${_VERSION}" | tail -1)
+              ;;
+          esac
+          echo "_KERL_VSN=${_VERSION}" >> $GITHUB_ENV
+      - name: Build chosen version
+        run: |
+          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+          if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX_GIT} ${_KERL_PREFIX_GIT_TARGET} \
+                                            "${_KERL_VSN}" "${_KERL_VSN}"; then
+            ## Print build log if it fails
+            cat ~/.kerl/builds/*/*.log
+            exit 1
+          fi
+      - name: Install chosen version
+        run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - name: Check installation status
+        run: ./kerl status
+      - name: Validate installation
+        run: |
+          source $(./kerl path install_"$_KERL_VSN")/activate
+          erl -s crypto -s init stop
+          erl_call
+      - name: Test KERL_RELEASE_TARGET
+        # yamllint disable rule:line-length
+        run: |
+          source $(./kerl path install_"$_KERL_VSN")/activate
+          for r_type in $KERL_RELEASE_TARGET;
+          do
+            cerl -"$r_type" -noshell -eval '{ok, D} = file:open("build_type", [write]), io:format(D, "~s", [erlang:system_info(build_type)]), halt().'
+            if [ "${r_type}" != "$(cat build_type)" ]; then
+              echo "${r_type} != $(cat build_type)"
+              exit 1;
+            fi
+          done
+          kerl_deactivate
+        # yamllint enable rule:line-length
+      - name: Delete installation
+        run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
+      - name: Delete build
+        run: ./kerl delete build "$_KERL_VSN"

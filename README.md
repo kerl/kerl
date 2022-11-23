@@ -1,5 +1,9 @@
-kerl [![CircleCI](https://circleci.com/gh/kerl/kerl.svg?style=svg)](https://circleci.com/gh/kerl/kerl)
+kerl [![GitHub Actions CI][ci-img]][kerl] [![GitHub Actions Lint][lint-img]][kerl]
 ====
+
+[kerl]: https://github.com/kerl/kerl
+[ci-img]: https://github.com/kerl/kerl/workflows/ci/badge.svg
+[lint-img]: https://github.com/kerl/kerl/workflows/lint/badge.svg
 
 Easy building and installing of [Erlang/OTP](https://www.erlang.org) instances.
 
@@ -11,6 +15,7 @@ installation is as fast as possible.
 
 OTP Support Policy
 ------------------
+
 As of 2021 September 17, we are supporting the current OTP release version
 and 2 prior release versions (same as upstream OTP.) Older OTP releases
 may or may not work. We will advance release support as new releases of OTP
@@ -18,11 +23,13 @@ become available.
 
 Triage cadence
 --------------
+
 We triage kerl pull requests and issues at least once a month, typically on
 the fourth Tuesday of the month at 1 pm US/Pacific or 8 pm UTC.
 
 IRC channel
 -----------
+
 We have a channel on [Libera](https://web.libera.chat/gamja/) called `#kerl` -
 feel free to join and ask support or implementation questions any time. If
 no one is around, feel free to open an issue with your question or problem
@@ -47,11 +54,10 @@ Then ensure it is executable
 and drop it in your $PATH
 
 Optionally download and install kerl's bash_completion file from
-https://github.com/kerl/kerl/raw/master/bash_completion/kerl
+<https://github.com/kerl/kerl/raw/master/bash_completion/kerl>
 
 Optionally download and install kerl's zsh-completion file from
-https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl
-
+<https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>
 
 How it works
 ------------
@@ -65,7 +71,6 @@ but you can tell kerl to download from the [official Erlang website](https://www
 However this website does not use HTTPS and is down more often than Github.
 
 You can also install directly from a raw git repository by using the `kerl build git <git_url> <git_version> <build_name>` syntax.
-
 
 Usage
 -----
@@ -169,7 +174,6 @@ You can easily deploy an installation to another host having `ssh` and `rsync` a
     Later on, you can leave the installation typing:
     kerl_deactivate
 
-
 Building from a github fork
 ---------------------------
 
@@ -181,11 +185,9 @@ It is possible to build Erlang from a github fork, by using the `KERL_BUILD_BACK
     The available releases are:
     R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03 R14B04 R15A R15B R15B01 R15B01_basho1 R15B01p R15B02 R15B03 R15B03-1 R16A_RELEASE_CANDIDATE R16B R16B01 R16B01_RC1 R16B02 R16B02_basho R16B02_basho10 R16B02_basho10rc1 R16B02_basho10rc2 R16B02_basho10rc3 R16B02_basho2 R16B02_basho3 R16B02_basho4 R16B02_basho5 R16B02_basho6 R16B02_basho7 R16B02_basho8 R16B02_basho9 R16B02_basho9rc1 R16B03 R16B03-1 R16B03_yielding_binary_to_term 17.0 17.0-rc1 17.0-rc2 17.0.1 17.0.2 17.1 17.1.1 17.1.2 17.2 17.2.1 17.2.2 17.3 17.3.1 17.3.2 17.3.3 17.3.4 17.4 17.4.1 17.5 17.5.1 17.5.2 17.5.3 17.5.4 17.5.5 17.5.6 17.5.6.1 17.5.6.2 17.5.6.3 17.5.6.4 17.5.6.5 17.5.6.6 17.5.6.7 17.5.6.8 17.5.6.9 18.0 18.0-rc1 18.0-rc2 18.0.1 18.0.2 18.0.3 18.1 18.1.1 18.1.2 18.1.3 18.1.4 18.1.5 18.2 18.2.1 18.2.2 18.2.3 18.2.4 18.2.4.1 18.3 18.3.1 18.3.2 18.3.3 18.3.4 18.3.4.1 19.0 19.0-rc1 19.0-rc2 19.0.2
 
-
 From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is possible to use kerl as normal:
 
     $ kerl build R16B02_basho10 16b02-basho10
-
 
 Building from a git source
 --------------------------
@@ -198,7 +200,6 @@ be either a branch, a tag or a commit id that will be passed to `git checkout`:
     Checking Erlang/OTP git repository from https://github.com/erlang/otp.git...
     Building Erlang/OTP 19.2_dev from git, please wait...
     Erlang/OTP 19.2_dev from git has been successfully built
-
 
 Tuning
 ------
@@ -229,30 +230,25 @@ Color for log levels can be overriden, by setting ANSI numerical color code to v
 Default: `"$HOME"/.kerl`
 Directory in which kerl will cache artefacts for building and installing.
 
-
 ### KERL_CONFIG
 
 Default: `"$HOME"/.kerlrc`
 File from which to source kerl configuration
-
 
 ### KERL_DOWNLOAD_DIR
 
 Default: `${KERL_BASE_DIR}/archives`
 Directory in which to place downloaded artefacts
 
-
 ### KERL_BUILD_DIR
 
 Default: `${KERL_BASE_DIR}/builds`
 Directory in which kerl will perform builds
 
-
 ### KERL_GIT_DIR
 
 Default: `${KERL_BASE_DIR}/gits`
 Directory in which kerl will clone git repositories for building.
-
 
 ## Build configuration
 
@@ -260,27 +256,22 @@ Directory in which kerl will clone git repositories for building.
 
 Space-separated options to pass to `configure` when building OTP.
 
-
 ### KERL_CONFIGURE_APPLICATIONS
 
 Space-separated list of OTP applications which should exclusively be built.
-
 
 ### KERL_CONFIGURE_DISABLE_APPLICATIONS
 
 Space-separated list of OTP applications to disable during building.
 
-
 ### KERL_BUILD_PLT
 
 Create a PLT file alongside the built release.
-
 
 ### KERL_USE_AUTOCONF
 
 Use `autoconf` during build process.
 NB: Automatically enabled when using `KERL_BUILD_BACKEND=git`
-
 
 ### KERL_BUILD_BACKEND
 
@@ -293,7 +284,6 @@ Acceptable values: `tarball`, `git`
 NB: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to `git`, one must also set [`$KERL_BUILD_DOCS`](#kerl_build_docs).
 
 NB: This setting has no effect when using `kerl build git...`, which invokes kerl to directly clone a git repository and build from there.
-
 
 ### KERL_BUILD_DEBUG_VM
 
@@ -309,18 +299,16 @@ NB: Enable this build using `KERL_RELEASE_TARGET="debug asan"`
 
 NB: available types: opt, gcov, gprof, debug, valgrind, asan or lcnt
 
-For more information: 
+For more information:
 
 see  "How to Build a Debug Enabled Erlang RunTime System" in
 
-https://www.erlang.org/doc/installation_guide/install
-
+<https://www.erlang.org/doc/installation_guide/install>
 
 ### OTP_GITHUB_URL
 
 Default value: `https://github.com/erlang/otp`
 Acceptable value: any github fork of OTP, e.g. `https://github.com/basho/otp`
-
 
 ### KERL_BUILD_DOCS
 
@@ -332,6 +320,7 @@ If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing 
 
 Default: `chunks`
 Available targets:
+
  - `man`: install manpage docs.
  - `html`: install HTML docs.
  - `pdf`: install PDF docs.
@@ -345,21 +334,17 @@ Install man pages when not building from git source.
 
 It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be up to 120MB.
 
-
 ### KERL_INSTALL_HTMLDOCS
 
 Install HTML documentation when not building from git source.
 
 It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be up to 120MB.
 
-
 ### KERL_SASL_STARTUP
 
 Build OTP to use SASL startup instead of minimal (default, when var is unset).
 
-
 ## Installation configuration
-
 
 ## Activation configuration
 
@@ -369,16 +354,15 @@ The following apply when activating an installation (i.e. `. ${KERL_DEFAULT_INST
 
 When set, automatically prefix the shell prompt with a section containing the erlang version (see [`$KERL_PROMPT_FORMAT`](#kerl_prompt_format) ).
 
-
 ### KERL_PROMPT_FORMAT
 
 Default: `(%BUILDNAME%)`
 Available variables:
+
  - `%BUILDNAME%`: Name of the kerl build (e.g. `my_test_build_18.0`)
  - `%RELEASE%`: Name of the erlang release (e.g. `19.2` or `R16B02`)
 
 The format of the prompt section to add.
-
 
 ### KERL_DEFAULT_INSTALL_DIR
 
@@ -398,6 +382,7 @@ If unset, `$PWD` is used.
 If set, `kerl` is installed at `$KERL_APP_INSTALL_DIR/kerl`.
 
 ### KERL_DEPLOY_SSH_OPTIONS
+
 ### KERL_DEPLOY_RSYNC_OPTIONS
 
 Options passed to `ssh` and `rsync` during `kerl deploy` tasks.
@@ -518,7 +503,6 @@ after activating a kerl installation of Erlang/OTP. Here is an example of
     # compilation options
     KERL_CONFIGURE_OPTIONS="--disable-native-libs --enable-vm-probes --with-dynamic-trace=dtrace --with-ssl=/usr/local --with-javac --enable-hipe --enable-kernel-poll --with-wx-config=/usr/local/bin/wxgtk2u-2.8-config --without-odbc --enable-threads --enable-sctp --enable-smp-support"
 
-
 In case you cannot access the default directory for temporary files (`/tmp`) or simply want them somewhere else, you can also provide your own directory with the variable `TMP_DIR`
 
     export TMP_DIR=/your/custom/temporary/dir
@@ -637,15 +621,11 @@ Lists the releases, builds or installations available.
 
 Deletes the specified build or installation.
 
-```
-$ kerl delete build 19.2
-The 19.2 build has been deleted
-```
+    $ kerl delete build 19.2
+    The 19.2 build has been deleted
 
-```
-$ kerl delete installation /srv/otp/19.2
-The installation in /srv/otp/19.2 has been deleted
-```
+    $ kerl delete installation /srv/otp/19.2
+    The installation in /srv/otp/19.2 has been deleted
 
 ### active
 
@@ -724,6 +704,7 @@ if you decide to take this route.
 
 Compiling crypto on Macs
 ------------------------
+
 Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
 own SSL library. That makes using homebrew the most convenient way to install
 openssl on macOS 10.11 or later. Additionally, homebrew [stopped creating](https://github.com/Homebrew/brew/pull/612)
@@ -738,6 +719,7 @@ will honor that instead, and will not do any automatic configuration.
 
 Compiling crypto on Red Hat systems
 -----------------------------------
+
 Red Hat believes there's a [patent
 issue](https://bugzilla.redhat.com/show_bug.cgi?id=319901#c2) and has disabled
 elliptic curve crypto algorithms in its distributions for over 10 years.
@@ -756,6 +738,7 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+
 18 June 2022 - 2.5.1
 
   - Many shellcheck, ci and bugfixes (#414)
