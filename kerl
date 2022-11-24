@@ -1167,25 +1167,26 @@ _do_build() {
 }
 
 do_build_install() {
-    if [ "$1" = "git" ]; then
-        build_name="$4"
-    else
-        build_name="$2"
-    fi
+    release_or_git=$1
+    git_url=$2
+    git_version=$3
+    build_name=$4
+    directory=$5
 
     if is_valid_installation "$build_name"; then
         l=e stderr "There's already an installation named $build_name. Skipping build step..."
         exit 1
     fi
 
-    if [ "$1" = "git" ]; then
-        git_url="$2"
-        git_version="$3"
-        directory="$5"
+    # This is also done on do_install, but saves the build time in case of error
+    if ! is_valid_install_path "$directory"; then
+        exit 1
+    fi
+
+    if [ "$release_or_git" = "git" ]; then
         $0 build git "$git_url" "$git_version" "$build_name"
     else
-        release=$1
-        directory="$3"
+        release="$release_or_git"
         $0 build "$release" "$build_name"
     fi
 
@@ -2393,30 +2394,42 @@ case "$1" in
         fi
         ;;
     build-install)
-        # naming contains _or_ because do_build_install either accepts $1 as "git" or otherwise 
+        # naming contains _or_ because do_build_install either accepts $2 as "git" or otherwise
+        release_or_git="$2"
         build_name_or_git_url="$3"
+        directory_or_git_version="$4"
         build_name="$5"
-        if [ "$2" = "git" ]; then
-            if [ $# -eq 4 ]; then
-                build_name="$4"
-            elif [ $# -ne 5 ]; then
-                l=e stderr "usage: $0 $1 $2 <git_url> <git_version> [build_name] [directory]"
+        directory="$6"
+
+        if [ "$release_or_git" = "git" ]; then
+            if [ $# -ne 5 ] && [ $# -ne 6 ]; then
+                l=e stderr "usage: $0 $1 git <git_url> <git_version> <build_name> [directory]"
                 exit 1
             fi
+            git_url="$build_name_or_git_url"
+            git_version="$directory_or_git_version"
         else
-            if [ $# -eq 2 ]; then
-                build_name_or_git_url="$2" 
-            elif [ $# -ne 3 ]; then
+            if [ $# -ne 2 ] && [ $# -ne 3 ] && [ $# -ne 4 ]; then
                 l=e stderr "usage: $0 $1 <release> [build_name] [directory]"
                 exit 1
             fi
+            release="$release_or_git"
+            build_name="$build_name_or_git_url"
+            git_url="_unused_"
+            directory="$directory_or_git_version"
+            git_version="_unused_"
+            if [ $# -eq 2 ]; then
+                build_name="$release"
+            fi
         fi
-        if [ -z "$KERL_DEFAULT_INSTALL_DIR" ]; then
-            directory="$PWD"
-        else
-            directory="$KERL_DEFAULT_INSTALL_DIR/$2"
+        if [ -z "$directory" ]; then
+            if [ -z "$KERL_DEFAULT_INSTALL_DIR" ]; then
+                directory="$PWD"
+            else
+                directory="$KERL_DEFAULT_INSTALL_DIR/$build_name"
+            fi
         fi
-        do_build_install "$2" "$build_name_or_git_url" "$4" "$build_name" "$directory"
+        do_build_install "$release_or_git" "$git_url" "$git_version" "$build_name" "$directory"
         ;;
     install)
         if [ $# -lt 2 ]; then
