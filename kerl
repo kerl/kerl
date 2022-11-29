@@ -628,7 +628,7 @@ do_git_build() {
         rm -Rf "${KERL_BUILD_DIR:?}/$3"
         exit 1
     fi
-    l=n stderr "Building Erlang/OTP $3 from git, please wait..."
+    l=n stderr "Building Erlang/OTP $2 from git, please wait..."
     if [ -z "$KERL_BUILD_AUTOCONF" ]; then
         KERL_USE_AUTOCONF=1
     fi
