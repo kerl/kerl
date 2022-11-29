@@ -590,14 +590,18 @@ g++
 }
 
 do_git_build() {
-    assert_build_name_unused "$3"
+    git_url=$1
+    git_version=$2
+    build_name=$3
 
-    GIT=$(printf '%s' "$1" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
+    assert_build_name_unused "$build_name"
+
+    GIT=$(printf '%s' "$git_url" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
-    l=n stderr "Checking out Erlang/OTP git repository from $1..."
+    l=n stderr "Checking out Erlang/OTP git repository from $git_url..."
     if [ ! -d "$GIT" ]; then
-        if ! git clone -q --mirror "$1" "$GIT" >/dev/null 2>&1; then
+        if ! git clone -q --mirror "$git_url" "$GIT" >/dev/null 2>&1; then
             l=e stderr 'Error mirroring remote git repository'
             exit 1
         fi
@@ -608,33 +612,33 @@ do_git_build() {
         exit 1
     fi
 
-    rm -Rf "${KERL_BUILD_DIR:?}/$3"
-    mkdir -p "$KERL_BUILD_DIR/$3" || exit 1
-    cd "$KERL_BUILD_DIR/$3" || exit 1
+    rm -Rf "${KERL_BUILD_DIR:?}/$build_name"
+    mkdir -p "$KERL_BUILD_DIR/$build_name" || exit 1
+    cd "$KERL_BUILD_DIR/$build_name" || exit 1
     if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
         l=e stderr 'Error cloning local git repository'
         exit 1
     fi
     cd otp_src_git || exit 1
-    if ! git checkout "$2" >/dev/null 2>&1; then
-        if ! git checkout -b "$2" "$2" >/dev/null 2>&1; then
+    if ! git checkout "$git_version" >/dev/null 2>&1; then
+        if ! git checkout -b "$git_version" "$git_version" >/dev/null 2>&1; then
             l=e stderr 'Could not checkout specified version'
-            rm -Rf "${KERL_BUILD_DIR:?}/$3"
+            rm -Rf "${KERL_BUILD_DIR:?}/$build_name"
             exit 1
         fi
     fi
     if [ ! -x otp_build ]; then
         l=e stderr 'Not a valid Erlang/OTP repository'
-        rm -Rf "${KERL_BUILD_DIR:?}/$3"
+        rm -Rf "${KERL_BUILD_DIR:?}/$build_name"
         exit 1
     fi
-    l=n stderr "Building Erlang/OTP $3 from git, please wait..."
+    l=n stderr "Building Erlang/OTP $git_version from git, please wait..."
     if [ -z "$KERL_BUILD_AUTOCONF" ]; then
         KERL_USE_AUTOCONF=1
     fi
-    _do_build 'git' "$3"
-    l=s stderr "Erlang/OTP $3 from git has been successfully built"
-    list_add builds git,"$3"
+    _do_build 'git' "$build_name"
+    l=s stderr "Erlang/OTP $build_name from git has been successfully built"
+    list_add builds git,"$build_name"
 }
 
 get_otp_version() {
