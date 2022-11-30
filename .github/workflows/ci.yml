@@ -17,20 +17,30 @@ jobs:
       fail-fast: false
       matrix:
         otp_vsn: [23, 24, 25, master, latest]
-        os: [ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-18.04, ubuntu-20.04, macos-11, macos-12]
     steps:
       - name: Update env.
         run: |
-          sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
-          sudo apt-get update -y
-          sudo apt-get upgrade -y
-          sudo apt-get install -y --no-install-recommends \
-            curl ca-certificates git autoconf dpkg-dev \
-            zlib1g-dev libncurses5-dev libssl-dev unixodbc-dev libgmp3-dev \
-            libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libsctp-dev \
-            lksctp-tools build-essential gcc-9 m4 fop xsltproc \
-            default-jdk libxml2-utils procps valgrind binutils
-          echo 'KERL_RELEASE_TARGET=debug opt gcov gprof valgrind lcnt' >> $GITHUB_ENV
+          if [[ ${{matrix.os}} == macos* ]]; then
+            /bin/bash -c "$(curl -fsSL \
+              https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            brew install automake fop wxwidgets
+          else
+            sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
+            sudo apt-get update -y
+            sudo apt-get upgrade -y
+            sudo apt-get install -y --no-install-recommends \
+              curl ca-certificates git autoconf dpkg-dev \
+              zlib1g-dev libncurses5-dev libssl-dev unixodbc-dev libgmp3-dev \
+              libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libsctp-dev \
+              lksctp-tools build-essential gcc-9 m4 fop xsltproc \
+              default-jdk libxml2-utils procps valgrind binutils
+          fi
+          if [[ ${{matrix.os}} == macos* ]]; then
+            echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
+          else
+            echo 'KERL_RELEASE_TARGET=debug opt gcov gprof valgrind lcnt' >> $GITHUB_ENV
+          fi
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Update OTP releases
