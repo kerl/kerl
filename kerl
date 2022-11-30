@@ -1492,11 +1492,13 @@ ACTIVATE_CSH
         build_plt "$absdir"
     fi
 
+    PID=$$
     if command -v apk >/dev/null 2>&1; then
         # Running on Alpine Linux, assuming non-exotic shell
         SHELL_SUFFIX=''
+    elif [ "$(\ps -p $PID -o ppid=)" -eq 0 ]; then
+        SHELL_SUFFIX=''
     else
-        PID=$$
         PARENT_PID=$(\ps -p $PID -o ppid=) || exit 1
         # shellcheck disable=SC2086
         PARENT_CMD=$(\ps -p $PARENT_PID -o ucomm | tail -n 1)
