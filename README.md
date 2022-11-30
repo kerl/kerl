@@ -1,9 +1,10 @@
-kerl [![GitHub Actions CI][ci-img]][kerl] [![GitHub Actions Lint][lint-img]][kerl]
+kerl [![GitHub Actions CI][ci-img]][ci] [![GitHub Actions Lint][lint-img]][lint]
 ====
 
-[kerl]: https://github.com/kerl/kerl
-[ci-img]: https://github.com/kerl/kerl/workflows/ci/badge.svg
-[lint-img]: https://github.com/kerl/kerl/workflows/lint/badge.svg
+[ci-img]: https://github.com/kerl/kerl/actions/workflows/ci.yml/badge.svg
+[ci]: https://github.com/kerl/kerl/actions/workflows/ci.yml
+[lint-img]: https://github.com/kerl/kerl/actions/workflows/lint.yml/badge.svg
+[lint]: https://github.com/kerl/kerl/actions/workflows/lint.yml
 
 Easy building and installing of [Erlang/OTP](https://www.erlang.org) instances.
 
