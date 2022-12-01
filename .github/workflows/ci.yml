@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        otp_vsn: [23, 24, 25, master, latest]
+        otp_vsn: [23, 24, 25, latest]
         os: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12]
     steps:
       - name: Update env.
