@@ -65,7 +65,7 @@ jobs:
           echo "_KERL_VSN=${_VERSION}" >> $GITHUB_ENV
       - name: Build chosen version
         run: |
-          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+          export MAKEFLAGS=-j$(($(nproc) + 2))
           if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX_GIT} ${_KERL_PREFIX_GIT_TARGET} \
                                             "${_KERL_VSN}" "${_KERL_VSN}"; then
             ## Print build log if it fails
