@@ -36,11 +36,7 @@ jobs:
               lksctp-tools build-essential gcc-9 m4 fop xsltproc \
               default-jdk libxml2-utils procps valgrind binutils
           fi
-          if [[ ${{matrix.os}} == macos* ]]; then
-            echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
-          else
-            echo 'KERL_RELEASE_TARGET=debug opt gcov gprof valgrind lcnt' >> $GITHUB_ENV
-          fi
+          echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Update OTP releases
