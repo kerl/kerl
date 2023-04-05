@@ -851,7 +851,7 @@ _END_PATCH
 # https://github.com/erlang/otp/commit/f1044ef9e35da26f276b8127640e177d67aade6a.diff
 maybe_patch_macos_version_check() {
     release="$1"
-    if is_osx_bigsur || is_osx_monterey && \
+    if is_osx_bigsur || is_osx_monterey || is_osx_ventura && \
         [ "$release" -lt 24 ]; then
         apply_bypass_version_check >>"$LOGFILE"
         KERL_USE_AUTOCONF=1
@@ -864,6 +864,10 @@ is_osx_bigsur() {
 
 is_osx_monterey() {
     is_osx 21
+}
+
+is_osx_ventura() {
+    is_osx 22
 }
 
 apply_bypass_version_check() {
