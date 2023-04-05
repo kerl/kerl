@@ -2604,6 +2604,6 @@ case "$1" in
         esac
         ;;
     *)
-        l=e stderr "unknown command: $1"; usage; exit 1
+        l=e stderr "unknown command: $1"; usage
         ;;
 esac
