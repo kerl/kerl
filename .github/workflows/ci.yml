@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        otp_vsn: [23, 24, 25, master, latest]
-        os: [ubuntu-18.04, ubuntu-20.04, macos-11, macos-12]
+        otp_vsn: [23, 24, 25, master]
+        os: [ubuntu-22.04, macos-12]
     steps:
       - name: Update env.
         run: |
@@ -36,11 +36,7 @@ jobs:
               lksctp-tools build-essential gcc-9 m4 fop xsltproc \
               default-jdk libxml2-utils procps valgrind binutils
           fi
-          if [[ ${{matrix.os}} == macos* ]]; then
-            echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
-          else
-            echo 'KERL_RELEASE_TARGET=debug opt gcov gprof valgrind lcnt' >> $GITHUB_ENV
-          fi
+          echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Update OTP releases
@@ -54,10 +50,6 @@ jobs:
               echo '_KERL_PREFIX_GIT_TARGET=https://github.com/erlang/otp.git' >> $GITHUB_ENV
               echo 'KERL_BUILD_DOCS=true' >> $GITHUB_ENV
               ;;
-            latest)
-              _VERSION=$(./kerl list releases | grep '^[0-9]' | tail -1)
-              echo "KERL_BUILD_DOCS=true" >> $GITHUB_ENV
-              ;;
             *)
               _VERSION=$(./kerl list releases | grep "^${_VERSION}" | tail -1)
               ;;
@@ -65,7 +57,7 @@ jobs:
           echo "_KERL_VSN=${_VERSION}" >> $GITHUB_ENV
       - name: Build chosen version
         run: |
-          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+          export MAKEFLAGS=-j$(($(nproc) + 2))
           if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX_GIT} ${_KERL_PREFIX_GIT_TARGET} \
                                             "${_KERL_VSN}" "${_KERL_VSN}"; then
             ## Print build log if it fails
