@@ -810,7 +810,7 @@ compare_sem_version() {
 }
 
 apply_catalina_no_weak_imports_patch() {
-    patch -p1 <<'_END_PATCH'
+    patch -N -p1 <<'_END_PATCH'
 diff --git a/erts/configure.in b/erts/configure.in
 index 3ba8216a19..d7cebc5ebc 100644
 --- a/erts/configure.in
@@ -2011,7 +2011,7 @@ tarball_download() {
 }
 
 apply_solaris_networking_patch() {
-    patch -p1 <<_END_PATCH
+    patch -N -p1 <<_END_PATCH
 --- otp-a/erts/emulator/drivers/common/inet_drv.c
 +++ otp-b/erts/emulator/drivers/common/inet_drv.c
 @@ -4166,16 +4166,7 @@
@@ -2036,7 +2036,7 @@ _END_PATCH
 }
 
 apply_darwin_compiler_patch() {
-    patch -p0 <<_END_PATCH
+    patch -N -p0 <<_END_PATCH
 --- erts/emulator/beam/beam_bp.c.orig	2011-10-03 13:12:07.000000000 -0500
 +++ erts/emulator/beam/beam_bp.c	2013-10-04 13:42:03.000000000 -0500
 @@ -496,7 +496,8 @@
@@ -2087,7 +2087,7 @@ _END_PATCH
 # documentation builds to fail on older OTP releases.
 apply_javadoc_linting_patch() {
     # The _END_PATCH token is quoted below to disable parameter substitution
-    patch -p0 <<'_END_PATCH'
+    patch -N -p0 <<'_END_PATCH'
 --- lib/jinterface/doc/src/Makefile.orig	2016-05-23 14:34:48.000000000 -0500
 +++ lib/jinterface/doc/src/Makefile	2016-05-23 14:35:48.000000000 -0500
 @@ -142,7 +142,7 @@
@@ -2104,7 +2104,7 @@ _END_PATCH
 
 # perl 5.24 fatalizes the warning this causes
 apply_r14_beam_makeops_patch() {
-    patch -p0 <<'_END_PATCH'
+    patch -N -p0 <<'_END_PATCH'
 --- erts/emulator/utils/beam_makeops.orig	2016-05-23 21:40:42.000000000 -0500
 +++ erts/emulator/utils/beam_makeops	2016-05-23 21:41:08.000000000 -0500
 @@ -1576,7 +1576,7 @@
@@ -2121,7 +2121,7 @@ _END_PATCH
 
 # https://github.com/erlang/otp/commit/21ca6d3a137034f19862db769a5b7f1c5528dbc4.diff
 apply_r15_beam_makeops_patch() {
-    patch -p1 <<'_END_PATCH'
+    patch -N -p1 <<'_END_PATCH'
 --- a/erts/emulator/utils/beam_makeops
 +++ b/erts/emulator/utils/beam_makeops
 @@ -1711,7 +1711,7 @@ sub tr_gen_to {
@@ -2137,7 +2137,7 @@ _END_PATCH
 
 #https://github.com/erlang/otp/commit/a64c4d806fa54848c35632114585ad82b98712e8.diff
 apply_wx_ptr_patch() {
-    patch -p1 <<'_END_PATCH'
+    patch -N -p1 <<'_END_PATCH'
 diff --git a/lib/wx/c_src/wxe_impl.cpp b/lib/wx/c_src/wxe_impl.cpp
 index 0d2da5d4a79..8118136d30e 100644
 --- a/lib/wx/c_src/wxe_impl.cpp
@@ -2164,7 +2164,7 @@ _END_PATCH
 }
 
 apply_r16_wx_ptr_patch() {
-    patch -p1 <<'_END_PATCH'
+    patch -N -p1 <<'_END_PATCH'
 diff --git a/lib/wx/c_src/wxe_impl.cpp b/lib/wx/c_src/wxe_impl.cpp
 index cc9bcc995..1b1912630 100644
 --- a/lib/wx/c_src/wxe_impl.cpp
@@ -2194,7 +2194,7 @@ _END_PATCH
 apply_zlib_patch()
 {
 
-    patch -p1 <<'_END_PATCH'
+    patch -N -p1 <<'_END_PATCH'
 diff --git a/erts/emulator/beam/external.c b/erts/emulator/beam/external.c
 index 656de7c49ad..4491d486837 100644
 --- a/erts/emulator/beam/external.c
@@ -2281,7 +2281,7 @@ _END_PATCH
 apply_in6addr_test_patch()
 {
 
-    patch -p1 <<'_END_PATCH'
+    patch -N -p1 <<'_END_PATCH'
 diff --git a/erts/configure.in b/erts/configure.in
 index caa1ce568b..6ebb3d3a25 100644
 --- a/erts/configure.in
