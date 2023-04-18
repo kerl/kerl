@@ -253,6 +253,11 @@ Directory in which kerl will clone git repositories for building.
 
 ## Build configuration
 
+### KERL_AUTOCLEAN
+
+Default: 1 (Enabled)
+Clean all build artefacts but logfile on failure. This allow safe build retries after failure while still keeping logfile with all attempts logs, until success. Set to 0 to keep build artefacts on failure.
+
 ### KERL_CONFIGURE_OPTIONS
 
 Space-separated options to pass to `configure` when building OTP.
