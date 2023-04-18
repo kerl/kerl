@@ -36,7 +36,7 @@ if [ -n "$KERL_DEBUG" ]; then
     fi
 fi
 
-KERL_VERSION='2.5.1'
+KERL_VERSION='2.6.0'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'

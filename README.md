@@ -229,7 +229,7 @@ Color for log levels can be overriden, by setting ANSI numerical color code to v
 ### KERL_BASE_DIR
 
 Default: `"$HOME"/.kerl`
-Directory in which kerl will cache artefacts for building and installing.
+Directory in which kerl will cache artifacts for building and installing.
 
 ### KERL_CONFIG
 
@@ -239,7 +239,7 @@ File from which to source kerl configuration
 ### KERL_DOWNLOAD_DIR
 
 Default: `${KERL_BASE_DIR}/archives`
-Directory in which to place downloaded artefacts
+Directory in which to place downloaded artifacts
 
 ### KERL_BUILD_DIR
 
@@ -256,7 +256,11 @@ Directory in which kerl will clone git repositories for building.
 ### KERL_AUTOCLEAN
 
 Default: 1 (Enabled)
-Clean all build artefacts but logfile on failure. This allow safe build retries after failure while still keeping logfile with all attempts logs, until success. Set to 0 to keep build artefacts on failure.
+Clean all build artifacts but logfile on failure. This allows safe build retries
+after failure while still keeping a logfile with all attempted builds until
+success.
+
+Set to 0 to keep build artifacts on failure.
 
 ### KERL_CONFIGURE_OPTIONS
 
@@ -744,6 +748,20 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+
+18 April 2023 - 2.6.0
+
+  - Make logging less verbose (#417)
+  - Use Github Actions instead of CircleCI (#423)
+  - Fix broken CI images on README (#424)
+  - Fix broken version output (#425)
+  - Add macOS to CI matrix (#427)
+  - Fix error when running in a container (#402)
+  - Use Ubuntu 22.04, drop Ubuntu 20.04 for CI (#429)
+  - Add Ventura to version bypass for macOS (#433)
+  - If a patch has already been applied, do not apply it again (#437)
+  - Fix shellcheck for unreachable code (#438)
+  - On build failures, autoclean build art{e|i}facts (#410)
 
 18 June 2022 - 2.5.1
 
