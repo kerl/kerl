@@ -99,14 +99,14 @@ colorize()
 
 autoclean()
 {
-    if [ ${KERL_AUTOCLEAN:=1} -eq 1 ]; then
+    if [ "${KERL_AUTOCLEAN:=1}" -eq 1 ]; then
         l=n stderr "Removing all artifacts except the logfile"
         l=t stderr "(Use KERL_AUTOCLEAN=0 to keep build on failure, if desired)"
         # Save LOGFILE
         tmplf="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
         test -f "$LOGFILE" && cp -f "$LOGFILE" "$tmplf"
         # Cleaning current build
-        cd - 1>/dev/null 2>&1
+        cd - 1>/dev/null 2>&1 || exit
         test -n "$1" && $0 cleanup "$1"
         # Copy LOGFILE back to keep track of all attempts until success
         mkdir -p "$(dirname "$LOGFILE")"
