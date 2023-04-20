@@ -56,7 +56,18 @@ jobs:
           esac
           echo "_KERL_VSN=${_VERSION}" >> $GITHUB_ENV
       - name: Build chosen version
+        # yamllint disable rule:line-length
         run: |
+          # Replacing OpenSSL 3 with OpenSSL 1.1 for Ubuntu 22.04 and OTP 23
+          if [ "${{matrix.os}}" == "ubuntu-22.04" ] && [ "${{matrix.otp_vsn}}" == "23" ]; then
+            wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2.17_amd64.deb
+            wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.1.1f-1ubuntu2.17_amd64.deb
+            wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb
+            sudo dpkg -i --force-confdef --force-confnew libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb
+            sudo dpkg -i --force-confdef --force-confnew libssl-dev_1.1.1f-1ubuntu2.17_amd64.deb
+            sudo dpkg -i --force-confdef --force-confnew openssl_1.1.1f-1ubuntu2.17_amd64.deb
+          fi
+          echo "OpenSSL is $(openssl version)"
           export MAKEFLAGS=-j$(($(nproc) + 2))
           if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX_GIT} ${_KERL_PREFIX_GIT_TARGET} \
                                             "${_KERL_VSN}" "${_KERL_VSN}"; then
@@ -64,6 +75,7 @@ jobs:
             cat ~/.kerl/builds/*/*.log
             exit 1
           fi
+        # yamllint disable rule:line-length
       - name: Install chosen version
         run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - name: Check installation status
