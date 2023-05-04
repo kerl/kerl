@@ -60,12 +60,21 @@ jobs:
         run: |
           # Replacing OpenSSL 3 with OpenSSL 1.1 for Ubuntu 22.04 and OTP 23
           if [ "${{matrix.os}}" == "ubuntu-22.04" ] && [ "${{matrix.otp_vsn}}" == "23" ]; then
-            wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2.17_amd64.deb
-            wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.1.1f-1ubuntu2.17_amd64.deb
-            wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb
-            sudo dpkg -i --force-confdef --force-confnew libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb
-            sudo dpkg -i --force-confdef --force-confnew libssl-dev_1.1.1f-1ubuntu2.17_amd64.deb
-            sudo dpkg -i --force-confdef --force-confnew openssl_1.1.1f-1ubuntu2.17_amd64.deb
+            OPENSSL_FIND_PAT='openssl_1.1.1f*'
+            LIBSSL_DEV_FIND_PAT='libssl-dev_1.1.1f*'
+            LIBSSL_FIND_PAT='libssl1\.*_1.1.1f*'
+
+            wget -r -l1 -nd -A "${OPENSSL_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
+            wget -r -l1 -nd -A "${LIBSSL_DEV_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
+            wget -r -l1 -nd -A "${LIBSSL_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
+
+            OPENSSL=$(find . -name ${OPENSSL_FIND_PAT})
+            LIBSSL_DEV=$(find . -name ${LIBSSL_DEV_FIND_PAT})
+            LIBSSL=$(find . -name ${LIBSSL_FIND_PAT})
+
+            sudo dpkg -i --force-confdef --force-confnew ${OPENSSL}
+            sudo dpkg -i --force-confdef --force-confnew ${LIBSSL_DEV}
+            sudo dpkg -i --force-confdef --force-confnew ${LIBSSL_FIND_PAT}
           fi
           echo "OpenSSL is $(openssl version)"
           export MAKEFLAGS=-j$(($(nproc) + 2))
