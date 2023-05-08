@@ -74,7 +74,7 @@ jobs:
 
             sudo dpkg -i --force-confdef --force-confnew ${OPENSSL}
             sudo dpkg -i --force-confdef --force-confnew ${LIBSSL_DEV}
-            sudo dpkg -i --force-confdef --force-confnew ${LIBSSL_FIND_PAT}
+            sudo dpkg -i --force-confdef --force-confnew ${LIBSSL}
           fi
           echo "OpenSSL is $(openssl version)"
           export MAKEFLAGS=-j$(($(nproc) + 2))
