@@ -15,10 +15,10 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@1.1.0
+        uses: ludeeus/action-shellcheck@2.0.0
       # uses .markdownlint.yml for configuration
       - name: Run markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v7
+        uses: DavidAnson/markdownlint-cli2-action@v10
         with:
           globs: |
            README.md
