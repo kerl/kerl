@@ -60,21 +60,25 @@ jobs:
         run: |
           # Replacing OpenSSL 3 with OpenSSL 1.1 for Ubuntu 22.04 and OTP 23
           if [ "${{matrix.os}}" == "ubuntu-22.04" ] && [ "${{matrix.otp_vsn}}" == "23" ]; then
-            OPENSSL_FIND_PAT='openssl_1.1.1f*'
-            LIBSSL_DEV_FIND_PAT='libssl-dev_1.1.1f*'
-            LIBSSL_FIND_PAT='libssl1\.*_1.1.1f*'
+            OPENSSL_FIND_PAT="openssl_1.1*"
+            LIBSSL_FIND_PAT="libssl1\.*_1.1*"
+            LIBSSL_DEV_FIND_PAT="libssl-dev_1.1*"
 
             wget -r -l1 -nd -A "${OPENSSL_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
-            wget -r -l1 -nd -A "${LIBSSL_DEV_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
             wget -r -l1 -nd -A "${LIBSSL_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
+            wget -r -l1 -nd -A "${LIBSSL_DEV_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
 
-            OPENSSL=$(find . -name ${OPENSSL_FIND_PAT})
-            LIBSSL_DEV=$(find . -name ${LIBSSL_DEV_FIND_PAT})
-            LIBSSL=$(find . -name ${LIBSSL_FIND_PAT})
+            OPENSSL=$(find . -name "${OPENSSL_FIND_PAT}" | sort | tail -n1)
+            LIBSSL=$(find . -name "${LIBSSL_FIND_PAT}" | sort | tail -n1)
+            LIBSSL_DEV=$(find . -name "${LIBSSL_DEV_FIND_PAT}" | sort | tail -n1)
 
-            sudo dpkg -i --force-confdef --force-confnew ${OPENSSL}
-            sudo dpkg -i --force-confdef --force-confnew ${LIBSSL_DEV}
-            sudo dpkg -i --force-confdef --force-confnew ${LIBSSL}
+            echo "OPENSSL is ${OPENSSL}"
+            echo "LIBSSL is ${LIBSSL}"
+            echo "LIBSSL_DEV is ${LIBSSL_DEV}"
+
+            sudo dpkg -i --force-confdef --force-confnew "${OPENSSL}"
+            sudo dpkg -i --force-confdef --force-confnew "${LIBSSL}"
+            sudo dpkg -i --force-confdef --force-confnew "${LIBSSL_DEV}"
           fi
           echo "OpenSSL is $(openssl version)"
           export MAKEFLAGS=-j$(($(nproc) + 2))
