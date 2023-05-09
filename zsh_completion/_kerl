@@ -38,6 +38,7 @@ local -a _1st_arguments
 _1st_arguments=(
   'build:Build specified release or git repository'
   'install:Install the specified release at the given location'
+  'build-install:Build+install specified release or git repository'
   'deploy:Deploy the specified installation to the given host and location'
   'update:Update the list of available releases from erlang.org'
   'upgrade:Upgrade kerl to the latest available version'
@@ -102,6 +103,13 @@ case "$words[1]" in
       # TODO: suggest starting location of "$KERLDIR/$(lowercase $build)"
       _directories
       ;;
+  build-install)
+    _arguments \
+        '1: :->rels' \
+
+        if [[ "$state" == rels ]]; then
+            _kerl_available_releases
+            _wanted releases expl 'all releases' compadd -a releases
   path)
       _arguments \
           '1: :->installnames' && return 0

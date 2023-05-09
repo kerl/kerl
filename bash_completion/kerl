@@ -13,7 +13,7 @@ _kerl()
     case $prev in
         kerl)
             # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W 'build install update upgrade list delete active path status' -- "$cur"))
+            COMPREPLY=($(compgen -W 'build install build-install update upgrade list delete active path status' -- "$cur"))
             ;;
         list)
             # shellcheck disable=SC2207
@@ -47,6 +47,15 @@ _kerl()
             fi
             # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
+            ;;
+         build-install)
+            if [ "$COMP_CWORD" -eq 2 ]; then
+                if [ -f "$HOME"/.kerl/otp_releases ]; then
+                    RELEASES=$(cat "$HOME"/.kerl/otp_releases)
+                fi
+                # shellcheck disable=SC2207
+                COMPREPLY=($(compgen -W "$RELEASES"))
+            fi
             ;;
          path)
             INSTALL_LIST="$HOME"/.kerl/otp_installations

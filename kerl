@@ -284,6 +284,7 @@ usage() {
     stderr 'Valid commands are:'
     stderr '  build           Build specified release or git repository'
     stderr '  install         Install the specified release at the given location'
+    stderr '  build-install   Builds and installs the specified release or git repository at the given location'
     stderr '  deploy          Deploy the specified installation to the given host and location'
     stderr '  update          Update the list of available releases from your source provider'
     stderr '  list            List releases, builds and installations'
@@ -1163,6 +1164,39 @@ _do_build() {
             esac
         done
     fi
+}
+
+do_build_install() {
+    release_or_git=$1
+    git_url=$2
+    git_version=$3
+    build_name=$4
+    directory=$5
+
+    if is_valid_installation "$build_name"; then
+        l=e stderr "There's already an installation named $build_name. Skipping build step..."
+        exit 1
+    fi
+
+    # This is also done on do_install, but saves the build time in case of error
+    if ! is_valid_install_path "$directory"; then
+        exit 1
+    fi
+
+    if [ "$release_or_git" = "git" ]; then
+        $0 build git "$git_url" "$git_version" "$build_name"
+    else
+        release="$release_or_git"
+        $0 build "$release" "$build_name"
+    fi
+
+    status=$?
+    if [ $status -ne 0 ]; then
+        l=e stderr "Build failed! Skipping install step..."
+        exit 1
+    fi
+
+    $0 install "$build_name" "$directory"
 }
 
 do_install() {
@@ -2358,6 +2392,44 @@ case "$1" in
                 exit 1
             fi
         fi
+        ;;
+    build-install)
+        # naming contains _or_ because do_build_install either accepts $2 as "git" or otherwise
+        release_or_git="$2"
+        build_name_or_git_url="$3"
+        directory_or_git_version="$4"
+        build_name="$5"
+        directory="$6"
+
+        if [ "$release_or_git" = "git" ]; then
+            if [ $# -ne 5 ] && [ $# -ne 6 ]; then
+                l=e stderr "usage: $0 $1 git <git_url> <git_version> <build_name> [directory]"
+                exit 1
+            fi
+            git_url="$build_name_or_git_url"
+            git_version="$directory_or_git_version"
+        else
+            if [ $# -ne 2 ] && [ $# -ne 3 ] && [ $# -ne 4 ]; then
+                l=e stderr "usage: $0 $1 <release> [build_name] [directory]"
+                exit 1
+            fi
+            release="$release_or_git"
+            build_name="$build_name_or_git_url"
+            git_url="_unused_"
+            directory="$directory_or_git_version"
+            git_version="_unused_"
+            if [ $# -eq 2 ]; then
+                build_name="$release"
+            fi
+        fi
+        if [ -z "$directory" ]; then
+            if [ -z "$KERL_DEFAULT_INSTALL_DIR" ]; then
+                directory="$PWD"
+            else
+                directory="$KERL_DEFAULT_INSTALL_DIR/$build_name"
+            fi
+        fi
+        do_build_install "$release_or_git" "$git_url" "$git_version" "$build_name" "$directory"
         ;;
     install)
         if [ $# -lt 2 ]; then
