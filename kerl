@@ -38,7 +38,6 @@ fi
 
 KERL_VERSION='2.6.0'
 
-DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
@@ -289,7 +288,6 @@ usage() {
     stderr '  update          Update the list of available releases from your source provider'
     stderr '  list            List releases, builds and installations'
     stderr '  delete          Delete builds and installations'
-    stderr '  install-docsh   Install erl shell documentation access extension - docsh'
     stderr '  path            Print the path of a given installation'
     stderr '  active          Print the path of the active installation'
     stderr '  plt             Print Dialyzer PLT path for the active installation'
@@ -1279,14 +1277,6 @@ kerl_deactivate() {
         export PS1
         unset _KERL_SAVED_PS1
     fi
-    if [ -n "\$_KERL_DOCSH_DOT_ERLANG" ]; then
-        rm "\$HOME/.erlang"
-        unset _KERL_DOCSH_DOT_ERLANG
-    fi
-    if [ -n "\$_KERL_DOCSH_USER_DEFAULT" ]; then
-        unset DOCSH_USER_DEFAULT
-        unset _KERL_DOCSH_USER_DEFAULT
-    fi
     if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
         # shellcheck disable=SC2001
         PATH="\$(echo "\$PATH" | sed -e "s#\$_KERL_ERL_CALL_REMOVABLE:##")"
@@ -1339,22 +1329,6 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     PS1="\$PRMPT\$PS1"
     export PS1
 fi
-if [ -d "$absdir/lib/docsh" ]; then
-    export DOCSH_USER_DEFAULT="$absdir/lib/docsh/user_default"
-    export _KERL_DOCSH_USER_DEFAULT=yes
-    if [ -f "\$HOME/.erlang" ]; then
-        # shellcheck disable=SC2153
-        if [ ! x"\$KERL_DOCSH_DOT_ERLANG" = x'exists' ]; then
-            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
-            echo "Please make sure \$HOME/.erlang contains code"
-            echo "from $absdir/lib/docsh/dot.erlang"
-            echo 'and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning.'
-        fi
-    else
-        ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
-        export _KERL_DOCSH_DOT_ERLANG=yes
-    fi
-fi
 if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
@@ -1398,14 +1372,6 @@ function kerl_deactivate --description "deactivate erlang environment"
             end | psub )
         functions --erase _kerl_saved_prompt
     end
-    if set --query _KERL_DOCSH_DOT_ERLANG
-        rm "\$HOME/.erlang"
-        set --erase _KERL_DOCSH_DOT_ERLANG
-    end
-    if set --query _KERL_DOCSH_USER_DEFAULT
-        set --erase DOCSH_USER_DEFAULT
-        set --erase _KERL_DOCSH_USER_DEFAULT
-    end
     if set --query _KERL_ERL_CALL_REMOVABLE
         _kerl_remove_el PATH "\$_KERL_ERL_CALL_REMOVABLE"
         set --erase _KERL_ERL_CALL_REMOVABLE
@@ -1437,28 +1403,13 @@ if set --query KERL_ENABLE_PROMPT
         _kerl_saved_prompt
     end
 end
-if test -d "$absdir/lib/docsh"
-    set -x DOCSH_USER_DEFAULT "$absdir/lib/docsh/user_default"
-    set -x _KERL_DOCSH_USER_DEFAULT yes
-    if test -f "\$HOME/.erlang"
-        if test ! x"\$KERL_DOCSH_DOT_ERLANG" = x"exists"
-            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
-            echo "Please make sure \$HOME/.erlang contains code"
-            echo "from $absdir/lib/docsh/dot.erlang"
-            echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
-        end
-    else
-        ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
-        set -x _KERL_DOCSH_DOT_ERLANG yes
-    end
-end
 ACTIVATE_FISH
 
     cat <<ACTIVATE_CSH >"$absdir"/activate.csh
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
-alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_DOCSH_USER_DEFAULT != 0 && unsetenv DOCSH_USER_DEFAULT && unset _KERL_DOCSH_USER_DEFAULT; test \$?_KERL_ERL_CALL_REMOVABLE != 0 && unset _KERL_ERL_CALL_REMOVABLE; test \$?_KERL_DOCSH_DOT_ERLANG != 0 && rm "\$HOME/.erlang" && unset _KERL_DOCSH_DOT_ERLANG; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "!:*" != "nondestructive" && unalias deactivate'
+alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_ERL_CALL_REMOVABLE != 0 && unset _KERL_ERL_CALL_REMOVABLE; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "!:*" != "nondestructive" && unalias deactivate'
 
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
@@ -1502,22 +1453,6 @@ if ( \$?KERL_ENABLE_PROMPT ) then
 
     set PROMPT = \$(echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^')
     set prompt = "\$PROMPT\$prompt"
-endif
-
-if ( -d "$absdir/lib/docsh" ) then
-    setenv DOCSH_USER_DEFAULT "$absdir/lib/docsh/user_default"
-    set _KERL_DOCSH_USER_DEFAULT = "yes"
-    if ( -f "\$HOME/.erlang" ) then
-        if ( \$?KERL_DOCSH_DOT_ERLANG == 0 ) then
-            echo "Couldn't symlink correct \$HOME/.erlang - file exists - docsh might not work."
-            echo "Please make sure \$HOME/.erlang contains code"
-            echo "from $absdir/lib/docsh/dot.erlang"
-            echo "and export KERL_DOCSH_DOT_ERLANG=exists to suppress this warning."
-        endif
-    else
-        ln -s "$absdir/lib/docsh/dot.erlang" "\$HOME/.erlang"
-        set _KERL_DOCSH_DOT_ERLANG = "yes"
-    endif
 endif
 
 rehash
@@ -1579,92 +1514,6 @@ ACTIVATE_CSH
     echo ". $absdir/activate$SHELL_SUFFIX"
     l=t stderr 'Later on, you can leave the installation typing:'
     l=t stderr 'kerl_deactivate'
-}
-
-install_docsh() {
-    REPO_URL=$DOCSH_GITHUB_URL
-    GIT=$(printf '%s' $REPO_URL | $MD5SUM | cut -d' ' -f $MD5SUM_FIELD)
-    BUILDNAME="$1"
-    DOCSH_DIR="$KERL_BUILD_DIR/$BUILDNAME/docsh"
-    DOCSH_REF='0.7.1'
-    ACTIVE_PATH="$2"
-
-    OTP_VERSION=$(get_otp_version "$1")
-    # This has to be updated with docsh updates
-    DOCSH_SUPPORTED='^1[9]\|2[01]$'
-    if ! echo "$OTP_VERSION" | \grep "$DOCSH_SUPPORTED" >/dev/null 2>&1; then
-        l=e stderr "Erlang/OTP version $OTP_VERSION not supported by docsh (does not match regex $DOCSH_SUPPORTED)"
-        exit 1
-    fi
-
-    mkdir -p "$KERL_GIT_DIR" || exit 1
-    cd "$KERL_GIT_DIR" || exit 1
-    l=n stderr "Checking out docsh git repository from $REPO_URL..."
-    if [ ! -d "$GIT" ]; then
-        if ! git clone -q --mirror "$REPO_URL" "$GIT" >/dev/null 2>&1; then
-            l=e stderr 'Error mirroring remote git repository'
-            exit 1
-        fi
-    fi
-    cd "$GIT" || exit 1
-    if ! git remote update --prune >/dev/null 2>&1; then
-        l=e stderr 'Error updating remote git repository'
-        exit 1
-    fi
-
-    rm -Rf "$DOCSH_DIR"
-    mkdir -p "$DOCSH_DIR" || exit 1
-    cd "$DOCSH_DIR" || exit 1
-    if ! git clone -l "$KERL_GIT_DIR/$GIT" "$DOCSH_DIR" >/dev/null 2>&1; then
-        l=e stderr 'Error cloning local git repository'
-        exit 1
-    fi
-    cd "$DOCSH_DIR" || exit 1
-    if ! git checkout "$DOCSH_REF" >/dev/null 2>&1; then
-        if ! git checkout -b "$DOCSH_REF" "$DOCSH_REF" >/dev/null 2>&1; then
-            l=e stderr 'Could not checkout specified version'
-            rm -Rf "$DOCSH_DIR"
-            exit 1
-        fi
-    fi
-
-    if ! ./rebar3 compile; then
-        l=e stderr 'Could not compile docsh'
-        rm -Rf "$DOCSH_DIR"
-        exit 1
-    fi
-
-    ## Install docsh
-    if [ -f "$ACTIVE_PATH"/lib/docsh ]; then
-        l=e stderr "Couldn't install $ACTIVE_PATH/lib/docsh - the directory already exists"
-        rm -Rf "$DOCSH_DIR"
-        exit 1
-    else
-        cp -R "$DOCSH_DIR"/_build/default/lib/docsh "$ACTIVE_PATH"/lib/
-    fi
-    ## Prepare dot.erlang for linking as $HOME/.erlang
-    if [ -f "$ACTIVE_PATH"/lib/docsh/dot.erlang ]; then
-        l=e stderr "Couldn't install $ACTIVE_PATH/lib/docsh/dot.erlang - the file already exists"
-        rm -Rf "$DOCSH_DIR"
-        exit 1
-    else
-        cat "$DOCSH_DIR"/templates/dot.erlang >"$ACTIVE_PATH"/lib/docsh/dot.erlang
-    fi
-    ## Warn if $HOME/.erlang exists
-    if [ -f "$HOME"/.erlang ]; then
-        l=w stderr "$HOME/.erlang exists - kerl won't be able to symlink a docsh-compatible version."
-        l=t stderr "Please make sure your $HOME/.erlang contains code"
-        l=t stderr "from $ACTIVE_PATH/lib/docsh/dot.erlang"
-        l=t stderr 'and export KERL_DOCSH_DOT_ERLANG=exists to suppress further warnings'
-    fi
-    ## Install docsh user_default
-    if [ -f "$ACTIVE_PATH"/lib/docsh/user_default.beam ]; then
-        l=e stderr "Couldn't install $ACTIVE_PATH/lib/docsh/user_default.beam - the file already exists"
-        rm -Rf "$DOCSH_DIR"
-        exit 1
-    else
-        erlc -I "$DOCSH_DIR"/include -o "$ACTIVE_PATH"/lib/docsh/ "$DOCSH_DIR"/templates/user_default.erl
-    fi
 }
 
 download_manpages() {
@@ -2444,26 +2293,6 @@ case "$1" in
             else
                 do_install "$2" "$KERL_DEFAULT_INSTALL_DIR/$2"
             fi
-        fi
-        ;;
-    install-docsh)
-        ACTIVE_PATH="$(get_active_path)"
-        if [ -n "$ACTIVE_PATH" ]; then
-            ACTIVE_NAME="$(get_name_from_install_path "$ACTIVE_PATH")"
-            if [ -z "$ACTIVE_NAME" ]; then
-                ## TODO: Are git builds installed the usual way
-                ##       or do we need this clause to provide a fallback?
-                #BUILDNAME="$(basename "$ACTIVE_PATH")"
-                l=e stderr "$ACTIVE_PATH is not a kerl installation"
-                exit 1
-            else
-                BUILDNAME="$ACTIVE_NAME"
-            fi
-            install_docsh "$BUILDNAME" "$ACTIVE_PATH"
-            l=t stderr 'Please kerl_deactivate and activate again to enable docsh'
-        else
-            l=e stderr 'No Erlang/OTP installation is currently active - cannot install docsh'
-            exit 1
         fi
         ;;
     deploy)
