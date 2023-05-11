@@ -211,6 +211,13 @@ be either a branch, a tag or a commit id that will be passed to `git checkout`:
     Building Erlang/OTP 19.2_dev from git, please wait...
     Erlang/OTP 19.2_dev from git has been successfully built
 
+Debug
+-----
+
+If `KERL_DEBUG` is set to a value, then kerl will emit copious debug logging, including
+a best effort attempt at line numbers. (The line numbers may or may not be accurate if
+kerl is run under the `dash` shell` as is commonly found in Alpine Linux/Docker images.)
+
 Tuning
 ------
 
@@ -693,8 +700,8 @@ other tools to extract to path information.
     $ kerl path 19.2.3
     /aux/erlangs/19.2.3
 
-Compiling crypto on Macs
-------------------------
+Compiling crypto on older MacOSs
+--------------------------------
 
 Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
 own SSL library. That makes using homebrew the most convenient way to install
@@ -710,6 +717,13 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+11 May 2023 - 3.0.0
+
+  - Fix shellcheck issues (#442)
+  - For CI, force install OpenSSL 1.1 on Ubuntu 22 for older OTPs (#443, #444)
+  - NEW FEATURE: a single build install step! (#419)
+  - REMOVED: docsh functionality has been removed, as it no longer needed
+             for newer OTPs (#445)
 
 18 April 2023 - 2.6.0
 
