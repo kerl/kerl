@@ -717,6 +717,7 @@ will honor that instead, and will not do any automatic configuration.
 
 Changelog
 ---------
+
 11 May 2023 - 3.0.0
 
   - Fix shellcheck issues (#442)
