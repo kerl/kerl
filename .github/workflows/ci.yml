@@ -30,11 +30,9 @@ jobs:
             sudo apt-get update -y
             sudo apt-get upgrade -y
             sudo apt-get install -y --no-install-recommends \
-              curl ca-certificates git autoconf dpkg-dev \
-              zlib1g-dev libncurses5-dev libssl-dev unixodbc-dev libgmp3-dev \
-              libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libsctp-dev \
-              lksctp-tools build-essential gcc-9 m4 fop xsltproc \
-              default-jdk libxml2-utils procps valgrind binutils
+              git curl libssl-dev make automake autoconf libncurses5-dev gcc g++ default-jdk \
+              unixodbc-dev libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev xsltproc fop \
+              libxml2-utils libsctp-dev lksctp-tools
           fi
           echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
