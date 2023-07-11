@@ -336,10 +336,10 @@ If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing 
 Default: `chunks`
 Available targets:
 
- - `man`: install manpage docs.
- - `html`: install HTML docs.
- - `pdf`: install PDF docs.
- - `chunks`: install the "chunks" format to get documentation from the `erl` REPL.
+- `man`: install manpage docs.
+- `html`: install HTML docs.
+- `pdf`: install PDF docs.
+- `chunks`: install the "chunks" format to get documentation from the `erl` REPL.
 
 You can set multiple type of targets separated by space, example `$KERL_DOC_TARGETS="man html pdf chunks"`
 
@@ -375,8 +375,8 @@ erlang version (see [`$KERL_PROMPT_FORMAT`](#kerl_prompt_format) ).
 Default: `(%BUILDNAME%)`
 Available variables:
 
- - `%BUILDNAME%`: Name of the kerl build (e.g. `my_test_build_18.0`)
- - `%RELEASE%`: Name of the erlang release (e.g. `19.2` or `R16B02`)
+- `%BUILDNAME%`: Name of the kerl build (e.g. `my_test_build_18.0`)
+- `%RELEASE%`: Name of the erlang release (e.g. `19.2` or `R16B02`)
 
 The format of the prompt section to add.
 

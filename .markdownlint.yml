@@ -1,5 +1,4 @@
 default: true
-MD007: false # ul-indent
 MD013: false # line_length
 MD014: false # commands-show-output
 MD024:
