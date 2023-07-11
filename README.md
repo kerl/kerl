@@ -7,7 +7,7 @@
 
 Easy building and installing of [Erlang/OTP](https://www.erlang.org) instances.
 
-Kerl aims to be shell agnostic and its only dependencies, excluding what's
+`kerl` aims to be shell agnostic and its only dependencies, excluding what's
 required to actually build Erlang/OTP, are `curl` and `git`.
 
 All is done so that, once a specific release has been built, creating a new
@@ -22,7 +22,7 @@ become available.
 
 ## Triage cadence
 
-We triage kerl pull requests and issues at least once a month, typically on
+We triage `kerl` pull requests and issues at least once a month, typically on
 the fourth Tuesday of the month at 1 pm US/Pacific or 8 pm UTC.
 
 ## IRC channel
@@ -35,7 +35,7 @@ instead.
 ## Downloading
 
 If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew),
-you can install kerl, along with shell completion, by running:
+you can install `kerl`, along with shell completion, by running:
 
 ```sh
 brew install kerl
@@ -55,20 +55,20 @@ chmod a+x kerl
 
 and drop it in your $PATH
 
-Optionally download and install kerl's bash_completion file from
+Optionally download and install `kerl`'s bash_completion file from
 <https://github.com/kerl/kerl/raw/master/bash_completion/kerl>
 
-Optionally download and install kerl's zsh-completion file from
+Optionally download and install `kerl`'s zsh-completion file from
 <https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>
 
 ## How it works
 
-Kerl keeps tracks of the releases it downloads, builds and installs, allowing
+`kerl` keeps tracks of the releases it downloads, builds and installs, allowing
 easy installations to new destinations (without complete rebuilding) and easy
 switches between Erlang/OTP installations.
 
-By default, kerl downloads source tarballs from the [official repository tags](https://github.com/erlang/otp/tags)
-but you can tell kerl to download from the [official Erlang website](https://www.erlang.org/downloads)
+By default, `kerl` downloads source tarballs from the [official repository tags](https://github.com/erlang/otp/tags)
+but you can tell `kerl` to download from the [official Erlang website](https://www.erlang.org/downloads)
 by setting `KERL_BUILD_BACKEND=tarball`.
 However this website does not use HTTPS and is down more often than Github.
 
@@ -77,7 +77,7 @@ You can also install directly from a raw git repository by using the
 
 ## Usage
 
-List the available releases (kerl ignores releases < 10):
+List the available releases (`kerl` ignores releases < 10):
 
 <!-- markdownlint-disable MD007 # line-length -->
 ```sh
@@ -111,7 +111,7 @@ Building docs...
 Erlang/OTP 19.2 (19.2-builtdocs) has been successfully built
 ```
 
-(Note that kerl uses the otp_build script internally, and `./otp_build configure` disables HiPE on linux)
+(Note that `kerl` uses the otp_build script internally, and `./otp_build configure` disables HiPE on linux)
 
 You can verify your build has been registered:
 
@@ -183,7 +183,7 @@ The current active installation is:
 /Users/sanmiguel/kerl/19.2
 ```
 
-You can get an overview of the current kerl state with:
+You can get an overview of the current `kerl` state with:
 
 ```sh
 $ kerl status
@@ -238,7 +238,7 @@ R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03 R14B04 R15A R15B R15B01 R15B01_bash
 <!-- markdownlint-enable MD007 # line-length -->
 
 From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is
-possible to use kerl as normal:
+possible to use `kerl` as normal:
 
 ```sh
 kerl build R16B02_basho10 16b02-basho10
@@ -259,13 +259,13 @@ Erlang/OTP 19.2_dev from git has been successfully built
 
 ## Debug
 
-If `KERL_DEBUG` is set to a value, then kerl will emit copious debug logging, including
+If `KERL_DEBUG` is set to a value, then `kerl` will emit copious debug logging, including
 a best effort attempt at line numbers. (The line numbers may or may not be accurate if
-kerl is run under the `dash` shell, as is commonly found in Alpine Linux/Docker images.)
+`kerl` is run under the `dash` shell, as is commonly found in Alpine Linux/Docker images.)
 
 ## Tuning
 
-You can tune kerl using the .kerlrc file in your $HOME directory.
+You can tune `kerl` using the .kerlrc file in your $HOME directory.
 
 ## Colors configuration
 
@@ -290,12 +290,12 @@ Color for log levels can be overriden, by setting ANSI numerical color code to v
 ### KERL_BASE_DIR
 
 Default: `"$HOME"/.kerl`
-Directory in which kerl will cache artifacts for building and installing.
+Directory in which `kerl` will cache artifacts for building and installing.
 
 ### KERL_CONFIG
 
 Default: `"$HOME"/.kerlrc`
-File from which to source kerl configuration
+File from which to source `kerl` configuration
 
 ### KERL_DOWNLOAD_DIR
 
@@ -305,12 +305,12 @@ Directory in which to place downloaded artifacts
 ### KERL_BUILD_DIR
 
 Default: `${KERL_BASE_DIR}/builds`
-Directory in which kerl will perform builds
+Directory in which `kerl` will perform builds
 
 ### KERL_GIT_DIR
 
 Default: `${KERL_BASE_DIR}/gits`
-Directory in which kerl will clone git repositories for building.
+Directory in which `kerl` will clone git repositories for building.
 
 ## Build configuration
 
@@ -355,7 +355,7 @@ Acceptable values: `tarball`, `git`
 NB: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to
 `git`, one must also set [`$KERL_BUILD_DOCS`](#kerl_build_docs).
 
-NB: This setting has no effect when using `kerl build git...`, which invokes kerl to directly clone
+NB: This setting has no effect when using `kerl build git...`, which invokes `kerl` to directly clone
 a git repository and build from there.
 
 ### KERL_BUILD_DEBUG_VM
@@ -385,10 +385,10 @@ Acceptable value: any github fork of OTP, e.g. `https://github.com/basho/otp`
 
 ### KERL_BUILD_DOCS
 
-If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang version regardless of
+If `$KERL_BUILD_DOCS` is set, `kerl` will create docs from the built erlang version regardless of
 origin (`tarball` backend from erlang.org or via `kerl build git`, or via `git` backend).
 
-If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing a build created via
+If `$KERL_BUILD_DOCS` is unset, `kerl` will only install docs when NOT installing a build created via
 `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `KERL_INSTALL_MANPAGES`.
 
 ### KERL_DOC_TARGETS
@@ -437,7 +437,7 @@ erlang version (see [`$KERL_PROMPT_FORMAT`](#kerl_prompt_format) ).
 Default: `(%BUILDNAME%)`
 Available variables:
 
-- `%BUILDNAME%`: Name of the kerl build (e.g. `my_test_build_18.0`)
+- `%BUILDNAME%`: Name of the `kerl` build (e.g. `my_test_build_18.0`)
 - `%RELEASE%`: Name of the erlang release (e.g. `19.2` or `R16B02`)
 
 The format of the prompt section to add.
@@ -474,7 +474,7 @@ executed later. For example, the shell `export` commands in .kerlrc will affect
 
 ## Fish shell support
 
-kerl has basic support for the fish shell.
+`kerl` has basic support for the fish shell.
 
 To activate an installation:
 
@@ -488,12 +488,12 @@ Deactivation is the same as in other shells:
 kerl_deactivate
 ```
 
-Please note: if you've installed a build with an older version of kerl
+Please note: if you've installed a build with an older version of `kerl`
 (1.2.0 older) it won't have the `activate.fish` script.
 
 ## C shell support
 
-kerl has basic support for the C shells (csh/tcsh/etc.).
+`kerl` has basic support for the C shells (csh/tcsh/etc.).
 
 To activate an installation:
 
@@ -509,12 +509,12 @@ Deactivation is the same as in other shells:
 kerl_deactivate
 ```
 
-Please note: if you've installed a build with an older version of kerl
+Please note: if you've installed a build with an older version of `kerl`
 it won't have the `activate.csh` script.
 
 ## Glossary
 
-Here are the abstractions kerl is handling:
+Here are the abstractions `kerl` is handling:
 
 - **releases**: Erlang/OTP releases from [erlang.org](https://erlang.org)
 
@@ -586,7 +586,7 @@ Configure variables which includes spaces such as those in `CFLAGS` cannot be
 passed on with `KERL_CONFIGURE_OPTIONS`. In such a case you can use shell
 `export` command to define the environment variables for `./configure`. Note
 well: this method has a side effect to change your shell execution environment
-after activating a kerl installation of Erlang/OTP. Here is an example of
+after activating a `kerl` installation of Erlang/OTP. Here is an example of
 .kerlrc for building Erlang/OTP for FreeBSD with clang compiler:
 
 <!-- markdownlint-disable MD007 # line-length -->
@@ -608,8 +608,8 @@ export TMP_DIR=/your/custom/temporary/dir
 
 #### Building documentation
 
-Prior to kerl 1.0, kerl always downloaded prepared documentation from
-erlang.org. Now if `KERL_BUILD_DOCS=yes` is set, kerl will build the man pages
+Prior to `kerl` 1.0, `kerl` always downloaded prepared documentation from
+erlang.org. Now if `KERL_BUILD_DOCS=yes` is set, `kerl` will build the man pages
 and HTML
 documentation from the source repository in which is working.
 
@@ -633,15 +633,15 @@ If path is omitted the current working directory will be used. However, if
 
 #### Install location restrictions
 
-**WARNING**: kerl assumes the given installation directory is for its sole use.
+**WARNING**: `kerl` assumes the given installation directory is for its sole use.
 If you later delete it with the `kerl delete` command, the whole directory will
 be deleted, along with anything you may have added to it!
 
-So please only install kerl in an empty (or non-existant) directory.
+So please only install `kerl` in an empty (or non-existant) directory.
 
-If you attempt to install kerl in `$HOME` or `.erlang` or `$KERL_BASE_DIR`,
-then kerl will give you an error and refuse to proceed. If you try to install
-kerl in a directory that exists and is not empty, kerl will give you an error.
+If you attempt to install `kerl` in `$HOME` or `.erlang` or `$KERL_BASE_DIR`,
+then `kerl` will give you an error and refuse to proceed. If you try to install
+`kerl` in a directory that exists and is not empty, `kerl` will give you an error.
 
 #### Tuning
 
@@ -669,7 +669,7 @@ command line.
 #### Documentation installation
 
 Man pages will be installed to `[path]/man` and HTML docs will be installed in
-`[path]/html`.  The kerl `activate` script manipulates the MANPATH of the current
+`[path]/html`.  The `kerl` `activate` script manipulates the MANPATH of the current
 shell such that `man 3 gen_server` or `erl -man gen_server` should work perfectly.
 
 (Do not fret - `kerl_deactivate` restores your shell's MANPATH to whatever its
@@ -691,7 +691,7 @@ If remote_directory is omitted the specified directory will be used.
 
 If directory and remote_directory is omitted the current working directory will be used.
 
-*NOTE*: kerl assumes the specified host is accessible via `ssh` and `rsync`.
+*NOTE*: `kerl` assumes the specified host is accessible via `ssh` and `rsync`.
 
 #### Tuning
 
@@ -789,7 +789,7 @@ kerl path [installation]
 
 Prints the path of the currently active installation if one is active. When given an
 installation name, it will return the path to that installation location on disk.
-This makes it useful for automation without having to run kerl's output through
+This makes it useful for automation without having to run `kerl`'s output through
 other tools to extract to path information.
 
 ```sh
@@ -810,10 +810,10 @@ openssl on macOS 10.11 or later. Additionally, homebrew [stopped creating](https
 symlinks from the homebrew installation directory to `/usr/local`, so in
 response to this, *if* you're running El Capitan, Sierra, or High Sierra
 *and* you have homebrew installed, *and* you used it to install openssl,
-kerl will ask homebrew for the openssl installation prefix and configure Erlang
+`kerl` will ask homebrew for the openssl installation prefix and configure Erlang
 to build with that location automatically.
 
-**Important**: If you already have `--with-ssl` in your .kerlrc, kerl
+**Important**: If you already have `--with-ssl` in your .kerlrc, `kerl`
 will honor that instead, and will not do any automatic configuration.
 
 ## Code of conduct
