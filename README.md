@@ -816,6 +816,10 @@ to build with that location automatically.
 **Important**: If you already have `--with-ssl` in your .kerlrc, kerl
 will honor that instead, and will not do any automatic configuration.
 
+## Code of conduct
+
+You can read more about our code of conduct at [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
 ## Contributing to kerl
 
 Contributions are welcome! Be sure to read and follow the general guidelines made explicit in
