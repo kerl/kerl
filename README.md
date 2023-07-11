@@ -797,6 +797,11 @@ to build with that location automatically.
 **Important**: If you already have `--with-ssl` in your .kerlrc, kerl
 will honor that instead, and will not do any automatic configuration.
 
+## License
+
+`kerl` is MIT-licensed, as per [LICENSE.md](LICENSE.md). You'll also find the same license notice
+inside the distributable shell script.
+
 ## Changelog
 
 Check [CHANGELOG.md](CHANGELOG.md) and also [GitHub releases](https://github.com/kerl/kerl/releases).
