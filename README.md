@@ -816,6 +816,11 @@ to build with that location automatically.
 **Important**: If you already have `--with-ssl` in your .kerlrc, kerl
 will honor that instead, and will not do any automatic configuration.
 
+## Contributing to kerl
+
+Contributions are welcome! Be sure to read and follow the general guidelines made explicit in
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 `kerl` is MIT-licensed, as per [LICENSE.md](LICENSE.md). You'll also find the same license notice
