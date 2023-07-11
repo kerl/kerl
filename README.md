@@ -1,5 +1,4 @@
-kerl [![GitHub Actions CI][ci-img]][ci] [![GitHub Actions Lint][lint-img]][lint]
-====
+# kerl [![GitHub Actions CI][ci-img]][ci] [![GitHub Actions Lint][lint-img]][lint]
 
 [ci-img]: https://github.com/kerl/kerl/actions/workflows/ci.yml/badge.svg
 [ci]: https://github.com/kerl/kerl/actions/workflows/ci.yml
@@ -14,30 +13,26 @@ required to actually build Erlang/OTP, are `curl` and `git`.
 All is done so that, once a specific release has been built, creating a new
 installation is as fast as possible.
 
-OTP Support Policy
-------------------
+## OTP Support Policy
 
 As of 2021 September 17, we are supporting the current OTP release version
 and 2 prior release versions (same as upstream OTP.) Older OTP releases
 may or may not work. We will advance release support as new releases of OTP
 become available.
 
-Triage cadence
---------------
+## Triage cadence
 
 We triage kerl pull requests and issues at least once a month, typically on
 the fourth Tuesday of the month at 1 pm US/Pacific or 8 pm UTC.
 
-IRC channel
------------
+## IRC channel
 
 We have a channel on [Libera](https://web.libera.chat/gamja/) called `#kerl` -
 feel free to join and ask support or implementation questions any time. If
 no one is around, feel free to open an issue with your question or problem
 instead.
 
-Downloading
------------
+## Downloading
 
 If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew),
 you can install kerl, along with shell completion, by running:
@@ -60,8 +55,7 @@ Optionally download and install kerl's bash_completion file from
 Optionally download and install kerl's zsh-completion file from
 <https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>
 
-How it works
-------------
+## How it works
 
 Kerl keeps tracks of the releases it downloads, builds and installs, allowing
 easy installations to new destinations (without complete rebuilding) and easy
@@ -73,8 +67,7 @@ However this website does not use HTTPS and is down more often than Github.
 
 You can also install directly from a raw git repository by using the `kerl build git <git_url> <git_version> <build_name>` syntax.
 
-Usage
------
+## Usage
 
 List the available releases (kerl ignores releases < 10):
 
@@ -184,8 +177,7 @@ You can easily deploy an installation to another host having `ssh` and `rsync` a
     Later on, you can leave the installation typing:
     kerl_deactivate
 
-Building from a github fork
----------------------------
+## Building from a github fork
 
 It is possible to build Erlang from a github fork, by using the `KERL_BUILD_BACKEND=git` and setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build Basho's OTP fork:
 
@@ -199,8 +191,7 @@ From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables rema
 
     $ kerl build R16B02_basho10 16b02-basho10
 
-Building from a git source
---------------------------
+## Building from a git source
 
 You can build Erlang directly from a git repository with a command of the form
 `kerl build git <git_url> <git_version> <build_name>` where `<git_version>` can
@@ -211,15 +202,13 @@ be either a branch, a tag or a commit id that will be passed to `git checkout`:
     Building Erlang/OTP 19.2_dev from git, please wait...
     Erlang/OTP 19.2_dev from git has been successfully built
 
-Debug
------
+## Debug
 
 If `KERL_DEBUG` is set to a value, then kerl will emit copious debug logging, including
 a best effort attempt at line numbers. (The line numbers may or may not be accurate if
 kerl is run under the `dash` shell` as is commonly found in Alpine Linux/Docker images.)
 
-Tuning
-------
+## Tuning
 
 You can tune kerl using the .kerlrc file in your $HOME directory.
 
@@ -414,16 +403,14 @@ If set, `kerl` is installed at `$KERL_APP_INSTALL_DIR/kerl`.
 
 Options passed to `ssh` and `rsync` during `kerl deploy` tasks.
 
-Note on .kerlrc
----------------
+## Note on .kerlrc
 
 Since .kerlrc is a dot file for `/bin/sh`, running shell commands inside the
 .kerlrc will affect the shell and environment variables for the commands being
 executed later. For example, the shell `export` commands in .kerlrc will affect
 *your login shell environment* when activating `curl`.  Use with care.
 
-Fish shell support
-------------------
+## Fish shell support
 
 kerl has basic support for the fish shell.
 
@@ -438,8 +425,7 @@ Deactivation is the same as in other shells:
 Please note: if you've installed a build with an older version of kerl
 (1.2.0 older) it won't have the `activate.fish` script.
 
-C shell support
----------------
+## C shell support
 
 kerl has basic support for the C shells (csh/tcsh/etc.).
 
@@ -456,8 +442,7 @@ Deactivation is the same as in other shells:
 Please note: if you've installed a build with an older version of kerl
 it won't have the `activate.csh` script.
 
-Glossary
---------
+## Glossary
 
 Here are the abstractions kerl is handling:
 
@@ -467,8 +452,7 @@ Here are the abstractions kerl is handling:
 
 - **installations**: the result of deploying builds to filesystem locations (also referred to as "sandboxes")
 
-Commands reference
-------------------
+## Commands reference
 
 ### build
 
@@ -700,8 +684,7 @@ other tools to extract to path information.
     $ kerl path 19.2.3
     /aux/erlangs/19.2.3
 
-Compiling crypto on older MacOSs
---------------------------------
+## Compiling crypto on older MacOSs
 
 Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
 own SSL library. That makes using homebrew the most convenient way to install
@@ -715,8 +698,7 @@ to build with that location automatically.
 **Important**: If you already have `--with-ssl` in your .kerlrc, kerl
 will honor that instead, and will not do any automatic configuration.
 
-Changelog
----------
+## Changelog
 
 11 May 2023 - 3.0.0
 
