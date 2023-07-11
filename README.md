@@ -352,7 +352,7 @@ Acceptable values: `tarball`, `git`
 - `tarball`: Fetch erlang releases from erlang.org
 - `git`: Fetch erlang releases from [`$OTP_GITHUB_URL`](#otp_github_url)
 
-NB: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to
+**Note**: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to
 `git`, one must also set [`$KERL_BUILD_DOCS`](#kerl_build_docs).
 
 NB: This setting has no effect when using `kerl build git...`, which invokes `kerl` to directly clone
@@ -368,9 +368,9 @@ NB: Enable this build using `KERL_BUILD_DEBUG_VM=true`
 Allows building, alongside the regular VM, a list of various runtime types for debugging
 (such as `cerl -debug` or `cerl -asan`)
 
-NB: Enable this build using `KERL_RELEASE_TARGET="debug asan"`
+**Note**: Enable this build using `KERL_RELEASE_TARGET="debug asan"`
 
-NB: available types: opt, gcov, gprof, debug, valgrind, asan or lcnt
+**Note**: available types: opt, gcov, gprof, debug, valgrind, asan or lcnt
 
 For more information:
 
