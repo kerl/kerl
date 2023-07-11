@@ -2,5 +2,6 @@
 default: true
 MD013:
   line_length: 100
+MD014: false  # commands-show-output
 MD024:
   siblings_only: true
