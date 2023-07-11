@@ -37,15 +37,21 @@ instead.
 If you are on MacOS, and using [homebrew](https://github.com/Homebrew/brew),
 you can install kerl, along with shell completion, by running:
 
-    brew install kerl
+```sh
+brew install kerl
+```
 
 Alternatively, you can download the script directly from github:
 
-    curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
+```sh
+curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
+```
 
 Then ensure it is executable
 
-    chmod a+x kerl
+```sh
+chmod a+x kerl
+```
 
 and drop it in your $PATH
 
@@ -71,54 +77,68 @@ You can also install directly from a raw git repository by using the `kerl build
 
 List the available releases (kerl ignores releases < 10):
 
-    $ kerl list releases
-    R10B-0 R10B-10 R10B-1a R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7 R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1 R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B01 R13B02-1 R13B02 R13B03 R13B04 R13B R14A R14B01 R14B02 R14B03 R14B04 R14B R14B_erts-5.8.1.1 R15B01 R15B02 R15B02_with_MSVCR100_installer_fix R15B03-1 R15B03 R15B R16A_RELEASE_CANDIDATE R16B01 R16B02 R16B03-1 R16B03 R16B 17.0-rc1 17.0-rc2 17.0 17.1 17.3 17.4 17.5 18.0 18.1 18.2 18.2.1 18.3 19.0 19.1 19.2
-    Run '/usr/local/bin/kerl update releases' to update this list from erlang.org
+```sh
+$ kerl list releases
+R10B-0 R10B-10 R10B-1a R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7 R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1 R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B01 R13B02-1 R13B02 R13B03 R13B04 R13B R14A R14B01 R14B02 R14B03 R14B04 R14B R14B_erts-5.8.1.1 R15B01 R15B02 R15B02_with_MSVCR100_installer_fix R15B03-1 R15B03 R15B R16A_RELEASE_CANDIDATE R16B01 R16B02 R16B03-1 R16B03 R16B 17.0-rc1 17.0-rc2 17.0 17.1 17.3 17.4 17.5 18.0 18.1 18.2 18.2.1 18.3 19.0 19.1 19.2
+Run '/usr/local/bin/kerl update releases' to update this list from erlang.org
+```
 
 Pick your choice and build it:
 
-    $ kerl build 19.2 19.2
-    Verifying archive checksum...
-    Checksum verified (7cdd18a826dd7bda0ca46d1c3b2efca6)
-    Extracting source code
-    Building Erlang/OTP 19.2 (19.2), please wait...
-    Erlang/OTP 19.2 (19.2) has been successfully built
+```sh
+$ kerl build 19.2 19.2
+Verifying archive checksum...
+Checksum verified (7cdd18a826dd7bda0ca46d1c3b2efca6)
+Extracting source code
+Building Erlang/OTP 19.2 (19.2), please wait...
+Erlang/OTP 19.2 (19.2) has been successfully built
+```
 
 Note that named builds allow you to have different builds for the same Erlang/OTP release with different configure options:
 
-    $ KERL_BUILD_DOCS=yes kerl build 19.2 19.2-builtdocs
-    Verifying archive checksum...
-    Checksum verified (7cdd18a826dd7bda0ca46d1c3b2efca6)
-    Extracting source code
-    Building Erlang/OTP 19.2 (19.2-builtdocs), please wait...
-    Building docs...
-    Erlang/OTP 19.2 (19.2-builtdocs) has been successfully built
+```sh
+$ KERL_BUILD_DOCS=yes kerl build 19.2 19.2-builtdocs
+Verifying archive checksum...
+Checksum verified (7cdd18a826dd7bda0ca46d1c3b2efca6)
+Extracting source code
+Building Erlang/OTP 19.2 (19.2-builtdocs), please wait...
+Building docs...
+Erlang/OTP 19.2 (19.2-builtdocs) has been successfully built
+```
 
 (Note that kerl uses the otp_build script internally, and `./otp_build configure` disables HiPE on linux)
 
 You can verify your build has been registered:
 
-    $ kerl list builds
-    19.2,19.2
-    19.2,19.2-builtdocs
+```sh
+$ kerl list builds
+19.2,19.2
+19.2,19.2-builtdocs
+```
 
 Now install a build to some location:
 
-    $ kerl install 19.2 ~/kerl/19.2
-    Installing Erlang/OTP 19.2 (19.2) in /Users/sanmiguel/kerl/19.2...
-    You can activate this installation running the following command:
-    . /Users/sanmiguel/kerl/19.2/activate
-    Later on, you can leave the installation typing:
-    kerl_deactivate
+```sh
+$ kerl install 19.2 ~/kerl/19.2
+Installing Erlang/OTP 19.2 (19.2) in /Users/sanmiguel/kerl/19.2...
+You can activate this installation running the following command:
+. /Users/sanmiguel/kerl/19.2/activate
+Later on, you can leave the installation typing:
+kerl_deactivate
+```
 
 Here again you can check the installation's been registered:
 
-    $ kerl list installations
-    19.2 /Users/sanmiguel/kerl/19.2
+```sh
+$ kerl list installations
+19.2 /Users/sanmiguel/kerl/19.2
+```
 
 And at last activate it:
 
-    $ . /path/to/install/dir/activate
+```sh
+. /path/to/install/dir/activate
+```
 
 Activation will backup your $PATH, prepend it with the installation's bin/
 directory. Thus it's only valid for the current shell session, and until you
@@ -127,69 +147,92 @@ activate another installation or call `kerl_deactivate`.
 **Note**: alternatively you can use `kerl build-install` as a shortcut for
 the two previous actions to be played in sequence.
 
-    $ kerl build-install
-    usage: ./kerl build-install <release> [build_name] [directory]
+```sh
+$ kerl build-install
+usage: ./kerl build-install <release> [build_name] [directory]
+```
 
-    $ kerl build-install git
-    usage: ./kerl build-install git <git_url> <git_version> <build_name> [directory]
+```sh
+$ kerl build-install git
+usage: ./kerl build-install git <git_url> <git_version> <build_name> [directory]
+```
 
 You're now ready to work with your 19.2 installation:
 
-    $ erl -version
-    Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 8.2
+```sh
+$ erl -version
+Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 8.2
+```
 
 When you're done just call the shell function:
 
-    $ kerl_deactivate
+```sh
+kerl_deactivate
+```
 
 Anytime you can check which installation, if any, is currently active with:
 
-    $ kerl active
-    The current active installation is:
-    /Users/sanmiguel/kerl/19.2
+```sh
+$ kerl active
+The current active installation is:
+/Users/sanmiguel/kerl/19.2
+```
 
 You can get an overview of the current kerl state with:
 
-    $ kerl status
-    Available builds:
-    19.2,19.2
-    ----------
-    Available installations:
-    19.2 /Users/sanmiguel/kerl/19.2
-    ----------
-    The current active installation is:
-    /Users/sanmiguel/kerl/19.2
-    There's no Dialyzer PLT for the active installation
+```sh
+$ kerl status
+Available builds:
+19.2,19.2
+----------
+Available installations:
+19.2 /Users/sanmiguel/kerl/19.2
+----------
+The current active installation is:
+/Users/sanmiguel/kerl/19.2
+There's no Dialyzer PLT for the active installation
+```
 
 You can delete builds and installations with the following commands:
 
-    $ kerl delete build 19.2
-    The 19.2 build has been deleted
-    $ kerl delete installation /path/to/install/dir
-    The installation in /path/to/install/dir has been deleted
+```sh
+$ kerl delete build 19.2
+The 19.2 build has been deleted
+```
+
+```sh
+$ kerl delete installation /path/to/install/dir
+The installation in /path/to/install/dir has been deleted
+```
 
 You can easily deploy an installation to another host having `ssh` and `rsync` access with the following command:
 
-    $ kerl deploy anotherhost /path/to/install/dir
-    Cloning Erlang/OTP 19.2 (/path/to/install/dir) to anotherhost (/path/to/install/dir) ...
-    On anotherhost, you can activate this installation running the following command:
-    . /path/to/install/dir/activate
-    Later on, you can leave the installation typing:
-    kerl_deactivate
+```sh
+$ kerl deploy anotherhost /path/to/install/dir
+Cloning Erlang/OTP 19.2 (/path/to/install/dir) to anotherhost (/path/to/install/dir) ...
+On anotherhost, you can activate this installation running the following command:
+. /path/to/install/dir/activate
+Later on, you can leave the installation typing:
+kerl_deactivate
+```
 
 ## Building from a github fork
 
 It is possible to build Erlang from a github fork, by using the `KERL_BUILD_BACKEND=git` and setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build Basho's OTP fork:
 
-    $ export KERL_BUILD_BACKEND=git
-    $ export OTP_GITHUB_URL='https://github.com/basho/otp'
-    $ kerl update releases
-    The available releases are:
-    R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03 R14B04 R15A R15B R15B01 R15B01_basho1 R15B01p R15B02 R15B03 R15B03-1 R16A_RELEASE_CANDIDATE R16B R16B01 R16B01_RC1 R16B02 R16B02_basho R16B02_basho10 R16B02_basho10rc1 R16B02_basho10rc2 R16B02_basho10rc3 R16B02_basho2 R16B02_basho3 R16B02_basho4 R16B02_basho5 R16B02_basho6 R16B02_basho7 R16B02_basho8 R16B02_basho9 R16B02_basho9rc1 R16B03 R16B03-1 R16B03_yielding_binary_to_term 17.0 17.0-rc1 17.0-rc2 17.0.1 17.0.2 17.1 17.1.1 17.1.2 17.2 17.2.1 17.2.2 17.3 17.3.1 17.3.2 17.3.3 17.3.4 17.4 17.4.1 17.5 17.5.1 17.5.2 17.5.3 17.5.4 17.5.5 17.5.6 17.5.6.1 17.5.6.2 17.5.6.3 17.5.6.4 17.5.6.5 17.5.6.6 17.5.6.7 17.5.6.8 17.5.6.9 18.0 18.0-rc1 18.0-rc2 18.0.1 18.0.2 18.0.3 18.1 18.1.1 18.1.2 18.1.3 18.1.4 18.1.5 18.2 18.2.1 18.2.2 18.2.3 18.2.4 18.2.4.1 18.3 18.3.1 18.3.2 18.3.3 18.3.4 18.3.4.1 19.0 19.0-rc1 19.0-rc2 19.0.2
+```sh
+$ export KERL_BUILD_BACKEND=git
+$ export OTP_GITHUB_URL='https://github.com/basho/otp'
+$ kerl update releases
+The available releases are:
+R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03 R14B04 R15A R15B R15B01 R15B01_basho1 R15B01p R15B02 R15B03 R15B03-1 R16A_RELEASE_CANDIDATE R16B R16B01 R16B01_RC1 R16B02 R16B02_basho R16B02_basho10 R16B02_basho10rc1 R16B02_basho10rc2 R16B02_basho10rc3 R16B02_basho2 R16B02_basho3 R16B02_basho4 R16B02_basho5 R16B02_basho6 R16B02_basho7 R16B02_basho8 R16B02_basho9 R16B02_basho9rc1 R16B03 R16B03-1 R16B03_yielding_binary_to_term 17.0 17.0-rc1 17.0-rc2 17.0.1 17.0.2 17.1 17.1.1 17.1.2 17.2 17.2.1 17.2.2 17.3 17.3.1 17.3.2 17.3.3 17.3.4 17.4 17.4.1 17.5 17.5.1 17.5.2 17.5.3 17.5.4 17.5.5 17.5.6 17.5.6.1 17.5.6.2 17.5.6.3 17.5.6.4 17.5.6.5 17.5.6.6 17.5.6.7 17.5.6.8 17.5.6.9 18.0 18.0-rc1 18.0-rc2 18.0.1 18.0.2 18.0.3 18.1 18.1.1 18.1.2 18.1.3 18.1.4 18.1.5 18.2 18.2.1 18.2.2 18.2.3 18.2.4 18.2.4.1 18.3 18.3.1 18.3.2 18.3.3 18.3.4 18.3.4.1 19.0 19.0-rc1 19.0-rc2 19.0.2
+```
 
 From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is possible to use kerl as normal:
 
-    $ kerl build R16B02_basho10 16b02-basho10
+```sh
+kerl build R16B02_basho10 16b02-basho10
+```
 
 ## Building from a git source
 
@@ -197,10 +240,12 @@ You can build Erlang directly from a git repository with a command of the form
 `kerl build git <git_url> <git_version> <build_name>` where `<git_version>` can
 be either a branch, a tag or a commit id that will be passed to `git checkout`:
 
-    $ kerl build git https://github.com/erlang/otp.git dev 19.2_dev
-    Checking Erlang/OTP git repository from https://github.com/erlang/otp.git...
-    Building Erlang/OTP 19.2_dev from git, please wait...
-    Erlang/OTP 19.2_dev from git has been successfully built
+```sh
+$ kerl build git https://github.com/erlang/otp.git dev 19.2_dev
+Checking Erlang/OTP git repository from https://github.com/erlang/otp.git...
+Building Erlang/OTP 19.2_dev from git, please wait...
+Erlang/OTP 19.2_dev from git has been successfully built
+```
 
 ## Debug
 
@@ -416,11 +461,15 @@ kerl has basic support for the fish shell.
 
 To activate an installation:
 
-    source /path/to/install/dir/activate.fish
+```sh
+source /path/to/install/dir/activate.fish
+```
 
 Deactivation is the same as in other shells:
 
-    kerl_deactivate
+```sh
+kerl_deactivate
+```
 
 Please note: if you've installed a build with an older version of kerl
 (1.2.0 older) it won't have the `activate.fish` script.
@@ -431,13 +480,17 @@ kerl has basic support for the C shells (csh/tcsh/etc.).
 
 To activate an installation:
 
-    source /path/to/install/dir/activate.csh
+```sh
+source /path/to/install/dir/activate.csh
+```
 
 The activation script sources file .kerlrc.csh instead of .kerlrc.
 
 Deactivation is the same as in other shells:
 
-    kerl_deactivate
+```sh
+kerl_deactivate
+```
 
 Please note: if you've installed a build with an older version of kerl
 it won't have the `activate.csh` script.
@@ -456,13 +509,17 @@ Here are the abstractions kerl is handling:
 
 ### build
 
-    kerl build <release_code> <build_name>
-    kerl build git <git_url> <git_version> <build_name>
+```sh
+kerl build <release_code> <build_name>
+kerl build git <git_url> <git_version> <build_name>
+```
 
 Creates a named build either from an official Erlang/OTP release or from a git repository.
 
-    $ kerl build 19.2 19.2
-    $ kerl build git https://github.com/erlang/otp dev 19.2_dev
+```sh
+kerl build 19.2 19.2
+kerl build git https://github.com/erlang/otp dev 19.2_dev
+```
 
 #### Tuning
 
@@ -473,7 +530,9 @@ You can specify the configure options to use when building Erlang/OTP with the
 prepending it to the command line.  Full list of all options can be in
 [Erlang documentation](https://erlang.org/doc/installation_guide/INSTALL.html#Advanced-configuration-and-build-of-ErlangOTP_Configuring).
 
-    $ KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build 19.2 19.2-hipe
+```sh
+KERL_CONFIGURE_OPTIONS=--enable-hipe kerl build 19.2 19.2-hipe
+```
 
 ##### Configure applications
 
@@ -482,7 +541,9 @@ If non-empty, you can specify the subset of applications to use when building
 variable, either in your $HOME/.kerlrc file or prepending it to the command
 line.
 
-    $ KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl" kerl build R15B01 r15b01_minimal
+```sh
+KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl" kerl build R15B01 r15b01_minimal
+```
 
 ##### Configure disable applications
 
@@ -491,7 +552,9 @@ building (and subsequent installing) Erlang/OTP with the
 `KERL_CONFIGURE_DISABLE_APPLICATIONS` variable, either in your $HOME/.kerlrc
 file or prepending it to the command line.
 
-    $ KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc" kerl build R16B02 r16b02_no_odbc
+```sh
+KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc" kerl build R16B02 r16b02_no_odbc
+```
 
 ##### Enable autoconf
 
@@ -509,16 +572,20 @@ well: this method has a side effect to change your shell execution environment
 after activating a kerl installation of Erlang/OTP. Here is an example of
 .kerlrc for building Erlang/OTP for FreeBSD with clang compiler:
 
-    # for clang
-    export CC=clang CXX=clang CFLAGS="-g -O3 -fstack-protector" LDFLAGS="-fstack-protector"
-    # compilation options
-    KERL_CONFIGURE_OPTIONS="--disable-native-libs --enable-vm-probes --with-dynamic-trace=dtrace --with-ssl=/usr/local --with-javac --enable-hipe --enable-kernel-poll --with-wx-config=/usr/local/bin/wxgtk2u-2.8-config --without-odbc --enable-threads --enable-sctp --enable-smp-support"
+```sh
+# for clang
+export CC=clang CXX=clang CFLAGS="-g -O3 -fstack-protector" LDFLAGS="-fstack-protector"
+# compilation options
+KERL_CONFIGURE_OPTIONS="--disable-native-libs --enable-vm-probes --with-dynamic-trace=dtrace --with-ssl=/usr/local --with-javac --enable-hipe --enable-kernel-poll --with-wx-config=/usr/local/bin/wxgtk2u-2.8-config --without-odbc --enable-threads --enable-sctp --enable-smp-support"
+```
 
 In case you cannot access the default directory for temporary files (`/tmp`) or
 simply want them somewhere else, you can also provide your own directory with
 the variable `TMP_DIR`
 
-    export TMP_DIR=/your/custom/temporary/dir
+```sh
+export TMP_DIR=/your/custom/temporary/dir
+```
 
 #### Building documentation
 
@@ -531,11 +598,15 @@ documentation from the source repository in which is working.
 
 ### install
 
-    kerl install <build_name> [path]
+```sh
+kerl install <build_name> [path]
+```
 
 Installs a named build to the specified filesystem location.
 
-    $ kerl install 19.2 /srv/otp/19.2
+```sh
+kerl install 19.2 /srv/otp/19.2
+```
 
 If path is omitted the current working directory will be used. However, if
 `KERL_DEFAULT_INSTALL_DIR` is defined in ~/.kerlrc,
@@ -587,11 +658,15 @@ original value was.)
 
 ### deploy
 
-    kerl deploy <[user@]host> [directory] [remote_directory]
+```sh
+kerl deploy <[user@]host> [directory] [remote_directory]
+```
 
 Deploys the specified installation to the given host and location.
 
-    $ kerl deploy anotherhost /path/to/install/dir
+```sh
+kerl deploy anotherhost /path/to/install/dir
+```
 
 If remote_directory is omitted the specified directory will be used.
 
@@ -615,7 +690,9 @@ command line, e.g. `KERL_DEPLOY_RSYNC_OPTIONS='--delete'`.
 
 ### update
 
-    kerl update releases
+```sh
+kerl update releases
+```
 
 If `KERL_BUILD_BACKEND=tarball` this command fetches the up-to-date list of OTP
 releases from erlang.org.
@@ -625,64 +702,86 @@ list of OTP tags from the official OTP github repository.
 
 ### list
 
-    kerl list <releases|builds|installations>
+```sh
+kerl list <releases|builds|installations>
+```
 
 Lists the releases, builds or installations available.
 
 ### delete
 
-    kerl delete build <build_name>
-    kerl delete installation <path>
+```sh
+kerl delete build <build_name>
+kerl delete installation <path>
+```
 
 Deletes the specified build or installation.
 
-    $ kerl delete build 19.2
-    The 19.2 build has been deleted
+```sh
+$ kerl delete build 19.2
+The 19.2 build has been deleted
+```
 
-    $ kerl delete installation /srv/otp/19.2
-    The installation in /srv/otp/19.2 has been deleted
+```sh
+$ kerl delete installation /srv/otp/19.2
+The installation in /srv/otp/19.2 has been deleted
+```
 
 ### active
 
-    kerl active
+```sh
+kerl active
+```
 
 Prints the path of the currently active installation, if any.
 
-    $ kerl active
-    The current active installation is:
-    /srv/otp/19.2
+```sh
+$ kerl active
+The current active installation is:
+/srv/otp/19.2
+```
 
 ### status
 
-    kerl status
+```sh
+kerl status
+```
 
 Prints the available builds and installations as well as the currently active installation.
 
-    $ kerl status
-    Available builds:
-    19.2,19.2
-    git,19.2_dev
-    ----------
-    Available installations:
-    19.2 /srv/otp/19.2
-    19.2 /srv/otp/19.2_dev
-    ----------
-    No Erlang/OTP kerl installation is currently active
+```sh
+$ kerl status
+Available builds:
+19.2,19.2
+git,19.2_dev
+----------
+Available installations:
+19.2 /srv/otp/19.2
+19.2 /srv/otp/19.2_dev
+----------
+No Erlang/OTP kerl installation is currently active
+```
 
 ### path
 
-    kerl path [installation]
+```sh
+kerl path [installation]
+```
 
 Prints the path of the currently active installation if one is active. When given an
 installation name, it will return the path to that installation location on disk.
 This makes it useful for automation without having to run kerl's output through
 other tools to extract to path information.
 
-    $ kerl path
-    No active kerl-managed erlang installation
+```sh
+$ kerl path
+No active kerl-managed erlang installation
+```
 
-    $ kerl path 19.2.3
-    /aux/erlangs/19.2.3
+```sh
+$ kerl path 19.2.3
+/aux/erlangs/19.2.3
+```
 
 ## Compiling crypto on older MacOSs
 
