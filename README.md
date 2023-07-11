@@ -68,20 +68,24 @@ easy installations to new destinations (without complete rebuilding) and easy
 switches between Erlang/OTP installations.
 
 By default, kerl downloads source tarballs from the [official repository tags](https://github.com/erlang/otp/tags)
-but you can tell kerl to download from the [official Erlang website](https://www.erlang.org/downloads) by setting `KERL_BUILD_BACKEND=tarball`.
+but you can tell kerl to download from the [official Erlang website](https://www.erlang.org/downloads)
+by setting `KERL_BUILD_BACKEND=tarball`.
 However this website does not use HTTPS and is down more often than Github.
 
-You can also install directly from a raw git repository by using the `kerl build git <git_url> <git_version> <build_name>` syntax.
+You can also install directly from a raw git repository by using the
+`kerl build git <git_url> <git_version> <build_name>` syntax.
 
 ## Usage
 
 List the available releases (kerl ignores releases < 10):
 
+<!-- markdownlint-disable MD007 # line-length -->
 ```sh
 $ kerl list releases
 R10B-0 R10B-10 R10B-1a R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7 R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1 R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B01 R13B02-1 R13B02 R13B03 R13B04 R13B R14A R14B01 R14B02 R14B03 R14B04 R14B R14B_erts-5.8.1.1 R15B01 R15B02 R15B02_with_MSVCR100_installer_fix R15B03-1 R15B03 R15B R16A_RELEASE_CANDIDATE R16B01 R16B02 R16B03-1 R16B03 R16B 17.0-rc1 17.0-rc2 17.0 17.1 17.3 17.4 17.5 18.0 18.1 18.2 18.2.1 18.3 19.0 19.1 19.2
 Run '/usr/local/bin/kerl update releases' to update this list from erlang.org
 ```
+<!-- markdownlint-enable MD007 # line-length -->
 
 Pick your choice and build it:
 
@@ -94,7 +98,8 @@ Building Erlang/OTP 19.2 (19.2), please wait...
 Erlang/OTP 19.2 (19.2) has been successfully built
 ```
 
-Note that named builds allow you to have different builds for the same Erlang/OTP release with different configure options:
+Note that named builds allow you to have different builds for the same Erlang/OTP release with
+different configure options:
 
 ```sh
 $ KERL_BUILD_DOCS=yes kerl build 19.2 19.2-builtdocs
@@ -205,7 +210,8 @@ $ kerl delete installation /path/to/install/dir
 The installation in /path/to/install/dir has been deleted
 ```
 
-You can easily deploy an installation to another host having `ssh` and `rsync` access with the following command:
+You can easily deploy an installation to another host having `ssh` and `rsync` access with the
+following command:
 
 ```sh
 $ kerl deploy anotherhost /path/to/install/dir
@@ -218,8 +224,10 @@ kerl_deactivate
 
 ## Building from a github fork
 
-It is possible to build Erlang from a github fork, by using the `KERL_BUILD_BACKEND=git` and setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build Basho's OTP fork:
+It is possible to build Erlang from a github fork, by using the `KERL_BUILD_BACKEND=git` and
+setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build Basho's OTP fork:
 
+<!-- markdownlint-disable MD007 # line-length -->
 ```sh
 $ export KERL_BUILD_BACKEND=git
 $ export OTP_GITHUB_URL='https://github.com/basho/otp'
@@ -227,8 +235,10 @@ $ kerl update releases
 The available releases are:
 R13B03 R13B04 R14A R14B R14B01 R14B02 R14B03 R14B04 R15A R15B R15B01 R15B01_basho1 R15B01p R15B02 R15B03 R15B03-1 R16A_RELEASE_CANDIDATE R16B R16B01 R16B01_RC1 R16B02 R16B02_basho R16B02_basho10 R16B02_basho10rc1 R16B02_basho10rc2 R16B02_basho10rc3 R16B02_basho2 R16B02_basho3 R16B02_basho4 R16B02_basho5 R16B02_basho6 R16B02_basho7 R16B02_basho8 R16B02_basho9 R16B02_basho9rc1 R16B03 R16B03-1 R16B03_yielding_binary_to_term 17.0 17.0-rc1 17.0-rc2 17.0.1 17.0.2 17.1 17.1.1 17.1.2 17.2 17.2.1 17.2.2 17.3 17.3.1 17.3.2 17.3.3 17.3.4 17.4 17.4.1 17.5 17.5.1 17.5.2 17.5.3 17.5.4 17.5.5 17.5.6 17.5.6.1 17.5.6.2 17.5.6.3 17.5.6.4 17.5.6.5 17.5.6.6 17.5.6.7 17.5.6.8 17.5.6.9 18.0 18.0-rc1 18.0-rc2 18.0.1 18.0.2 18.0.3 18.1 18.1.1 18.1.2 18.1.3 18.1.4 18.1.5 18.2 18.2.1 18.2.2 18.2.3 18.2.4 18.2.4.1 18.3 18.3.1 18.3.2 18.3.3 18.3.4 18.3.4.1 19.0 19.0-rc1 19.0-rc2 19.0.2
 ```
+<!-- markdownlint-enable MD007 # line-length -->
 
-From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is possible to use kerl as normal:
+From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is
+possible to use kerl as normal:
 
 ```sh
 kerl build R16B02_basho10 16b02-basho10
@@ -265,7 +275,8 @@ Default: 1 (Enabled)
 Enable VT100 colorizing if `tput` available (provided by `ncurses`). Set to 0 to disable.
 Colorization will be disabled anyway if necessary requirements are missing.
 
-Color for log levels can be overriden, by setting ANSI numerical color code to variables `KERL_COLOR_*` :
+Color for log levels can be overriden, by setting ANSI numerical color code to variables
+`KERL_COLOR_*` :
 
 - KERL_COLOR_E : (1=red) Error level color
 - KERL_COLOR_W : (3=yellow) Warning level color
@@ -341,9 +352,11 @@ Acceptable values: `tarball`, `git`
 - `tarball`: Fetch erlang releases from erlang.org
 - `git`: Fetch erlang releases from [`$OTP_GITHUB_URL`](#otp_github_url)
 
-NB: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to `git`, one must also set [`$KERL_BUILD_DOCS`](#kerl_build_docs).
+NB: Docs are only fetched when this is set to `tarball`. To enable creation of docs when set to
+`git`, one must also set [`$KERL_BUILD_DOCS`](#kerl_build_docs).
 
-NB: This setting has no effect when using `kerl build git...`, which invokes kerl to directly clone a git repository and build from there.
+NB: This setting has no effect when using `kerl build git...`, which invokes kerl to directly clone
+a git repository and build from there.
 
 ### KERL_BUILD_DEBUG_VM
 
@@ -372,9 +385,11 @@ Acceptable value: any github fork of OTP, e.g. `https://github.com/basho/otp`
 
 ### KERL_BUILD_DOCS
 
-If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang version regardless of origin (`tarball` backend from erlang.org or via `kerl build git`, or via `git` backend).
+If `$KERL_BUILD_DOCS` is set, kerl will create docs from the built erlang version regardless of
+origin (`tarball` backend from erlang.org or via `kerl build git`, or via `git` backend).
 
-If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing a build created via `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `KERL_INSTALL_MANPAGES`.
+If `$KERL_BUILD_DOCS` is unset, kerl will only install docs when NOT installing a build created via
+`kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `KERL_INSTALL_MANPAGES`.
 
 ### KERL_DOC_TARGETS
 
@@ -392,13 +407,15 @@ You can set multiple type of targets separated by space, example `$KERL_DOC_TARG
 
 Install man pages when not building from git source.
 
-It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be up to 120MB.
+It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be
+up to 120MB.
 
 ### KERL_INSTALL_HTMLDOCS
 
 Install HTML documentation when not building from git source.
 
-It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be up to 120MB.
+It's noteworthy that when not using `KERL_BUILD_DOCS=yes`, the docset that may be downloaded can be
+up to 120MB.
 
 ### KERL_SASL_STARTUP
 
@@ -572,12 +589,14 @@ well: this method has a side effect to change your shell execution environment
 after activating a kerl installation of Erlang/OTP. Here is an example of
 .kerlrc for building Erlang/OTP for FreeBSD with clang compiler:
 
+<!-- markdownlint-disable MD007 # line-length -->
 ```sh
 # for clang
 export CC=clang CXX=clang CFLAGS="-g -O3 -fstack-protector" LDFLAGS="-fstack-protector"
 # compilation options
 KERL_CONFIGURE_OPTIONS="--disable-native-libs --enable-vm-probes --with-dynamic-trace=dtrace --with-ssl=/usr/local --with-javac --enable-hipe --enable-kernel-poll --with-wx-config=/usr/local/bin/wxgtk2u-2.8-config --without-odbc --enable-threads --enable-sctp --enable-smp-support"
 ```
+<!-- markdownlint-enable MD007 # line-length -->
 
 In case you cannot access the default directory for temporary files (`/tmp`) or
 simply want them somewhere else, you can also provide your own directory with
