@@ -13,6 +13,10 @@ required to actually build Erlang/OTP, are `curl` and `git`.
 All is done so that, once a specific release has been built, creating a new
 installation is as fast as possible.
 
+**Note**: `kerl` also tries to report on required dependencies but 1. it's not guaranteed
+this list is complete, 2. it's not guaranteed that all the elements in the list
+are required (it's on a best-effort basis).
+
 ## OTP Support Policy
 
 As of 2021 September 17, we are supporting the current OTP release version
