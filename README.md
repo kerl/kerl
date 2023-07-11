@@ -251,7 +251,7 @@ Erlang/OTP 19.2_dev from git has been successfully built
 
 If `KERL_DEBUG` is set to a value, then kerl will emit copious debug logging, including
 a best effort attempt at line numbers. (The line numbers may or may not be accurate if
-kerl is run under the `dash` shell` as is commonly found in Alpine Linux/Docker images.)
+kerl is run under the `dash` shell, as is commonly found in Alpine Linux/Docker images.)
 
 ## Tuning
 
