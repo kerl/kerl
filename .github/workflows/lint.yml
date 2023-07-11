@@ -28,5 +28,6 @@ jobs:
         with:
           file_or_dir: |
             .github/workflows/**/*.yml
+            .*.yml
           strict: true
           config_file: .yamllint.yml
