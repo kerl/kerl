@@ -21,10 +21,13 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v10
         with:
           globs: |
-           README.md
+           *.md
+           .github/**/*.md
       - name: Run yamllint
         uses: ibiqlik/action-yamllint@v3
         with:
-          file_or_dir: .github/workflows/ci.yml
+          file_or_dir: |
+            .github/workflows/**/*.yml
+            .*.yml
           strict: true
           config_file: .yamllint.yml

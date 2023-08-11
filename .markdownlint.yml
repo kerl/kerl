@@ -1,7 +1,7 @@
+---
 default: true
-MD003: false # heading-style/header-style
-MD007: false # ul-indent
-MD013: false # line_length
-MD014: false # commands-show-output
+MD013:
+  line_length: 100
+MD014: false  # commands-show-output
 MD024:
   siblings_only: true

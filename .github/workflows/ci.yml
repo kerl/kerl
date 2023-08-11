@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        otp_vsn: [23, 24, 25, master]
-        os: [ubuntu-22.04, macos-12]
+        otp_vsn: [24, 25, 26, master]
+        os: [ubuntu-22.04, macos-13]
     steps:
       - name: Update env.
         run: |
@@ -30,11 +30,9 @@ jobs:
             sudo apt-get update -y
             sudo apt-get upgrade -y
             sudo apt-get install -y --no-install-recommends \
-              curl ca-certificates git autoconf dpkg-dev \
-              zlib1g-dev libncurses5-dev libssl-dev unixodbc-dev libgmp3-dev \
-              libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libsctp-dev \
-              lksctp-tools build-essential gcc-9 m4 fop xsltproc \
-              default-jdk libxml2-utils procps valgrind binutils
+              git curl libssl-dev make automake autoconf libncurses5-dev gcc g++ default-jdk \
+              unixodbc-dev libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev xsltproc fop \
+              libxml2-utils libsctp-dev lksctp-tools
           fi
           echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
@@ -58,28 +56,6 @@ jobs:
       - name: Build chosen version
         # yamllint disable rule:line-length
         run: |
-          # Replacing OpenSSL 3 with OpenSSL 1.1 for Ubuntu 22.04 and OTP 23
-          if [ "${{matrix.os}}" == "ubuntu-22.04" ] && [ "${{matrix.otp_vsn}}" == "23" ]; then
-            OPENSSL_FIND_PAT="openssl_1.1*"
-            LIBSSL_FIND_PAT="libssl1\.*_1.1*"
-            LIBSSL_DEV_FIND_PAT="libssl-dev_1.1*"
-
-            wget -r -l1 -nd -A "${OPENSSL_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
-            wget -r -l1 -nd -A "${LIBSSL_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
-            wget -r -l1 -nd -A "${LIBSSL_DEV_FIND_PAT}ubuntu2\.*_amd64.deb" http://security.ubuntu.com/ubuntu/pool/main/o/openssl/
-
-            OPENSSL=$(find . -name "${OPENSSL_FIND_PAT}" | sort | tail -n1)
-            LIBSSL=$(find . -name "${LIBSSL_FIND_PAT}" | sort | tail -n1)
-            LIBSSL_DEV=$(find . -name "${LIBSSL_DEV_FIND_PAT}" | sort | tail -n1)
-
-            echo "OPENSSL is ${OPENSSL}"
-            echo "LIBSSL is ${LIBSSL}"
-            echo "LIBSSL_DEV is ${LIBSSL_DEV}"
-
-            sudo dpkg -i --force-confdef --force-confnew "${OPENSSL}"
-            sudo dpkg -i --force-confdef --force-confnew "${LIBSSL}"
-            sudo dpkg -i --force-confdef --force-confnew "${LIBSSL_DEV}"
-          fi
           echo "OpenSSL is $(openssl version)"
           export MAKEFLAGS=-j$(($(nproc) + 2))
           if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX_GIT} ${_KERL_PREFIX_GIT_TARGET} \

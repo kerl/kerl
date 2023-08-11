@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (c) 2016-2018 Jade Allen
+# Copyright (c) 2016- Jade Allen
 # Copyright (c) 2011, 2012 Spawngrid, Inc
 # Copyright (c) 2011 Evax Software <contact(at)evax(dot)org>
 #
@@ -1807,7 +1807,7 @@ list_usage() {
 }
 
 delete_usage() {
-    stderr "usage: $0 delete <build|installation> <build_name or path>"
+    stderr "usage: $0 delete <build|installation> <build_name or directory>"
 }
 
 cleanup_usage() {
