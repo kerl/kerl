@@ -41,6 +41,7 @@ jobs:
               echo '_KERL_PREFIX_GIT=git' >> $GITHUB_ENV
               echo '_KERL_PREFIX_GIT_TARGET=https://github.com/erlang/otp.git' >> $GITHUB_ENV
               echo 'KERL_BUILD_DOCS=true' >> $GITHUB_ENV
+              _VERSION=git
               ;;
             *)
               _VERSION=$(./kerl list releases | grep "^${_VERSION}" | tail -1)
@@ -81,6 +82,11 @@ jobs:
             fi
           done
           kerl_deactivate
+      - name: Test emit-activate
+        run: |
+          ./kerl emit-activate $_KERL_VSN $(./kerl path install_"$_KERL_VSN") > activate-new
+          diff activate-new $(./kerl path install_"$_KERL_VSN")/activate
+          rm -f activate-new
         # yamllint enable rule:line-length
       - name: Delete installation
         run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
