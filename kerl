@@ -1198,7 +1198,7 @@ do_build_install() {
     $0 install "$build_name" "$directory"
 }
 
-# emit_activate: outputs (via cat) the content of the 'activate' script, as used by kerl
+# emit_activate: outputs (via cat) the content of the 'activate' script, as used by kerl (sh/bash)
 # @param $1/rel: the <release> argument in e.g. kerl build <release>
 # @param $2/absdir: the [directory] argument in e.g. kerl install <build_name> [directory]
 emit_activate() {
@@ -1298,55 +1298,15 @@ fi
 =======
 }
 
-do_install() {
-    if ! rel=$(get_release_from_name "$1"); then
-        l=e stderr "No build named $1"
-        exit 1
-    fi
-    if ! is_valid_install_path "$2"; then
-        exit 1
-    fi
-    mkdir -p "$2" || exit 1
-    absdir=$(cd "$2" && pwd)
-    l=n stderr "Installing Erlang/OTP $rel ($1) in $absdir..."
-    ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
-    LOGFILE="$KERL_BUILD_DIR/$1/otp_install_$rel.log"
-    cd "$ERL_TOP" || exit 1
-    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
-              cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
-        show_logfile "Install of Erlang/OTP $rel ($1) in $absdir failed" "$LOGFILE"
-        exit 1
-    fi
+# emit_activate_fish: outputs (via cat) the content of the 'activate' script, as used by kerl (fish)
+# @param $1/rel: the <release> argument in e.g. kerl build <release>
+# @param $2/absdir: the [directory] argument in e.g. kerl install <build_name> [directory]
+emit_activate_fish() {
+  rel=$1
+  absdir=$2
 
-    for r_type in $KERL_RELEASE_TARGET;
-    do
-        case "$r_type" in
-            opt|debug)
-                l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
-                cd "$ERL_TOP" || exit 1
-                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >> "$LOGFILE" 2>&1; then
-                    show_logfile "Install Erlang/OTP $rel ($1) of type $r_type in $absdir failed" "$LOGFILE"
-                    exit 1
-                fi
-                ;;
-            *)
-                BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
-                if [ -n "$BEAM_TYPE_SMP" ]; then
-                    ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
-                    l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
-                    cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
-                    cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
-                fi
-                ;;
-        esac
-    done
-
-    [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
-
-    list_add installations "$1 $absdir";
-    emit_activate "$rel" "$absdir" >"$absdir"/activate
-
-    cat <<ACTIVATE_FISH >"$absdir"/activate.fish
+  cat <<\
+=======
 # credits to virtualenv
 function _kerl_remove_el --description 'remove element from array'
     set -l new_array
@@ -1415,9 +1375,18 @@ if set --query KERL_ENABLE_PROMPT
         _kerl_saved_prompt
     end
 end
-ACTIVATE_FISH
+=======
+}
 
-    cat <<ACTIVATE_CSH >"$absdir"/activate.csh
+# emit_activate_csh: outputs (via cat) the content of the 'activate' script, as used by kerl (csh)
+# @param $1/rel: the <release> argument in e.g. kerl build <release>
+# @param $2/absdir: the [directory] argument in e.g. kerl install <build_name> [directory]
+emit_activate_csh() {
+  rel=$1
+  absdir=$2
+
+  cat <<\
+=======
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
@@ -1468,7 +1437,59 @@ if ( \$?KERL_ENABLE_PROMPT ) then
 endif
 
 rehash
-ACTIVATE_CSH
+=======
+}
+
+do_install() {
+    if ! rel=$(get_release_from_name "$1"); then
+        l=e stderr "No build named $1"
+        exit 1
+    fi
+    if ! is_valid_install_path "$2"; then
+        exit 1
+    fi
+    mkdir -p "$2" || exit 1
+    absdir=$(cd "$2" && pwd)
+    l=n stderr "Installing Erlang/OTP $rel ($1) in $absdir..."
+    ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
+    LOGFILE="$KERL_BUILD_DIR/$1/otp_install_$rel.log"
+    cd "$ERL_TOP" || exit 1
+    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
+              cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
+        show_logfile "Install of Erlang/OTP $rel ($1) in $absdir failed" "$LOGFILE"
+        exit 1
+    fi
+
+    for r_type in $KERL_RELEASE_TARGET;
+    do
+        case "$r_type" in
+            opt|debug)
+                l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                cd "$ERL_TOP" || exit 1
+                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >> "$LOGFILE" 2>&1; then
+                    show_logfile "Install Erlang/OTP $rel ($1) of type $r_type in $absdir failed" "$LOGFILE"
+                    exit 1
+                fi
+                ;;
+            *)
+                BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
+                if [ -n "$BEAM_TYPE_SMP" ]; then
+                    ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
+                    l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                    cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
+                    cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
+                fi
+                ;;
+        esac
+    done
+
+    [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
+
+    list_add installations "$1 $absdir";
+
+    emit_activate "$rel" "$absdir" >"$absdir"/activate
+    emit_activate_fish "$rel" "$absdir" >"$absdir"/activate.fish
+    emit_activate_csh "$rel" "$absdir" >"$absdir"/activate.csh
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
         if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >> "$LOGFILE" 2>&1); then
@@ -1835,7 +1856,7 @@ upgrade_usage() {
 }
 
 emit_activate_usage() {
-    stderr "usage: $0 emit-activate <release> <directory>"
+    stderr "usage: $0 emit-activate <release> <directory> [sh|bash|fish|csh]"
 }
 
 get_active_path() {
@@ -2545,12 +2566,33 @@ case "$1" in
     emit-activate)
         release=$2
         directory=$3
-        if [ $# -ne 3 ]; then
+        shell=$4
+
+        if [ $# -ne 3 ] && [ $# -ne 4 ]; then
             emit_activate_usage
             exit 1
         fi
-        emit_activate "$release" "$directory"
-        exit 0
+
+        if [ ! -n $4 ]; then
+            shell="sh"
+        elif [ "$shell" = "bash" ]; then
+            shell="sh"
+        fi
+
+        case "$shell" in
+            sh)
+                emit_activate "$release" "$directory"
+                ;;
+            fish)
+                emit_activate_fish "$release" "$directory"
+                ;;
+            csh)
+                emit_activate_csh "$release" "$directory"
+                ;;
+            *)
+                emit_activate_usage
+                exit 1
+        esac
         ;;
     *)
         l=e stderr "unknown command: $1"; usage

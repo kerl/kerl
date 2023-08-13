@@ -82,11 +82,21 @@ jobs:
             fi
           done
           kerl_deactivate
-      - name: Test emit-activate
+      - name: Test emit-activate (sh/bash)
         run: |
           ./kerl emit-activate $_KERL_VSN $(./kerl path install_"$_KERL_VSN") > activate-new
           diff activate-new $(./kerl path install_"$_KERL_VSN")/activate
           rm -f activate-new
+      - name: Test emit-activate (fish)
+        run: |
+          ./kerl emit-activate $_KERL_VSN $(./kerl path install_"$_KERL_VSN") fish > activate-fish-new
+          diff activate-fish-new $(./kerl path install_"$_KERL_VSN")/activate.fish
+          rm -f activate-fish-new
+      - name: Test emit-activate (csh)
+        run: |
+          ./kerl emit-activate $_KERL_VSN $(./kerl path install_"$_KERL_VSN") csh > activate-csh-new
+          diff activate-csh-new $(./kerl path install_"$_KERL_VSN")/activate.csh
+          rm -f activate-csh-new
         # yamllint enable rule:line-length
       - name: Delete installation
         run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
