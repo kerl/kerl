@@ -1447,8 +1447,10 @@ rehash
 }
 
 do_install() {
-    if ! rel=$(get_release_from_name "$1"); then
-        l=e stderr "No build named $1"
+    build_name=$1
+
+    if ! rel=$(get_release_from_name "$build_name"); then
+        l=e stderr "No build named $build_name"
         exit 1
     fi
     if ! is_valid_install_path "$2"; then
@@ -1456,13 +1458,13 @@ do_install() {
     fi
     mkdir -p "$2" || exit 1
     absdir=$(cd "$2" && pwd)
-    l=n stderr "Installing Erlang/OTP $rel ($1) in $absdir..."
-    ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
-    LOGFILE="$KERL_BUILD_DIR/$1/otp_install_$rel.log"
+    l=n stderr "Installing Erlang/OTP $rel ($build_name) in $absdir..."
+    ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
+    LOGFILE="$KERL_BUILD_DIR/$build_name/otp_install_$rel.log"
     cd "$ERL_TOP" || exit 1
     if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
               cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
-        show_logfile "Install of Erlang/OTP $rel ($1) in $absdir failed" "$LOGFILE"
+        show_logfile "Install of Erlang/OTP $rel ($build_name) in $absdir failed" "$LOGFILE"
         exit 1
     fi
 
@@ -1470,10 +1472,10 @@ do_install() {
     do
         case "$r_type" in
             opt|debug)
-                l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                l=n stderr "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
                 cd "$ERL_TOP" || exit 1
                 if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >> "$LOGFILE" 2>&1; then
-                    show_logfile "Install Erlang/OTP $rel ($1) of type $r_type in $absdir failed" "$LOGFILE"
+                    show_logfile "Install Erlang/OTP $rel ($build_name) of type $r_type in $absdir failed" "$LOGFILE"
                     exit 1
                 fi
                 ;;
@@ -1481,7 +1483,7 @@ do_install() {
                 BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
                 if [ -n "$BEAM_TYPE_SMP" ]; then
                     ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
-                    l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+                    l=n stderr "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
                     cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
                     cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
                 fi
@@ -1491,15 +1493,15 @@ do_install() {
 
     [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
 
-    list_add installations "$1 $absdir";
+    list_add installations "$build_name $absdir";
 
-    emit_activate "$rel" "$absdir" >"$absdir"/activate
-    emit_activate_fish "$rel" "$absdir" >"$absdir"/activate.fish
-    emit_activate_csh "$rel" "$absdir" >"$absdir"/activate.csh
+    emit_activate "$rel" "$build_name" "$absdir" >"$absdir"/activate
+    emit_activate_fish "$rel" "$build_name $absdir" >"$absdir"/activate.fish
+    emit_activate_csh "$rel" "$build_name" "$absdir" >"$absdir"/activate.csh
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
         if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >> "$LOGFILE" 2>&1); then
-            show_logfile "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir" "$LOGFILE"
+            show_logfile "Couldn't install docs for Erlang/OTP $rel ($build_name) in $absdir" "$LOGFILE"
             exit 1
         fi
     else
@@ -1518,7 +1520,7 @@ do_install() {
         fi
     fi
 
-    KERL_CONFIG_STORAGE_PATH="$KERL_BUILD_DIR/$1/otp_src_$rel/$KERL_CONFIG_STORAGE_FILENAME"
+    KERL_CONFIG_STORAGE_PATH="$KERL_BUILD_DIR/$build_name/otp_src_$rel/$KERL_CONFIG_STORAGE_FILENAME"
     [ -e "$KERL_CONFIG_STORAGE_PATH" ] && cp "$KERL_CONFIG_STORAGE_PATH" "$absdir/$KERL_CONFIG_STORAGE_FILENAME"
 
     if [ -n "$KERL_BUILD_PLT" ]; then
