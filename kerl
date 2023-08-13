@@ -1199,11 +1199,13 @@ do_build_install() {
 }
 
 # emit_activate: outputs (via cat) the content of the 'activate' script, as used by kerl (sh/bash)
-# @param $1/rel: the <release> argument in e.g. kerl build <release>
-# @param $2/absdir: the [directory] argument in e.g. kerl install <build_name> [directory]
+# @param $1/release: the <release> argument in e.g. kerl build <release> <build_name>
+# @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
+# @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
 emit_activate() {
-  rel=$1
-  absdir=$2
+  release=$1
+  build_name=$2
+  directory=$3
 
   cat <<\
 =======
@@ -1259,17 +1261,17 @@ kerl_deactivate nondestructive
 
 _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 export _KERL_SAVED_REBAR_PLT_DIR
-_KERL_PATH_REMOVABLE="$absdir/bin"
+_KERL_PATH_REMOVABLE="$directory/bin"
 PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
 export PATH _KERL_PATH_REMOVABLE
-_KERL_MANPATH_REMOVABLE="$absdir/lib/erlang/man:$absdir/man"
+_KERL_MANPATH_REMOVABLE="$directory/lib/erlang/man:$directory/man"
 MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 export MANPATH _KERL_MANPATH_REMOVABLE
-REBAR_PLT_DIR="$absdir"
+REBAR_PLT_DIR="$directory"
 export REBAR_PLT_DIR
-_KERL_ACTIVE_DIR="$absdir"
+_KERL_ACTIVE_DIR="$directory"
 export _KERL_ACTIVE_DIR
-_KERL_ERL_CALL_REMOVABLE=\$(\\find $absdir -type d -path "*erl_interface*/bin")
+_KERL_ERL_CALL_REMOVABLE=\$(\\find $directory -type d -path "*erl_interface*/bin")
 PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 export PATH _KERL_ERL_CALL_REMOVABLE
 # https://twitter.com/mononcqc/status/877544929496629248
@@ -1288,7 +1290,7 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     else
         FRMT="(%BUILDNAME%)"
     fi
-    PRMPT=\$(echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^')
+    PRMPT=\$(echo "\$FRMT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     PS1="\$PRMPT\$PS1"
     export PS1
 fi
@@ -1299,11 +1301,13 @@ fi
 }
 
 # emit_activate_fish: outputs (via cat) the content of the 'activate' script, as used by kerl (fish)
-# @param $1/rel: the <release> argument in e.g. kerl build <release>
-# @param $2/absdir: the [directory] argument in e.g. kerl install <build_name> [directory]
+# @param $1/release: the <release> argument in e.g. kerl build <release> <build_name>
+# @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
+# @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
 emit_activate_fish() {
-  rel=$1
-  absdir=$2
+  release=$1
+  build_name=$2
+  directory=$3
 
   cat <<\
 =======
@@ -1356,13 +1360,13 @@ end
 kerl_deactivate nondestructive
 
 set -x _KERL_SAVED_REBAR_PLT_DIR "\$REBAR_PLT_DIR"
-set -x _KERL_PATH_REMOVABLE "$absdir/bin"
+set -x _KERL_PATH_REMOVABLE "$directory/bin"
 set -x PATH "\$_KERL_PATH_REMOVABLE" \$PATH
-set -x _KERL_MANPATH_REMOVABLE "$absdir/lib/erlang/man" "$absdir/man"
+set -x _KERL_MANPATH_REMOVABLE "$directory/lib/erlang/man" "$directory/man"
 set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
-set -x REBAR_PLT_DIR "$absdir"
-set -x _KERL_ACTIVE_DIR "$absdir"
-set -x _KERL_ERL_CALL_REMOVABLE (find "$absdir" -type d -path "*erl_interface*/bin")
+set -x REBAR_PLT_DIR "$directory"
+set -x _KERL_ACTIVE_DIR "$directory"
+set -x _KERL_ERL_CALL_REMOVABLE (find "$directory" -type d -path "*erl_interface*/bin")
 set -x PATH "\$_KERL_ERL_CALL_REMOVABLE" \$PATH
 
 if test -f "$KERL_CONFIG.fish"
@@ -1371,7 +1375,7 @@ end
 if set --query KERL_ENABLE_PROMPT
     functions --copy fish_prompt _kerl_saved_prompt
     function fish_prompt
-        printf "%b" "($1)"
+        printf "%b" "($build_name)"
         _kerl_saved_prompt
     end
 end
@@ -1379,11 +1383,13 @@ end
 }
 
 # emit_activate_csh: outputs (via cat) the content of the 'activate' script, as used by kerl (csh)
-# @param $1/rel: the <release> argument in e.g. kerl build <release>
-# @param $2/absdir: the [directory] argument in e.g. kerl install <build_name> [directory]
+# @param $1/release: the <release> argument in e.g. kerl build <release> <build_name>
+# @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
+# @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
 emit_activate_csh() {
-  rel=$1
-  absdir=$2
+  release=$1
+  build_name=$2
+  directory=$3
 
   cat <<\
 =======
@@ -1401,22 +1407,22 @@ else
     set _KERL_SAVED_REBAR_PLT_DIR=""
 endif
 
-set _KERL_PATH_REMOVABLE = "$absdir/bin"
+set _KERL_PATH_REMOVABLE = "$directory/bin"
 set _KERL_SAVED_PATH = "\$PATH"
 setenv PATH "\${_KERL_PATH_REMOVABLE}:\$PATH"
 
 if ( ! \$?MANPATH ) then
     set MANPATH = ""
 endif
-set _KERL_MANPATH_REMOVABLE = "$absdir/lib/erlang/man:$absdir/man"
+set _KERL_MANPATH_REMOVABLE = "$directory/lib/erlang/man:$directory/man"
 set _KERL_SAVED_MANPATH = "\$MANPATH"
 setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 
-setenv REBAR_PLT_DIR "$absdir"
+setenv REBAR_PLT_DIR "$directory"
 
-set _KERL_ACTIVE_DIR = "$absdir"
+set _KERL_ACTIVE_DIR = "$directory"
 
-set _KERL_ERL_CALL_REMOVABLE = $(\find "$absdir" -type d -path "*erl_interface*/bin")
+set _KERL_ERL_CALL_REMOVABLE = $(\find "$directory" -type d -path "*erl_interface*/bin")
 setenv PATH "\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 
 if ( -f "$KERL_CONFIG.csh" ) then
@@ -1432,7 +1438,7 @@ if ( \$?KERL_ENABLE_PROMPT ) then
         set FRMT = "(%BUILDNAME%)"
     endif
 
-    set PROMPT = \$(echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^')
+    set PROMPT = \$(echo "\$FRMT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     set prompt = "\$PROMPT\$prompt"
 endif
 
@@ -1856,7 +1862,7 @@ upgrade_usage() {
 }
 
 emit_activate_usage() {
-    stderr "usage: $0 emit-activate <release> <directory> [sh|bash|fish|csh]"
+    stderr "usage: $0 emit-activate <release> <build_name> <directory> [sh|bash|fish|csh]"
 }
 
 get_active_path() {
@@ -2565,15 +2571,16 @@ case "$1" in
         ;;
     emit-activate)
         release=$2
-        directory=$3
-        shell=$4
+        build_name=$3
+        directory=$4
+        shell=$5
 
-        if [ $# -ne 3 ] && [ $# -ne 4 ]; then
+        if [ $# -ne 4 ] && [ $# -ne 5 ]; then
             emit_activate_usage
             exit 1
         fi
 
-        if [ -z "$4" ]; then
+        if [ -z "$5" ]; then
             shell="sh"
         elif [ "$shell" = "bash" ]; then
             shell="sh"
@@ -2581,13 +2588,13 @@ case "$1" in
 
         case "$shell" in
             sh)
-                emit_activate "$release" "$directory"
+                emit_activate "$release" "$build_name" "$directory"
                 ;;
             fish)
-                emit_activate_fish "$release" "$directory"
+                emit_activate_fish "$release" "$build_name" "$directory"
                 ;;
             csh)
-                emit_activate_csh "$release" "$directory"
+                emit_activate_csh "$release" "$build_name" "$directory"
                 ;;
             *)
                 emit_activate_usage

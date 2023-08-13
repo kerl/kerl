@@ -41,13 +41,15 @@ jobs:
               echo '_KERL_PREFIX_GIT=git' >> $GITHUB_ENV
               echo '_KERL_PREFIX_GIT_TARGET=https://github.com/erlang/otp.git' >> $GITHUB_ENV
               echo 'KERL_BUILD_DOCS=true' >> $GITHUB_ENV
-              _VERSION=git
+              _KERL_REL=git
               ;;
             *)
               _VERSION=$(./kerl list releases | grep "^${_VERSION}" | tail -1)
+              _KERL_REL=${_VERSION}
               ;;
           esac
           echo "_KERL_VSN=${_VERSION}" >> $GITHUB_ENV
+          echo "_KERL_REL=${_KERL_REL}" >> $GITHUB_ENV
       - name: Build chosen version
         # yamllint disable rule:line-length
         run: |
@@ -84,17 +86,17 @@ jobs:
           kerl_deactivate
       - name: Test emit-activate (sh/bash)
         run: |
-          ./kerl emit-activate $_KERL_VSN $(./kerl path install_"$_KERL_VSN") > activate-new
+          ./kerl emit-activate $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN") > activate-new
           diff activate-new $(./kerl path install_"$_KERL_VSN")/activate
           rm -f activate-new
       - name: Test emit-activate (fish)
         run: |
-          ./kerl emit-activate $_KERL_VSN $(./kerl path install_"$_KERL_VSN") fish > activate-fish-new
+          ./kerl emit-activate $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN") fish > activate-fish-new
           diff activate-fish-new $(./kerl path install_"$_KERL_VSN")/activate.fish
           rm -f activate-fish-new
       - name: Test emit-activate (csh)
         run: |
-          ./kerl emit-activate $_KERL_VSN $(./kerl path install_"$_KERL_VSN") csh > activate-csh-new
+          ./kerl emit-activate $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN") csh > activate-csh-new
           diff activate-csh-new $(./kerl path install_"$_KERL_VSN")/activate.csh
           rm -f activate-csh-new
         # yamllint enable rule:line-length
