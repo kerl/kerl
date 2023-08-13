@@ -1819,7 +1819,7 @@ update_usage() {
 }
 
 upgrade_usage() {
-    stderr "upgrade: $0 upgrade"
+    stderr "usage: $0 upgrade"
 }
 
 get_active_path() {
