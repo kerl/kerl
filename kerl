@@ -1496,7 +1496,7 @@ do_install() {
     list_add installations "$build_name $absdir";
 
     emit_activate "$rel" "$build_name" "$absdir" >"$absdir"/activate
-    emit_activate_fish "$rel" "$build_name $absdir" >"$absdir"/activate.fish
+    emit_activate_fish "$rel" "$build_name" "$absdir" >"$absdir"/activate.fish
     emit_activate_csh "$rel" "$build_name" "$absdir" >"$absdir"/activate.csh
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
