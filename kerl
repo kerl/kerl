@@ -2573,7 +2573,7 @@ case "$1" in
             exit 1
         fi
 
-        if [ ! -n $4 ]; then
+        if [ -z "$4" ]; then
             shell="sh"
         elif [ "$shell" = "bash" ]; then
             shell="sh"
