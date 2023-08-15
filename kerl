@@ -1259,8 +1259,10 @@ kerl_deactivate() {
 }
 kerl_deactivate nondestructive
 
-if [ -x kerl ]; then
-  _KERL_VERSION=\$(kerl version)
+_KERL=$(command -v kerl)
+
+if [ -n "\$_KERL" ]; then
+  _KERL_VERSION=\$(\$_KERL version)
 fi
 
 if [ -n "\$_KERL_VERSION" ] && [ "\$_KERL_VERSION" != "$KERL_VERSION" ]; then
@@ -1368,8 +1370,10 @@ function kerl_deactivate --description "deactivate erlang environment"
 end
 kerl_deactivate nondestructive
 
-if test -x kerl
-  set _KERL_VERSION (kerl version)
+set _KERL (command -v kerl)
+
+if test -n "\$_KERL"
+  set _KERL_VERSION (\$_KERL version)
 end
 
 if test -n "\$_KERL_VERSION" -a "\$_KERL_VERSION" != "$KERL_VERSION"
@@ -1419,8 +1423,10 @@ alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAV
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
 
-if (-x kerl) then
-  set _KERL_VERSION = \`kerl version\`
+set _KERL = $(command -v kerl)
+
+if ( "\$_KERL" != "" ) then
+  set _KERL_VERSION = \`\$_KERL version\`
 endif
 
 if ("\$_KERL_VERSION" != "" && "\$_KERL_VERSION" != "$KERL_VERSION") then
