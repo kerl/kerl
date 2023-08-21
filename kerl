@@ -294,6 +294,7 @@ usage() {
     stderr '  status          Print available builds and installations'
     stderr '  prompt          Print a string suitable for insertion in prompt'
     stderr '  cleanup         Remove compilation artifacts (use after installation)'
+    stderr '  emit-activate   Print the activate script'
     stderr "  version         Print current version (current: $KERL_VERSION)"
     exit 1
 }
@@ -1197,53 +1198,17 @@ do_build_install() {
     $0 install "$build_name" "$directory"
 }
 
-do_install() {
-    if ! rel=$(get_release_from_name "$1"); then
-        l=e stderr "No build named $1"
-        exit 1
-    fi
-    if ! is_valid_install_path "$2"; then
-        exit 1
-    fi
-    mkdir -p "$2" || exit 1
-    absdir=$(cd "$2" && pwd)
-    l=n stderr "Installing Erlang/OTP $rel ($1) in $absdir..."
-    ERL_TOP="$KERL_BUILD_DIR/$1/otp_src_$rel"
-    LOGFILE="$KERL_BUILD_DIR/$1/otp_install_$rel.log"
-    cd "$ERL_TOP" || exit 1
-    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
-              cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
-        show_logfile "Install of Erlang/OTP $rel ($1) in $absdir failed" "$LOGFILE"
-        exit 1
-    fi
+# emit_activate: outputs (via cat) the content of the 'activate' script, as used by kerl (sh/bash)
+# @param $1/release: the <release> argument in e.g. kerl build <release> <build_name>
+# @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
+# @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
+emit_activate() {
+  release=$1
+  build_name=$2
+  directory=$3
 
-    for r_type in $KERL_RELEASE_TARGET;
-    do
-        case "$r_type" in
-            opt|debug)
-                l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
-                cd "$ERL_TOP" || exit 1
-                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >> "$LOGFILE" 2>&1; then
-                    show_logfile "Install Erlang/OTP $rel ($1) of type $r_type in $absdir failed" "$LOGFILE"
-                    exit 1
-                fi
-                ;;
-            *)
-                BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
-                if [ -n "$BEAM_TYPE_SMP" ]; then
-                    ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
-                    l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
-                    cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
-                    cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
-                fi
-                ;;
-        esac
-    done
-
-    [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
-
-    list_add installations "$1 $absdir";
-    cat <<ACTIVATE >"$absdir"/activate
+  cat <<\
+=======
 #!/bin/sh
 # credits to virtualenv
 kerl_deactivate() {
@@ -1296,17 +1261,17 @@ kerl_deactivate nondestructive
 
 _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 export _KERL_SAVED_REBAR_PLT_DIR
-_KERL_PATH_REMOVABLE="$absdir/bin"
+_KERL_PATH_REMOVABLE="$directory/bin"
 PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
 export PATH _KERL_PATH_REMOVABLE
-_KERL_MANPATH_REMOVABLE="$absdir/lib/erlang/man:$absdir/man"
+_KERL_MANPATH_REMOVABLE="$directory/lib/erlang/man:$directory/man"
 MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 export MANPATH _KERL_MANPATH_REMOVABLE
-REBAR_PLT_DIR="$absdir"
+REBAR_PLT_DIR="$directory"
 export REBAR_PLT_DIR
-_KERL_ACTIVE_DIR="$absdir"
+_KERL_ACTIVE_DIR="$directory"
 export _KERL_ACTIVE_DIR
-_KERL_ERL_CALL_REMOVABLE=\$(\\find $absdir -type d -path "*erl_interface*/bin")
+_KERL_ERL_CALL_REMOVABLE=\$(\\find $directory -type d -path "*erl_interface*/bin")
 PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 export PATH _KERL_ERL_CALL_REMOVABLE
 # https://twitter.com/mononcqc/status/877544929496629248
@@ -1325,16 +1290,27 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     else
         FRMT="(%BUILDNAME%)"
     fi
-    PRMPT=\$(echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^')
+    PRMPT=\$(echo "\$FRMT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     PS1="\$PRMPT\$PS1"
     export PS1
 fi
 if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
-ACTIVATE
+=======
+}
 
-    cat <<ACTIVATE_FISH >"$absdir"/activate.fish
+# emit_activate_fish: outputs (via cat) the content of the 'activate' script, as used by kerl (fish)
+# @param $1/release: the <release> argument in e.g. kerl build <release> <build_name>
+# @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
+# @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
+emit_activate_fish() {
+  release=$1
+  build_name=$2
+  directory=$3
+
+  cat <<\
+=======
 # credits to virtualenv
 function _kerl_remove_el --description 'remove element from array'
     set -l new_array
@@ -1384,13 +1360,13 @@ end
 kerl_deactivate nondestructive
 
 set -x _KERL_SAVED_REBAR_PLT_DIR "\$REBAR_PLT_DIR"
-set -x _KERL_PATH_REMOVABLE "$absdir/bin"
+set -x _KERL_PATH_REMOVABLE "$directory/bin"
 set -x PATH "\$_KERL_PATH_REMOVABLE" \$PATH
-set -x _KERL_MANPATH_REMOVABLE "$absdir/lib/erlang/man" "$absdir/man"
+set -x _KERL_MANPATH_REMOVABLE "$directory/lib/erlang/man" "$directory/man"
 set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
-set -x REBAR_PLT_DIR "$absdir"
-set -x _KERL_ACTIVE_DIR "$absdir"
-set -x _KERL_ERL_CALL_REMOVABLE (find "$absdir" -type d -path "*erl_interface*/bin")
+set -x REBAR_PLT_DIR "$directory"
+set -x _KERL_ACTIVE_DIR "$directory"
+set -x _KERL_ERL_CALL_REMOVABLE (find "$directory" -type d -path "*erl_interface*/bin")
 set -x PATH "\$_KERL_ERL_CALL_REMOVABLE" \$PATH
 
 if test -f "$KERL_CONFIG.fish"
@@ -1399,13 +1375,24 @@ end
 if set --query KERL_ENABLE_PROMPT
     functions --copy fish_prompt _kerl_saved_prompt
     function fish_prompt
-        printf "%b" "($1)"
+        printf "%b" "($build_name)"
         _kerl_saved_prompt
     end
 end
-ACTIVATE_FISH
+=======
+}
 
-    cat <<ACTIVATE_CSH >"$absdir"/activate.csh
+# emit_activate_csh: outputs (via cat) the content of the 'activate' script, as used by kerl (csh)
+# @param $1/release: the <release> argument in e.g. kerl build <release> <build_name>
+# @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
+# @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
+emit_activate_csh() {
+  release=$1
+  build_name=$2
+  directory=$3
+
+  cat <<\
+=======
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
@@ -1420,22 +1407,22 @@ else
     set _KERL_SAVED_REBAR_PLT_DIR=""
 endif
 
-set _KERL_PATH_REMOVABLE = "$absdir/bin"
+set _KERL_PATH_REMOVABLE = "$directory/bin"
 set _KERL_SAVED_PATH = "\$PATH"
 setenv PATH "\${_KERL_PATH_REMOVABLE}:\$PATH"
 
 if ( ! \$?MANPATH ) then
     set MANPATH = ""
 endif
-set _KERL_MANPATH_REMOVABLE = "$absdir/lib/erlang/man:$absdir/man"
+set _KERL_MANPATH_REMOVABLE = "$directory/lib/erlang/man:$directory/man"
 set _KERL_SAVED_MANPATH = "\$MANPATH"
 setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 
-setenv REBAR_PLT_DIR "$absdir"
+setenv REBAR_PLT_DIR "$directory"
 
-set _KERL_ACTIVE_DIR = "$absdir"
+set _KERL_ACTIVE_DIR = "$directory"
 
-set _KERL_ERL_CALL_REMOVABLE = $(\find "$absdir" -type d -path "*erl_interface*/bin")
+set _KERL_ERL_CALL_REMOVABLE = $(\find "$directory" -type d -path "*erl_interface*/bin")
 setenv PATH "\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
 
 if ( -f "$KERL_CONFIG.csh" ) then
@@ -1451,16 +1438,70 @@ if ( \$?KERL_ENABLE_PROMPT ) then
         set FRMT = "(%BUILDNAME%)"
     endif
 
-    set PROMPT = \$(echo "\$FRMT" | sed 's^%RELEASE%^$rel^;s^%BUILDNAME%^$1^')
+    set PROMPT = \$(echo "\$FRMT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     set prompt = "\$PROMPT\$prompt"
 endif
 
 rehash
-ACTIVATE_CSH
+=======
+}
+
+do_install() {
+    build_name=$1
+
+    if ! rel=$(get_release_from_name "$build_name"); then
+        l=e stderr "No build named $build_name"
+        exit 1
+    fi
+    if ! is_valid_install_path "$2"; then
+        exit 1
+    fi
+    mkdir -p "$2" || exit 1
+    absdir=$(cd "$2" && pwd)
+    l=n stderr "Installing Erlang/OTP $rel ($build_name) in $absdir..."
+    ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
+    LOGFILE="$KERL_BUILD_DIR/$build_name/otp_install_$rel.log"
+    cd "$ERL_TOP" || exit 1
+    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
+              cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
+        show_logfile "Install of Erlang/OTP $rel ($build_name) in $absdir failed" "$LOGFILE"
+        exit 1
+    fi
+
+    for r_type in $KERL_RELEASE_TARGET;
+    do
+        case "$r_type" in
+            opt|debug)
+                l=n stderr "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
+                cd "$ERL_TOP" || exit 1
+                if ! TYPE="$r_type" ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" >> "$LOGFILE" 2>&1; then
+                    show_logfile "Install Erlang/OTP $rel ($build_name) of type $r_type in $absdir failed" "$LOGFILE"
+                    exit 1
+                fi
+                ;;
+            *)
+                BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
+                if [ -n "$BEAM_TYPE_SMP" ]; then
+                    ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
+                    l=n stderr "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
+                    cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
+                    cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
+                fi
+                ;;
+        esac
+    done
+
+    [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
+
+    list_add installations "$build_name $absdir";
+
+    emit_activate "$rel" "$build_name" "$absdir" >"$absdir"/activate
+    emit_activate_fish "$rel" "$build_name" "$absdir" >"$absdir"/activate.fish
+    emit_activate_csh "$rel" "$build_name" "$absdir" >"$absdir"/activate.csh
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
         if ! (ERL_TOP="$ERL_TOP" make release_docs "DOC_TARGETS=$KERL_DOC_TARGETS" "RELEASE_ROOT=$absdir" >> "$LOGFILE" 2>&1); then
-            show_logfile "Couldn't install docs for Erlang/OTP $rel ($1) in $absdir" "$LOGFILE"
+            show_logfile "Couldn't install docs for Erlang/OTP $rel ($build_name) in $absdir" "$LOGFILE"
             exit 1
         fi
     else
@@ -1479,7 +1520,7 @@ ACTIVATE_CSH
         fi
     fi
 
-    KERL_CONFIG_STORAGE_PATH="$KERL_BUILD_DIR/$1/otp_src_$rel/$KERL_CONFIG_STORAGE_FILENAME"
+    KERL_CONFIG_STORAGE_PATH="$KERL_BUILD_DIR/$build_name/otp_src_$rel/$KERL_CONFIG_STORAGE_FILENAME"
     [ -e "$KERL_CONFIG_STORAGE_PATH" ] && cp "$KERL_CONFIG_STORAGE_PATH" "$absdir/$KERL_CONFIG_STORAGE_FILENAME"
 
     if [ -n "$KERL_BUILD_PLT" ]; then
@@ -1819,7 +1860,11 @@ update_usage() {
 }
 
 upgrade_usage() {
-    stderr "upgrade: $0 upgrade"
+    stderr "usage: $0 upgrade"
+}
+
+emit_activate_usage() {
+    stderr "usage: $0 emit-activate <release> <build_name> <directory> [sh|bash|fish|csh]"
 }
 
 get_active_path() {
@@ -2524,6 +2569,38 @@ case "$1" in
                 rm -rf "${KERL_BUILD_DIR:?}/$2"
                 l=n stderr "Cleaned up compilation products for $2 under $KERL_BUILD_DIR"
                 ;;
+        esac
+        ;;
+    emit-activate)
+        release=$2
+        build_name=$3
+        directory=$4
+        shell=$5
+
+        if [ $# -ne 4 ] && [ $# -ne 5 ]; then
+            emit_activate_usage
+            exit 1
+        fi
+
+        if [ -z "$5" ]; then
+            shell="sh"
+        elif [ "$shell" = "bash" ]; then
+            shell="sh"
+        fi
+
+        case "$shell" in
+            sh)
+                emit_activate "$release" "$build_name" "$directory"
+                ;;
+            fish)
+                emit_activate_fish "$release" "$build_name" "$directory"
+                ;;
+            csh)
+                emit_activate_csh "$release" "$build_name" "$directory"
+                ;;
+            *)
+                emit_activate_usage
+                exit 1
         esac
         ;;
     *)
