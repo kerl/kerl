@@ -1259,6 +1259,17 @@ kerl_deactivate() {
 }
 kerl_deactivate nondestructive
 
+_KERL=$(command -v kerl)
+
+if [ -n "\$_KERL" ]; then
+  _KERL_VERSION=\$(\$_KERL version)
+fi
+
+if [ -n "\$_KERL_VERSION" ] && [ "\$_KERL_VERSION" != "$KERL_VERSION" ]; then
+  echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
+  echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
+fi
+
 _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 export _KERL_SAVED_REBAR_PLT_DIR
 _KERL_PATH_REMOVABLE="$directory/bin"
@@ -1359,6 +1370,17 @@ function kerl_deactivate --description "deactivate erlang environment"
 end
 kerl_deactivate nondestructive
 
+set _KERL (command -v kerl)
+
+if test -n "\$_KERL"
+  set _KERL_VERSION (\$_KERL version)
+end
+
+if test -n "\$_KERL_VERSION" -a "\$_KERL_VERSION" != "$KERL_VERSION"
+  echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
+  echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
+end
+
 set -x _KERL_SAVED_REBAR_PLT_DIR "\$REBAR_PLT_DIR"
 set -x _KERL_PATH_REMOVABLE "$directory/bin"
 set -x PATH "\$_KERL_PATH_REMOVABLE" \$PATH
@@ -1400,6 +1422,17 @@ alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAV
 
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
+
+set _KERL = $(command -v kerl)
+
+if ( "\$_KERL" != "" ) then
+  set _KERL_VERSION = \`\$_KERL version\`
+endif
+
+if ("\$_KERL_VERSION" != "" && "\$_KERL_VERSION" != "$KERL_VERSION") then
+  echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
+  echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
+endif
 
 if ( \$?REBAR_PLT_DIR ) then
     set _KERL_SAVED_REBAR_PLT_DIR = "\$REBAR_PLT_DIR"
