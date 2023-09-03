@@ -1280,6 +1280,8 @@ if [ -n "\$_KERL_VERSION" ] && [ "\$_KERL_VERSION" != "$KERL_VERSION" ]; then
   echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 fi
 
+unset _KERL_VERSION _KERL
+
 set -o allexport
 _KERL_SAVED_REBAR_CACHE_DIR="\$REBAR_CACHE_DIR"
 _KERL_REBAR_CACHE_DIR_SET="\${REBAR_CACHE_DIR+x}"
@@ -1312,6 +1314,7 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     fi
     _KERL_PRMPT=\$(echo "\$_KERL_PROMPT_FORMAT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     PS1="\$_KERL_PRMPT\$PS1"
+    unset _KERL_PRMPT _KERL_PROMPT_FORMAT
 fi
 if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
     hash -r
@@ -1404,6 +1407,8 @@ if test -n "\$_KERL_VERSION" -a "\$_KERL_VERSION" != "$KERL_VERSION"
   echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 end
 
+set -e _KERL_VERSION _KERL
+
 set -q REBAR_CACHE_DIR && set -x _KERL_REBAR_CACHE_DIR_SET yes
 set -x _KERL_SAVED_REBAR_CACHE_DIR "\$REBAR_CACHE_DIR"
 set -q REBAR_PLT_DIR && set -x _KERL_REBAR_PLT_DIR_SET yes
@@ -1478,6 +1483,8 @@ if ("\$_KERL_VERSION" != "" && "\$_KERL_VERSION" != "$KERL_VERSION") then
   echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
   echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 endif
+
+unset _KERL_VERSION _KERL
 
 if ( \$?REBAR_CACHE_DIR ) then
     set _KERL_REBAR_CACHE_DIR_SET = "yes"
