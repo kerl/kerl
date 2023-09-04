@@ -1213,9 +1213,14 @@ emit_activate() {
 # credits to virtualenv
 kerl_deactivate() {
     set -o allexport
-    if [ -n "\$_KERL_SAVED_ERL_AFLAGS" ]; then
-        ERL_AFLAGS="\$_KERL_SAVED_ERL_AFLAGS"
+    if [ -n "\${_KERL_ERL_AFLAGS_SET+x}" ]; then
+        if [ -n "\$_KERL_ERL_AFLAGS_SET" ]; then
+            ERL_AFLAGS="\$_KERL_SAVED_ERL_AFLAGS"
+        else
+            unset ERL_AFLAGS
+        fi
         unset _KERL_SAVED_ERL_AFLAGS
+        unset _KERL_ERL_AFLAGS_SET
     fi
     if [ -n "\$_KERL_PATH_REMOVABLE" ]; then
         # shellcheck disable=SC2001
@@ -1255,8 +1260,8 @@ kerl_deactivate() {
     if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
         # shellcheck disable=SC2001
         PATH="\$(echo "\$PATH" | sed -e "s#\$_KERL_ERL_CALL_REMOVABLE:##")"
-        unset _KERL_ERL_CALL_REMOVABLE
     fi
+    unset _KERL_ERL_CALL_REMOVABLE
     if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
@@ -1295,14 +1300,22 @@ MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 REBAR_CACHE_DIR="$directory/.cache/rebar3"
 REBAR_PLT_DIR="$directory"
 _KERL_ACTIVE_DIR="$directory"
-_KERL_ERL_CALL_REMOVABLE=\$(\\find $directory -type d -path "*erl_interface*/bin")
-PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+_KERL_ERL_CALL_REMOVABLE=\$(\\find $directory -type d -path "*erl_interface*/bin" 2>/dev/null)
+if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
+    PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+fi
 # https://twitter.com/mononcqc/status/877544929496629248
-_KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
+_KERL_ERL_AFLAGS_SET="\${ERL_AFLAGS+x}"
 kernel_history=\$(echo "\$ERL_AFLAGS" | \\grep 'kernel shell_history' || true)
 if [ -z "\$kernel_history" ]; then
-    ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+    if [ -n "\$ERL_AFLAGS" ]; then
+        _KERL_SAVED_ERL_AFLAGS="\$ERL_AFLAGS"
+        ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+    else
+        ERL_AFLAGS="-kernel shell_history enabled"
+    fi
 fi
+unset kernel_history
 # shellcheck source=/dev/null
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
