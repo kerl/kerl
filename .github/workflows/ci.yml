@@ -100,6 +100,8 @@ jobs:
           diff activate-csh-new $(./kerl path install_"$_KERL_VSN")/activate.csh
           rm -f activate-csh-new
         # yamllint enable rule:line-length
+      - name: Test activate/cleanup
+        run: tests/activate_test.sh $_KERL_VSN
       - name: Delete installation
         run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
       - name: Delete build

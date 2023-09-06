@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 mod_env() {
     DIR="$1"
@@ -39,8 +39,8 @@ test_it() {
     env | sort >/tmp/env_new
 
     mod_env $2 /tmp/env_old | sort >/tmp/env_mod
-    diff /tmp/env_mod /tmp/env_act || { echo "env setup failed"; exit -1; }
-    diff /tmp/env_old /tmp/env_new || { echo "env cleanup failed"; exit -1; }
+    diff /tmp/env_mod /tmp/env_act || { echo "env setup failed"; exit 1; }
+    diff /tmp/env_old /tmp/env_new || { echo "env cleanup failed"; exit 1; }
 }
 
 ver=$1
