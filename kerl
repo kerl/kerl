@@ -1230,8 +1230,12 @@ kerl_deactivate() {
     if [ -n "\$_KERL_MANPATH_REMOVABLE" ]; then
         # shellcheck disable=SC2001
         MANPATH="\$(echo "\$MANPATH" | sed -e "s#\$_KERL_MANPATH_REMOVABLE:##")"
+        if [ -z "\$MANPATH" -a -z "\$_KERL_MANPATH_SET" ]; then
+            unset MANPATH
+        fi
         unset _KERL_MANPATH_REMOVABLE
     fi
+    unset _KERL_MANPATH_SET
     if [ -n "\${_KERL_REBAR_PLT_DIR_SET+x}" ]; then
         if [ -n "\$_KERL_REBAR_PLT_DIR_SET" ]; then
             REBAR_PLT_DIR="\$_KERL_SAVED_REBAR_PLT_DIR"
@@ -1295,6 +1299,7 @@ _KERL_REBAR_PLT_DIR_SET="\${REBAR_PLT_DIR+x}"
 _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 _KERL_PATH_REMOVABLE="$directory/bin"
 PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
+_KERL_MANPATH_SET="\${MANPATH+x}"
 _KERL_MANPATH_REMOVABLE="$directory/lib/erlang/man:$directory/man"
 MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
 REBAR_CACHE_DIR="$directory/.cache/rebar3"
