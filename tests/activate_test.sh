@@ -35,7 +35,10 @@ EOT
 }
 
 test_it() {
-    ./kerl emit-activate "$1" "$1" "$2" >/tmp/activate.sh
+    release=$1
+    build_name=$2
+    directory=$3
+    ./kerl emit-activate "$release" "$build_name" "$directory" >/tmp/activate.sh
     export PS1="test> "
     env | sort >/tmp/env_old
     # shellcheck source=/dev/null
@@ -44,15 +47,16 @@ test_it() {
     kerl_deactivate
     env | sort >/tmp/env_new
 
-    expected_env "$2" /tmp/env_old | sort >/tmp/env_exp
+    expected_env "$directory" /tmp/env_old | sort >/tmp/env_exp
     diff /tmp/env_exp /tmp/env_act || { echo "env setup failed"; exit 1; }
     diff /tmp/env_old /tmp/env_new || { echo "env cleanup failed"; exit 1; }
 }
 
-ver=$1
+release=$1
+build_name=$2
+directory=$3
 
-existing_dir=$(./kerl path "$ver")
-[ -d "$existing_dir" ] || exit 1
+[ -d "$directory" ] || exit 1
 
-test_it "$ver" "$existing_dir"
-test_it foo foo_dir
+test_it "$release" "$build_name" "$directory"
+test_it foo boo foo_dir
