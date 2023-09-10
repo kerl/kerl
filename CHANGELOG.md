@@ -1,6 +1,15 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+9 September 2023 - 3.1.0
+
+  - Respect markdownlint (#446)
+  - Huge maintenance update/cleanup (#449)
+  - Add a new `emit-activate` command to emit activation/deactivation artifacts (#452)
+  - Warn on activation script staleness (#454)
+  - Use -o exportall to write less code (#456)
+  - Handle REBAR_CACHE_DIR (#457)
+
 11 May 2023 - 3.0.0
 
   - Fix shellcheck issues (#442)
