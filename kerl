@@ -1213,9 +1213,14 @@ emit_activate() {
 # credits to virtualenv
 kerl_deactivate() {
     set -o allexport
-    if [ -n "\$_KERL_SAVED_ERL_AFLAGS" ]; then
-        ERL_AFLAGS="\$_KERL_SAVED_ERL_AFLAGS"
+    if [ -n "\${_KERL_ERL_AFLAGS_SET+x}" ]; then
+        if [ -n "\$_KERL_ERL_AFLAGS_SET" ]; then
+            ERL_AFLAGS="\$_KERL_SAVED_ERL_AFLAGS"
+        else
+            unset ERL_AFLAGS
+        fi
         unset _KERL_SAVED_ERL_AFLAGS
+        unset _KERL_ERL_AFLAGS_SET
     fi
     if [ -n "\$_KERL_PATH_REMOVABLE" ]; then
         # shellcheck disable=SC2001
@@ -1225,11 +1230,29 @@ kerl_deactivate() {
     if [ -n "\$_KERL_MANPATH_REMOVABLE" ]; then
         # shellcheck disable=SC2001
         MANPATH="\$(echo "\$MANPATH" | sed -e "s#\$_KERL_MANPATH_REMOVABLE:##")"
+        if [ -z "\$MANPATH" -a -z "\$_KERL_MANPATH_SET" ]; then
+            unset MANPATH
+        fi
         unset _KERL_MANPATH_REMOVABLE
     fi
-    if [ -n "\$_KERL_SAVED_REBAR_PLT_DIR" ]; then
-        REBAR_PLT_DIR="\$_KERL_SAVED_REBAR_PLT_DIR"
+    unset _KERL_MANPATH_SET
+    if [ -n "\${_KERL_REBAR_PLT_DIR_SET+x}" ]; then
+        if [ -n "\$_KERL_REBAR_PLT_DIR_SET" ]; then
+            REBAR_PLT_DIR="\$_KERL_SAVED_REBAR_PLT_DIR"
+        else
+            unset REBAR_PLT_DIR
+        fi
         unset _KERL_SAVED_REBAR_PLT_DIR
+        unset _KERL_REBAR_PLT_DIR_SET
+    fi
+    if [ -n "\${_KERL_REBAR_CACHE_DIR_SET+x}" ]; then
+        if [ -n "\$_KERL_REBAR_CACHE_DIR_SET" ]; then
+            REBAR_CACHE_DIR="\$_KERL_SAVED_REBAR_CACHE_DIR"
+        else
+            unset REBAR_CACHE_DIR
+        fi
+        unset _KERL_SAVED_REBAR_CACHE_DIR
+        unset _KERL_REBAR_CACHE_DIR_SET
     fi
     if [ -n "\$_KERL_ACTIVE_DIR" ]; then
         unset _KERL_ACTIVE_DIR
@@ -1241,8 +1264,8 @@ kerl_deactivate() {
     if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
         # shellcheck disable=SC2001
         PATH="\$(echo "\$PATH" | sed -e "s#\$_KERL_ERL_CALL_REMOVABLE:##")"
-        unset _KERL_ERL_CALL_REMOVABLE
     fi
+    unset _KERL_ERL_CALL_REMOVABLE
     if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
@@ -1266,22 +1289,38 @@ if [ -n "\$_KERL_VERSION" ] && [ "\$_KERL_VERSION" != "$KERL_VERSION" ]; then
   echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 fi
 
+unset _KERL_VERSION _KERL
+
 set -o allexport
+_KERL_SAVED_REBAR_CACHE_DIR="\$REBAR_CACHE_DIR"
+_KERL_REBAR_CACHE_DIR_SET="\${REBAR_CACHE_DIR+x}"
+_KERL_SAVED_REBAR_CACHE_DIR="\$REBAR_CACHE_DIR"
+_KERL_REBAR_PLT_DIR_SET="\${REBAR_PLT_DIR+x}"
 _KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
 _KERL_PATH_REMOVABLE="$directory/bin"
 PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
+_KERL_MANPATH_SET="\${MANPATH+x}"
 _KERL_MANPATH_REMOVABLE="$directory/lib/erlang/man:$directory/man"
 MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
+REBAR_CACHE_DIR="$directory/.cache/rebar3"
 REBAR_PLT_DIR="$directory"
 _KERL_ACTIVE_DIR="$directory"
-_KERL_ERL_CALL_REMOVABLE=\$(\\find $directory -type d -path "*erl_interface*/bin")
-PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+_KERL_ERL_CALL_REMOVABLE=\$(\\find $directory -type d -path "*erl_interface*/bin" 2>/dev/null)
+if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
+    PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+fi
 # https://twitter.com/mononcqc/status/877544929496629248
-_KERL_SAVED_ERL_AFLAGS=" \$ERL_AFLAGS"
+_KERL_ERL_AFLAGS_SET="\${ERL_AFLAGS+x}"
 kernel_history=\$(echo "\$ERL_AFLAGS" | \\grep 'kernel shell_history' || true)
 if [ -z "\$kernel_history" ]; then
-    ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+    if [ -n "\$ERL_AFLAGS" ]; then
+        _KERL_SAVED_ERL_AFLAGS="\$ERL_AFLAGS"
+        ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
+    else
+        ERL_AFLAGS="-kernel shell_history enabled"
+    fi
 fi
+unset kernel_history
 # shellcheck source=/dev/null
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
@@ -1293,6 +1332,7 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     fi
     _KERL_PRMPT=\$(echo "\$_KERL_PROMPT_FORMAT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     PS1="\$_KERL_PRMPT\$PS1"
+    unset _KERL_PRMPT _KERL_PROMPT_FORMAT
 fi
 if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
     hash -r
@@ -1333,8 +1373,22 @@ function kerl_deactivate --description "deactivate erlang environment"
         set --erase _KERL_MANPATH_REMOVABLE
     end
     if set --query _KERL_SAVED_REBAR_PLT_DIR
-        set -x REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR"
+        if set --query _KERL_REBAR_PLT_DIR_SET
+            set -x REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR"
+            set -e _KERL_REBAR_PLT_DIR_SET
+        else
+            set -e REBAR_PLT_DIR
+        end
         set --erase _KERL_SAVED_REBAR_PLT_DIR
+    end
+    if set --query _KERL_SAVED_REBAR_CACHE_DIR
+        if set --query _KERL_REBAR_CACHE_DIR_SET
+            set -x REBAR_CACHE_DIR "\$_KERL_SAVED_REBAR_CACHE_DIR"
+            set -e _KERL_REBAR_CACHE_DIR_SET
+        else
+            set -e REBAR_CACHE_DIR
+        end
+        set --erase _KERL_SAVED_REBAR_CACHE_DIR
     end
     if set --query _KERL_ACTIVE_DIR
         set --erase _KERL_ACTIVE_DIR
@@ -1371,11 +1425,17 @@ if test -n "\$_KERL_VERSION" -a "\$_KERL_VERSION" != "$KERL_VERSION"
   echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 end
 
+set -e _KERL_VERSION _KERL
+
+set -q REBAR_CACHE_DIR && set -x _KERL_REBAR_CACHE_DIR_SET yes
+set -x _KERL_SAVED_REBAR_CACHE_DIR "\$REBAR_CACHE_DIR"
+set -q REBAR_PLT_DIR && set -x _KERL_REBAR_PLT_DIR_SET yes
 set -x _KERL_SAVED_REBAR_PLT_DIR "\$REBAR_PLT_DIR"
 set -x _KERL_PATH_REMOVABLE "$directory/bin"
 set -x PATH "\$_KERL_PATH_REMOVABLE" \$PATH
 set -x _KERL_MANPATH_REMOVABLE "$directory/lib/erlang/man" "$directory/man"
 set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
+set -x REBAR_CACHE_DIR "$directory/.cache/rebar3"
 set -x REBAR_PLT_DIR "$directory"
 set -x _KERL_ACTIVE_DIR "$directory"
 set -x _KERL_ERL_CALL_REMOVABLE (find "$directory" -type d -path "*erl_interface*/bin")
@@ -1408,7 +1468,25 @@ emit_activate_csh() {
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
-alias kerl_deactivate 'test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; test \$?_KERL_SAVED_REBAR_PLT_DIR != 0 && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR" && unset _KERL_SAVED_REBAR_PLT_DIR; test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; test \$?_KERL_ERL_CALL_REMOVABLE != 0 && unset _KERL_ERL_CALL_REMOVABLE; test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; test "!:*" != "nondestructive" && unalias deactivate'
+alias kerl_deactivate '\\\\
+test \$?_KERL_PATH_REMOVABLE != 0 && unset _KERL_PATH_REMOVABLE; \\\\
+test \$?_KERL_MANPATH_REMOVABLE != 0 && unset _KERL_MANPATH_REMOVABLE; \\\\
+test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; \\\\
+test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; \\\\
+test \$?_KERL_REBAR_PLT_DIR_SET != 0 && test "\$_KERL_REBAR_PLT_DIR_SET" == "no" && \\\\
+unset _KERL_REBAR_PLT_DIR_SET && test \$?REBAR_PLT_DIR != 0 && unsetenv REBAR_PLT_DIR; \\\\
+test \$?_KERL_REBAR_PLT_DIR_SET != 0 && test "\$_KERL_REBAR_PLT_DIR_SET" == "yes" && \\\\
+unset _KERL_REBAR_PLT_DIR_SET && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR"; \\\\
+test \$?_KERL_SAVED_REBAR_PLT_DIR && unset _KERL_SAVED_REBAR_PLT_DIR; \\\\
+test \$?_KERL_REBAR_CACHE_DIR_SET != 0 && test "\$_KERL_REBAR_CACHE_DIR_SET" == "no" && \\\\
+unset _KERL_REBAR_CACHE_DIR_SET && test \$?REBAR_CACHE_DIR != 0 && unsetenv REBAR_CACHE_DIR; \\\\
+test \$?_KERL_REBAR_CACHE_DIR_SET != 0 && test "\$_KERL_REBAR_CACHE_DIR_SET" == "yes" && \\\\
+unset _KERL_REBAR_CACHE_DIR_SET && setenv REBAR_CACHE_DIR "\$_KERL_SAVED_REBAR_CACHE_DIR"; \\\\
+test \$?_KERL_SAVED_REBAR_CACHE_DIR && unset _KERL_SAVED_REBAR_CACHE_DIR; \\\\
+test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; \\\\
+test \$?_KERL_ERL_CALL_REMOVABLE != 0 && unset _KERL_ERL_CALL_REMOVABLE; \\\\
+test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; \\\\
+test "!:*" != "nondestructive" && unalias deactivate'
 
 # Unset irrelevant variables.
 kerl_deactivate nondestructive
@@ -1424,10 +1502,22 @@ if ("\$_KERL_VERSION" != "" && "\$_KERL_VERSION" != "$KERL_VERSION") then
   echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 endif
 
+unset _KERL_VERSION _KERL
+
+if ( \$?REBAR_CACHE_DIR ) then
+    set _KERL_REBAR_CACHE_DIR_SET = "yes"
+    set _KERL_SAVED_REBAR_CACHE_DIR = "\$REBAR_CACHE_DIR"
+else
+    set _KERL_REBAR_CACHE_DIR_SET = "no"
+    set _KERL_SAVED_REBAR_CACHE_DIR = ""
+endif
+
 if ( \$?REBAR_PLT_DIR ) then
+    set _KERL_REBAR_PLT_DIR_SET = "yes"
     set _KERL_SAVED_REBAR_PLT_DIR = "\$REBAR_PLT_DIR"
 else
-    set _KERL_SAVED_REBAR_PLT_DIR=""
+    set _KERL_REBAR_PLT_DIR_SET = "no"
+    set _KERL_SAVED_REBAR_PLT_DIR = ""
 endif
 
 set _KERL_PATH_REMOVABLE = "$directory/bin"
@@ -1440,6 +1530,8 @@ endif
 set _KERL_MANPATH_REMOVABLE = "$directory/lib/erlang/man:$directory/man"
 set _KERL_SAVED_MANPATH = "\$MANPATH"
 setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
+
+setenv REBAR_CACHE_DIR "$directory/.cache/rebar3"
 
 setenv REBAR_PLT_DIR "$directory"
 
