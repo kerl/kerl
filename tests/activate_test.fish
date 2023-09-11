@@ -35,10 +35,33 @@ function test_it
     set -x KERL_ENABLE_PROMPT yes
     env | sort >/tmp/env_old
     expected_env $directory /tmp/env_old | sort >/tmp/env_exp
+
+    if test "$argv[4]" = alter_manpath
+        if set -q MANPATH
+            set manpath_set yes
+        end
+    end
+
     . /tmp/activate.fish
+
     env | sort >/tmp/env_act
+
+    if test "$argv[4]" = alter_manpath
+        set -xp MANPATH "extra path element"
+    end
+
     kerl_deactivate
-    env | sort >/tmp/env_new
+
+    if test "$argv[4]" = alter_manpath
+        if set -q manpath_set
+            env | sed -r 's#extra path element:?##' | sort >/tmp/env_new
+        else
+            env | grep -wv MANPATH | sort >/tmp/env_new
+        end
+    else
+        env | sort >/tmp/env_new
+    end
+
     fish -c '
         fish_prompt >/tmp/old_prompt
         source /tmp/activate.fish
@@ -59,27 +82,35 @@ set directory $argv[3]
 
 [ -d "$directory" ] || exit 1
 
-test_it "$release" "$build_name" "$directory"
-if set -q MANPATH
-    if test -n "$MANPATH"
-        MANPATH= test_it "$release" "$build_name" "$directory"
-        set -gx MANPATH
-        test_it "$release" "$build_name" "$directory"
-    else
-        MANPATH=/man/path test_it "$release" "$build_name" "$directory"
-        set -gx MANPATH /man/path
-        test_it "$release" "$build_name" "$directory"
-    end
-    set -e MANPATH
+function run_test
     test_it "$release" "$build_name" "$directory"
-else
-    MANPATH= test_it "$release" "$build_name" "$directory"
-    set -gx MANPATH
-    test_it "$release" "$build_name" "$directory"
-    MANPATH=/man/path test_it "$release" "$build_name" "$directory"
-    set -gx MANPATH /man/path
-    test_it "$release" "$build_name" "$directory"
+    test_it foo boo foo_dir
+    test_it foo boo "foo dir"
+    test_it foo boo "foo dir" alter_manpath
 end
 
-test_it foo boo foo_dir
-test_it foo boo "foo dir"
+# MANPATH manipulations
+run_test
+if set -q MANPATH
+    set -l MANPATH_SAVE $MANPATH
+    if test -n "$MANPATH"
+        MANPATH= run_test
+        set -gx MANPATH
+        run_test
+    else
+        MANPATH=/man/path run_test
+        set -gx MANPATH /man/path
+        run_test
+    end
+    set -e MANPATH
+    run_test
+    set -x MANPATH $MANPATH_SAVE
+else
+    MANPATH= run_test
+    set -gx MANPATH
+    run_test
+    MANPATH=/man/path run_test
+    set -gx MANPATH /man/path
+    run_test
+    set -e MANPATH
+end

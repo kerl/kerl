@@ -1411,9 +1411,9 @@ if set -q MANPATH
 else
     set -x MANPATH \$_KERL_MANPATH_REMOVABLE
     set -p _KERL_CLEANUP "
-         if test -z \"\\\$MANPATH\"
-             set -e MANPATH
-         end
+        if test -z \"\\\$MANPATH\"
+            set -e MANPATH
+        end
     "
 end
 set -p _KERL_CLEANUP (_kerl_remove_el_ MANPATH _KERL_MANPATH_REMOVABLE)
