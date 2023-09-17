@@ -1,8 +1,8 @@
 #!/usr/bin/env fish
 
 function expected_env
-    set DIR $argv[1]
-    set OLD $argv[2]
+    set -f DIR $argv[1]
+    set -f OLD $argv[2]
     cat "$OLD" |grep -wv -e PATH -e MANPATH -e REBAR_CACHE_DIR -e REBAR_PLT_DIR
     echo "\
 _KERL_ACTIVE_DIR=$DIR
@@ -26,16 +26,16 @@ REBAR_PLT_DIR=$DIR\
 end
 
 function expected_prompt
-    set BLD $argv[1]
-    set OLD $argv[2]
+    set -f BLD $argv[1]
+    set -f OLD $argv[2]
     echo -n "($BLD)" | cat - "$OLD"
 end
 
 function test_it
-    set release $argv[1]
-    set build_name $argv[2]
-    set directory $argv[3]
-    set variant $argv[4]
+    set -f release $argv[1]
+    set -f build_name $argv[2]
+    set -f directory $argv[3]
+    set -f variant $argv[4]
 
     ./kerl emit-activate "$release" "$build_name" "$directory" fish >/tmp/activate.fish
 
