@@ -1210,73 +1210,9 @@ emit_activate() {
   cat <<\
 =======
 #!/bin/sh
-# credits to virtualenv
-kerl_deactivate() {
-    set -o allexport
-    if [ -n "\${_KERL_ERL_AFLAGS_SET+x}" ]; then
-        if [ -n "\$_KERL_ERL_AFLAGS_SET" ]; then
-            ERL_AFLAGS="\$_KERL_SAVED_ERL_AFLAGS"
-        else
-            unset ERL_AFLAGS
-        fi
-        unset _KERL_SAVED_ERL_AFLAGS
-        unset _KERL_ERL_AFLAGS_SET
-    fi
-    if [ -n "\$_KERL_PATH_REMOVABLE" ]; then
-        # shellcheck disable=SC2001
-        PATH="\$(echo "\$PATH" | sed -e "s#\$_KERL_PATH_REMOVABLE:##")"
-        unset _KERL_PATH_REMOVABLE
-    fi
-    if [ -n "\$_KERL_MANPATH_REMOVABLE" ]; then
-        # shellcheck disable=SC2001
-        MANPATH="\$(echo "\$MANPATH" | sed -e "s#\$_KERL_MANPATH_REMOVABLE:##")"
-        if [ -z "\$MANPATH" -a -z "\$_KERL_MANPATH_SET" ]; then
-            unset MANPATH
-        fi
-        unset _KERL_MANPATH_REMOVABLE
-    fi
-    unset _KERL_MANPATH_SET
-    if [ -n "\${_KERL_REBAR_PLT_DIR_SET+x}" ]; then
-        if [ -n "\$_KERL_REBAR_PLT_DIR_SET" ]; then
-            REBAR_PLT_DIR="\$_KERL_SAVED_REBAR_PLT_DIR"
-        else
-            unset REBAR_PLT_DIR
-        fi
-        unset _KERL_SAVED_REBAR_PLT_DIR
-        unset _KERL_REBAR_PLT_DIR_SET
-    fi
-    if [ -n "\${_KERL_REBAR_CACHE_DIR_SET+x}" ]; then
-        if [ -n "\$_KERL_REBAR_CACHE_DIR_SET" ]; then
-            REBAR_CACHE_DIR="\$_KERL_SAVED_REBAR_CACHE_DIR"
-        else
-            unset REBAR_CACHE_DIR
-        fi
-        unset _KERL_SAVED_REBAR_CACHE_DIR
-        unset _KERL_REBAR_CACHE_DIR_SET
-    fi
-    if [ -n "\$_KERL_ACTIVE_DIR" ]; then
-        unset _KERL_ACTIVE_DIR
-    fi
-    if [ -n "\$_KERL_SAVED_PS1" ]; then
-        PS1="\$_KERL_SAVED_PS1"
-        unset _KERL_SAVED_PS1
-    fi
-    if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
-        # shellcheck disable=SC2001
-        PATH="\$(echo "\$PATH" | sed -e "s#\$_KERL_ERL_CALL_REMOVABLE:##")"
-    fi
-    unset _KERL_ERL_CALL_REMOVABLE
-    if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
-        hash -r
-    fi
-    if [ ! "\$1" = "nondestructive" ]; then
-        unset -f kerl_deactivate
-    fi
-    unset KERL_ENABLE_PROMPT
-    unset KERL_PROMPT_FORMAT
-    set +o allexport
-}
-kerl_deactivate nondestructive
+if type kerl_deactivate 2>/dev/null | \grep -qw function; then
+    kerl_deactivate
+fi
 
 _KERL=$(command -v kerl)
 
@@ -1292,39 +1228,89 @@ fi
 unset _KERL_VERSION _KERL
 
 set -o allexport
-_KERL_SAVED_REBAR_CACHE_DIR="\$REBAR_CACHE_DIR"
-_KERL_REBAR_CACHE_DIR_SET="\${REBAR_CACHE_DIR+x}"
-_KERL_SAVED_REBAR_CACHE_DIR="\$REBAR_CACHE_DIR"
-_KERL_REBAR_PLT_DIR_SET="\${REBAR_PLT_DIR+x}"
-_KERL_SAVED_REBAR_PLT_DIR="\$REBAR_PLT_DIR"
+
+_KERL_ACTIVE_DIR="$directory"
+
+_KERL_CLEANUP="unset _KERL_ACTIVE_DIR"
+
 _KERL_PATH_REMOVABLE="$directory/bin"
 PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
-_KERL_MANPATH_SET="\${MANPATH+x}"
-_KERL_MANPATH_REMOVABLE="$directory/lib/erlang/man:$directory/man"
-MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
-REBAR_CACHE_DIR="$directory/.cache/rebar3"
-REBAR_PLT_DIR="$directory"
-_KERL_ACTIVE_DIR="$directory"
+_KERL_CLEANUP="
+    PATH=\"\\\$(echo \"\\\$PATH\" | sed -e \"s%\$_KERL_PATH_REMOVABLE:%%\")\"
+    \$_KERL_CLEANUP
+"
+unset _KERL_PATH_REMOVABLE
+
 _KERL_ERL_CALL_REMOVABLE=\$(\\find $directory -type d -path "*erl_interface*/bin" 2>/dev/null)
 if [ -n "\$_KERL_ERL_CALL_REMOVABLE" ]; then
     PATH="\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+    _KERL_CLEANUP="
+        PATH=\"\\\$(echo \"\\\$PATH\" | sed -e \"s%\$_KERL_ERL_CALL_REMOVABLE:%%\")\"
+        \$_KERL_CLEANUP
+    "
 fi
+unset _KERL_ERL_CALL_REMOVABLE
+
+_KERL_MANPATH_REMOVABLE="$directory/lib/erlang/man:$directory/man"
+if [ -n "\${MANPATH+x}" ]; then
+    if [ -n "\$MANPATH" ]; then
+        MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
+    else
+        MANPATH="\${_KERL_MANPATH_REMOVABLE}"
+    fi
+else
+    MANPATH="\${_KERL_MANPATH_REMOVABLE}"
+    _KERL_CLEANUP="
+        if [ -z \"\\\$MANPATH\" ]; then
+            unset MANPATH
+        fi
+        \$_KERL_CLEANUP
+    "
+fi
+_KERL_CLEANUP="
+    MANPATH=\"\\\$(echo \"\\\$MANPATH\" | sed -r \"s%\$_KERL_MANPATH_REMOVABLE:?%%\")\"
+    \$_KERL_CLEANUP
+"
+unset _KERL_MANPATH_REMOVABLE
+
+if [ -n "\${REBAR_PLT_DIR+x}" ]; then
+    _KERL_CLEANUP="REBAR_PLT_DIR=\"\$REBAR_PLT_DIR\"; \$_KERL_CLEANUP"
+else
+    _KERL_CLEANUP="unset REBAR_PLT_DIR; \$_KERL_CLEANUP"
+fi
+REBAR_PLT_DIR="$directory"
+
+if [ -n "\${REBAR_CACHE_DIR+x}" ]; then
+    _KERL_CLEANUP="REBAR_CACHE_DIR=\"\$REBAR_CACHE_DIR\"; \$_KERL_CLEANUP"
+else
+    _KERL_CLEANUP="unset REBAR_CACHE_DIR; \$_KERL_CLEANUP"
+fi
+REBAR_CACHE_DIR="$directory/.cache/rebar3"
+
 # https://twitter.com/mononcqc/status/877544929496629248
-_KERL_ERL_AFLAGS_SET="\${ERL_AFLAGS+x}"
 kernel_history=\$(echo "\$ERL_AFLAGS" | \\grep 'kernel shell_history' || true)
 if [ -z "\$kernel_history" ]; then
+    if [ -n "\${ERL_AFLAGS+x}" ]; then
+        _KERL_CLEANUP="ERL_AFLAGS=\"\$ERL_AFLAGS\"; \$_KERL_CLEANUP"
+    else
+        _KERL_CLEANUP="unset ERL_AFLAGS; \$_KERL_CLEANUP"
+    fi
     if [ -n "\$ERL_AFLAGS" ]; then
-        _KERL_SAVED_ERL_AFLAGS="\$ERL_AFLAGS"
         ERL_AFLAGS="-kernel shell_history enabled \$ERL_AFLAGS"
     else
         ERL_AFLAGS="-kernel shell_history enabled"
     fi
 fi
 unset kernel_history
+
 # shellcheck source=/dev/null
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
-    _KERL_SAVED_PS1="\$PS1"
+    if [ -n "\${PS1+x}" ]; then
+        _KERL_CLEANUP="PS1=\"\$PS1\"; \$_KERL_CLEANUP"
+    else
+        _KERL_CLEANUP="unset PS1; \$_KERL_CLEANUP"
+    fi
     if [ -n "\$KERL_PROMPT_FORMAT" ]; then
         _KERL_PROMPT_FORMAT="\$KERL_PROMPT_FORMAT"
     else
@@ -1332,12 +1318,28 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     fi
     _KERL_PRMPT=\$(echo "\$_KERL_PROMPT_FORMAT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     PS1="\$_KERL_PRMPT\$PS1"
+    unset KERL_ENABLE_PROMPT KERL_PROMPT_FORMAT
     unset _KERL_PRMPT _KERL_PROMPT_FORMAT
 fi
+
 if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
+
 set +o allexport
+
+eval "
+kerl_deactivate() {
+    set -o allexport
+    \$_KERL_CLEANUP
+    if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
+        hash -r
+    fi
+    unset -f kerl_deactivate
+    set +o allexport
+}
+"
+unset _KERL_CLEANUP
 =======
 }
 
