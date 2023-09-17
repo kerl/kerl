@@ -25,18 +25,42 @@ REBAR_PLT_DIR=$DIR\
     end
 end
 
+function expected_prompt
+    set BLD $argv[1]
+    set OLD $argv[2]
+    echo -n "($BLD)" | cat - "$OLD"
+end
+
 function test_it
     set release $argv[1]
     set build_name $argv[2]
     set directory $argv[3]
+    set variant $argv[4]
+
     ./kerl emit-activate "$release" "$build_name" "$directory" fish >/tmp/activate.fish
-    set -x REBAR_CACHE_DIR cache
-    set -x REBAR_PLT_DIR plt
-    set -x KERL_ENABLE_PROMPT yes
+
+    if test "$variant" = rebar_plt
+        set -x REBAR_PLT_DIR "plt dir"
+    end
+
+    if test "$variant" = rebar_cache
+        set -x REBAR_CACHE_DIR "cache dir"
+    end
+
+    if test "$variant" = enable_prompt
+        set -x KERL_ENABLE_PROMPT yes
+    end
+
     env | sort >/tmp/env_old
     expected_env $directory /tmp/env_old | sort >/tmp/env_exp
 
-    if test "$argv[4]" = alter_manpath
+    if test "$variant" = enable_prompt
+        expected_prompt $build_name /tmp/old_prompt >/tmp/exp_prompt
+    else
+        cp /tmp/old_prompt /tmp/exp_prompt
+    end
+
+    if test "$variant" = alter_manpath
         if set -q MANPATH
             set manpath_set yes
         end
@@ -46,13 +70,13 @@ function test_it
 
     env | sort >/tmp/env_act
 
-    if test "$argv[4]" = alter_manpath
+    if test "$variant" = alter_manpath
         set -xp MANPATH "extra path element"
     end
 
     kerl_deactivate
 
-    if test "$argv[4]" = alter_manpath
+    if test "$variant" = alter_manpath
         if set -q manpath_set
             env | sed -r 's#extra path element:?##' | sort >/tmp/env_new
         else
@@ -70,7 +94,7 @@ function test_it
         fish_prompt >/tmp/new_prompt
     '
     diff /tmp/old_prompt /tmp/new_prompt
-    # diff /tmp/old_prompt /tmp/act_prompt
+    diff /tmp/exp_prompt /tmp/act_prompt
 
     diff /tmp/env_exp /tmp/env_act || begin echo "env setup failed"; exit 1; end
     diff /tmp/env_old /tmp/env_new || begin echo "env cleanup failed"; exit 1; end
@@ -87,6 +111,10 @@ function run_test
     test_it foo boo foo_dir
     test_it foo boo "foo dir"
     test_it foo boo "foo dir" alter_manpath
+    test_it foo boo "foo dir" rebar_plt
+    test_it foo boo "foo dir" rebar_cache
+    test_it foo boo "foo dir" enable_prompt
+    test_it foo "boo build" "foo dir" enable_prompt
 end
 
 # MANPATH manipulations
