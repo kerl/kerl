@@ -54,12 +54,6 @@ function test_it
     env | sort >/tmp/env_old
     expected_env $directory /tmp/env_old | sort >/tmp/env_exp
 
-    if test "$variant" = enable_prompt
-        expected_prompt $build_name /tmp/old_prompt >/tmp/exp_prompt
-    else
-        cp /tmp/old_prompt /tmp/exp_prompt
-    end
-
     if test "$variant" = alter_manpath
         if set -q MANPATH
             set manpath_set yes
@@ -93,8 +87,15 @@ function test_it
         kerl_deactivate
         fish_prompt >/tmp/new_prompt
     '
-    diff /tmp/old_prompt /tmp/new_prompt
-    diff /tmp/exp_prompt /tmp/act_prompt
+
+    if test "$variant" = enable_prompt
+        expected_prompt $build_name /tmp/old_prompt >/tmp/exp_prompt
+    else
+        cp /tmp/old_prompt /tmp/exp_prompt
+    end
+
+    diff /tmp/exp_prompt /tmp/act_prompt || begin echo "prompt setup failed"; exit 1; end
+    diff /tmp/old_prompt /tmp/new_prompt || begin echo "prompt cleanup failed"; exit 1; end
 
     diff /tmp/env_exp /tmp/env_act || begin echo "env setup failed"; exit 1; end
     diff /tmp/env_old /tmp/env_new || begin echo "env cleanup failed"; exit 1; end

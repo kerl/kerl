@@ -18,7 +18,7 @@ jobs:
           if [[ ${{matrix.os}} == macos* ]]; then
             /bin/bash -c "$(curl -fsSL \
               https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            brew install automake fop wxwidgets
+            brew install automake fop wxwidgets fish
           else
             sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
             sudo apt-get update -y
@@ -26,7 +26,10 @@ jobs:
             sudo apt-get install -y --no-install-recommends \
               git curl libssl-dev make automake autoconf libncurses5-dev gcc g++ default-jdk \
               unixodbc-dev libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev xsltproc fop \
-              libxml2-utils libsctp-dev lksctp-tools
+              libxml2-utils libsctp-dev lksctp-tools software-properties-common
+            sudo apt-add-repository -y ppa:fish-shell/release-3
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends fish
           fi
           echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
@@ -102,6 +105,8 @@ jobs:
         # yamllint enable rule:line-length
       - name: Test activate/cleanup (sh/bash)
         run: tests/activate_test.sh $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN")
+      - name: Test activate/cleanup (fish)
+        run: tests/activate_test.fish $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN")
       - name: Delete installation
         run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
       - name: Delete build
