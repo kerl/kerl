@@ -1352,16 +1352,9 @@ emit_activate_fish() {
 
   cat <<\
 =======
-function kerl_deactivate -S --description "deactivate erlang environment"
-    if set -q _KERL_CLEANUP
-        eval \$_KERL_CLEANUP
-        set -e _KERL_CLEANUP
-    end
-    if test "\$argv[1]" != "nondestructive"
-        functions -e kerl_deactivate
-    end
+if functions -q kerl_deactivate
+    kerl_deactivate
 end
-kerl_deactivate nondestructive
 
 set _KERL (command -v kerl)
 
@@ -1438,17 +1431,25 @@ if test -f "$KERL_CONFIG.fish"
     source "$KERL_CONFIG.fish"
 end
 if set --query KERL_ENABLE_PROMPT
-    functions --copy fish_prompt _kerl_saved_prompt
+    if functions -q fish_prompt
+        functions --copy fish_prompt _kerl_saved_prompt
+        set -p _KERL_CLEANUP "
+            functions --copy _kerl_saved_prompt fish_prompt
+            functions --erase _kerl_saved_prompt;
+        "
+    end
     function fish_prompt
         printf "%b" "($build_name)"
         _kerl_saved_prompt
     end
-    set -p _KERL_CLEANUP "
-        functions --erase fish_prompt
-        functions --copy _kerl_saved_prompt fish_prompt
-        functions --erase _kerl_saved_prompt;
-    "
+    set -p _KERL_CLEANUP "functions --erase fish_prompt;"
 end
+
+eval "function kerl_deactivate -S --description \"deactivate erlang environment\"
+    \$_KERL_CLEANUP
+    functions -e kerl_deactivate
+end"
+set -e _KERL_CLEANUP
 =======
 }
 
