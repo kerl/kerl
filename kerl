@@ -1352,67 +1352,9 @@ emit_activate_fish() {
 
   cat <<\
 =======
-# credits to virtualenv
-function _kerl_remove_el --description 'remove element from array'
-    set -l new_array
-    for el in \$\$argv[1]
-        if test \$el != \$argv[2]
-            set new_array \$new_array \$el
-        end
-    end
-    set -x \$argv[1] \$new_array
+if functions -q kerl_deactivate
+    kerl_deactivate
 end
-
-function kerl_deactivate --description "deactivate erlang environment"
-    if set --query _KERL_PATH_REMOVABLE
-        _kerl_remove_el PATH "\$_KERL_PATH_REMOVABLE"
-        set --erase _KERL_PATH_REMOVABLE
-    end
-    if set --query _KERL_MANPATH_REMOVABLE
-        _kerl_remove_el MANPATH "\$_KERL_MANPATH_REMOVABLE"
-        set --erase _KERL_MANPATH_REMOVABLE
-    end
-    if set --query _KERL_SAVED_REBAR_PLT_DIR
-        if set --query _KERL_REBAR_PLT_DIR_SET
-            set -x REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR"
-            set -e _KERL_REBAR_PLT_DIR_SET
-        else
-            set -e REBAR_PLT_DIR
-        end
-        set --erase _KERL_SAVED_REBAR_PLT_DIR
-    end
-    if set --query _KERL_SAVED_REBAR_CACHE_DIR
-        if set --query _KERL_REBAR_CACHE_DIR_SET
-            set -x REBAR_CACHE_DIR "\$_KERL_SAVED_REBAR_CACHE_DIR"
-            set -e _KERL_REBAR_CACHE_DIR_SET
-        else
-            set -e REBAR_CACHE_DIR
-        end
-        set --erase _KERL_SAVED_REBAR_CACHE_DIR
-    end
-    if set --query _KERL_ACTIVE_DIR
-        set --erase _KERL_ACTIVE_DIR
-    end
-    if functions --query _kerl_saved_prompt
-        functions --erase fish_prompt
-        # functions --copy complains about about fish_prompt already being defined
-        # so we take a page from virtualenv's book
-        . ( begin
-                printf "function fish_prompt\\n\\t#"
-                functions _kerl_saved_prompt
-            end | psub )
-        functions --erase _kerl_saved_prompt
-    end
-    if set --query _KERL_ERL_CALL_REMOVABLE
-        _kerl_remove_el PATH "\$_KERL_ERL_CALL_REMOVABLE"
-        set --erase _KERL_ERL_CALL_REMOVABLE
-    end
-    if test "\$argv[1]" != "nondestructive"
-        functions --erase kerl_deactivate
-        functions --erase _kerl_remove_el
-    end
-end
-kerl_deactivate nondestructive
 
 set _KERL (command -v kerl)
 
@@ -1427,30 +1369,87 @@ end
 
 set -e _KERL_VERSION _KERL
 
-set -q REBAR_CACHE_DIR && set -x _KERL_REBAR_CACHE_DIR_SET yes
-set -x _KERL_SAVED_REBAR_CACHE_DIR "\$REBAR_CACHE_DIR"
-set -q REBAR_PLT_DIR && set -x _KERL_REBAR_PLT_DIR_SET yes
-set -x _KERL_SAVED_REBAR_PLT_DIR "\$REBAR_PLT_DIR"
-set -x _KERL_PATH_REMOVABLE "$directory/bin"
-set -x PATH "\$_KERL_PATH_REMOVABLE" \$PATH
-set -x _KERL_MANPATH_REMOVABLE "$directory/lib/erlang/man" "$directory/man"
-set -x MANPATH \$MANPATH "\$_KERL_MANPATH_REMOVABLE"
-set -x REBAR_CACHE_DIR "$directory/.cache/rebar3"
-set -x REBAR_PLT_DIR "$directory"
 set -x _KERL_ACTIVE_DIR "$directory"
-set -x _KERL_ERL_CALL_REMOVABLE (find "$directory" -type d -path "*erl_interface*/bin")
-set -x PATH "\$_KERL_ERL_CALL_REMOVABLE" \$PATH
+set -p _KERL_CLEANUP "set -e _KERL_ACTIVE_DIR;"
+
+function _kerl_remove_el_ --description 'remove elements from array'
+    set path_var \$argv[1]
+    set elements \$argv[2]
+    echo "
+        for el in \\\$\$elements;
+            if set -l index (contains -i -- \\\$el \\\$\$path_var);
+                set -e \$path_var[1][\\\$index];
+            end;
+        end;
+    "
+end
+
+set -x _KERL_PATH_REMOVABLE "$directory/bin"
+set -l _KERL_ERL_CALL_REMOVABLE (find "$directory" -type d -path "*erl_interface*/bin" 2>/dev/null)
+if test -n "\$_KERL_ERL_CALL_REMOVABLE"
+    set -a _KERL_PATH_REMOVABLE \$_KERL_ERL_CALL_REMOVABLE
+end
+set -p _KERL_CLEANUP "set -e _KERL_PATH_REMOVABLE;"
+set -xp PATH \$_KERL_PATH_REMOVABLE
+set -p _KERL_CLEANUP (_kerl_remove_el_ PATH _KERL_PATH_REMOVABLE)
+
+set -x _KERL_MANPATH_REMOVABLE "$directory/lib/erlang/man" "$directory/man"
+set -p _KERL_CLEANUP "set -e _KERL_MANPATH_REMOVABLE;"
+if set -q MANPATH
+    if test -n "\$MANPATH"
+        set -xp MANPATH \$_KERL_MANPATH_REMOVABLE
+    else
+        set -x MANPATH \$_KERL_MANPATH_REMOVABLE
+    end
+else
+    set -x MANPATH \$_KERL_MANPATH_REMOVABLE
+    set -p _KERL_CLEANUP "
+        if test -z \"\\\$MANPATH\"
+            set -e MANPATH
+        end
+    "
+end
+set -p _KERL_CLEANUP (_kerl_remove_el_ MANPATH _KERL_MANPATH_REMOVABLE)
+
+functions -e _kerl_remove_el_
+
+if set -q REBAR_PLT_DIR
+    set -p _KERL_CLEANUP "set -x REBAR_PLT_DIR \"\$REBAR_PLT_DIR\";"
+else
+    set -p _KERL_CLEANUP "set -e REBAR_PLT_DIR;"
+end
+set -x REBAR_PLT_DIR "$directory"
+
+if set -q REBAR_CACHE_DIR
+    set -p _KERL_CLEANUP "set -x REBAR_CACHE_DIR \"\$REBAR_CACHE_DIR\";"
+else
+    set -p _KERL_CLEANUP "set -e REBAR_CACHE_DIR;"
+end
+set -x REBAR_CACHE_DIR "$directory/.cache/rebar3"
 
 if test -f "$KERL_CONFIG.fish"
     source "$KERL_CONFIG.fish"
 end
 if set --query KERL_ENABLE_PROMPT
-    functions --copy fish_prompt _kerl_saved_prompt
+    if functions -q fish_prompt
+        functions --copy fish_prompt _kerl_saved_prompt
+        set -p _KERL_CLEANUP "
+            functions --copy _kerl_saved_prompt fish_prompt
+            functions --erase _kerl_saved_prompt;
+        "
+    end
     function fish_prompt
         printf "%b" "($build_name)"
         _kerl_saved_prompt
     end
+    set -p _KERL_CLEANUP "functions --erase fish_prompt;"
 end
+
+eval "function kerl_deactivate -S --description \"deactivate erlang environment\"
+    \$_KERL_CLEANUP
+    functions -e kerl_deactivate
+end"
+set -e _KERL_CLEANUP
 =======
 }
 

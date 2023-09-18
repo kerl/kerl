@@ -34,7 +34,7 @@ EOT
     fi
 }
 
-test_it() {
+test_it() (
     release=$1
     build_name=$2
     directory=$3
@@ -50,7 +50,7 @@ test_it() {
     expected_env "$directory" /tmp/env_old | sort >/tmp/env_exp
     diff /tmp/env_exp /tmp/env_act || { echo "env setup failed"; exit 1; }
     diff /tmp/env_old /tmp/env_new || { echo "env cleanup failed"; exit 1; }
-}
+)
 
 release=$1
 build_name=$2
@@ -60,3 +60,4 @@ directory=$3
 
 test_it "$release" "$build_name" "$directory"
 test_it foo boo foo_dir
+echo "$release" "$build_name" "$directory"
