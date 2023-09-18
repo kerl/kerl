@@ -4,22 +4,19 @@ expected_env() {
     DIR="$1"
     OLD="$2"
     BLD="$3"
-    grep "$OLD" -wv -e PATH -e MANPATH -e PS1 -e REBAR_CACHE_DIR -e REBAR_PLT_DIR
+    grep "$OLD" -wv -e PATH -e MANPATH -e REBAR_CACHE_DIR -e REBAR_PLT_DIR
     cat - <<EOT
 _KERL_ACTIVE_DIR=$DIR
 ERL_AFLAGS=-kernel shell_history enabled
 REBAR_CACHE_DIR=$DIR/.cache/rebar3
 REBAR_PLT_DIR=$DIR
 EOT
-    if [ -n "$KERL_ENABLE_PROMPT" ]; then
-        echo "PS1=($BLD)$PS1"
-    fi
     if [ -n "$MANPATH" ]; then
         echo "MANPATH=$DIR/lib/erlang/man:$DIR/man:$MANPATH"
     else
         echo "MANPATH=$DIR/lib/erlang/man:$DIR/man"
     fi
-    ERLCALLDIR=$(\find "$DIR" -type d -path "*erl_interface*/bin" 2>/dev/null)
+    ERLCALLDIR=$(find "$DIR" -type d -path "*erl_interface*/bin" 2>/dev/null)
     if [ -n "$ERLCALLDIR" ]; then
         echo "PATH=$ERLCALLDIR:$DIR/bin:$PATH"
     else
@@ -27,7 +24,17 @@ EOT
     fi
 }
 
-test_it() (
+expected_prompt() {
+    BLD=$1
+    OLD=$2
+    if grep -q 'PS1=' "$OLD"; then
+        sed "s/PS1='/PS1='($BLD)/" < "$OLD"
+    else
+        echo "PS1='($BLD)'"
+    fi
+}
+
+test_it() {
     release=$1
     build_name=$2
     directory=$3
@@ -45,7 +52,8 @@ test_it() (
         export REBAR_CACHE_DIR
     fi
 
-    env | sort >/tmp/env_old
+    env | grep -wv PS1 | sort >/tmp/env_old
+    set | grep -w PS1 >/tmp/old_prompt
 
     if [ "$variant" = enable_prompt ]; then
         KERL_ENABLE_PROMPT=yes
@@ -64,7 +72,8 @@ test_it() (
 
     # shellcheck source=/dev/null
     . /tmp/activate.sh
-    env | sort >/tmp/env_act
+    env | grep -v 'PS1=' | sort >/tmp/env_act
+    set | grep -w PS1 >/tmp/act_prompt
 
     if [ "$variant" = alter_manpath ]; then
         MANPATH="extra path element:$MANPATH"
@@ -75,17 +84,28 @@ test_it() (
 
     if [ "$variant" = alter_manpath ]; then
         if [ "$manpath_set" = yes ]; then
-            env | sed -r 's#extra path element:?##' | sort >/tmp/env_new
+            env | grep -wv PS1 | sed -r 's#extra path element:?##' | sort >/tmp/env_new
         else
-            env | grep -wv MANPATH | sort >/tmp/env_new
+            env | grep -wv -e PS1 -e MANPATH | sort >/tmp/env_new
         fi
     else
-        env | sort >/tmp/env_new
+        env | grep -wv PS1 | sort >/tmp/env_new
     fi
+
+    set | grep -w PS1 >/tmp/new_prompt
+
+    if [ "$variant" = enable_prompt ]; then
+        expected_prompt "$build_name" /tmp/old_prompt >/tmp/exp_prompt
+    else
+        cp /tmp/old_prompt /tmp/exp_prompt
+    fi
+
+    diff /tmp/exp_prompt /tmp/act_prompt || { echo "prompt setup failed"; exit 1; }
+    diff /tmp/old_prompt /tmp/new_prompt || { echo "prompt cleanup failed"; exit 1; }
 
     diff /tmp/env_exp /tmp/env_act || { echo "env setup failed"; exit 1; }
     diff /tmp/env_old /tmp/env_new || { echo "env cleanup failed"; exit 1; }
-)
+}
 
 release=$1
 build_name=$2
@@ -100,6 +120,7 @@ run_test() {
     test_it foo boo "foo dir" alter_manpath
     test_it foo boo "foo dir" rebar_plt
     test_it foo boo "foo dir" rebar_cache
+    test_it foo boo foo_dir enable_prompt
     test_it foo boo "foo dir" enable_prompt
     test_it foo "boo build" "foo dir" enable_prompt
 }
