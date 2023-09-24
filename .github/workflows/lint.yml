@@ -9,7 +9,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v3
       - name: Run ShellCheck and shfmt
-        uses: luizm/action-sh-checker@@v0.7.0
+        uses: luizm/action-sh-checker@v0.7.0
         env:
           SHELLCHECK_OPTS: -o all
           SHFMT_OPTS: -i 4
