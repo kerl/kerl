@@ -1233,6 +1233,10 @@ _KERL_ACTIVE_DIR="$directory"
 
 _KERL_CLEANUP="unset _KERL_ACTIVE_DIR"
 
+if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
+    _KERL_CLEANUP="hash -r; \$_KERL_CLEANUP"
+fi
+
 _KERL_PATH_REMOVABLE="$directory/bin"
 PATH="\${_KERL_PATH_REMOVABLE}:\$PATH"
 _KERL_CLEANUP="
@@ -1332,9 +1336,6 @@ eval "
 kerl_deactivate() {
     set -o allexport
     \$_KERL_CLEANUP
-    if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
-        hash -r
-    fi
     unset -f kerl_deactivate
     set +o allexport
 }
