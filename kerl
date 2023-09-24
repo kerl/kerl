@@ -22,6 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+# shellcheck disable=SC2250  # Prefer putting braces around variable references even when not strictly required
+# shellcheck disable=SC2292  # Prefer `[[ ]]` over `[ ]` for tests in Bash/Ksh
+# shellcheck disable=SC2312  # Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore)
+
 unset ERL_TOP
 
 # Make sure CDPATH doesn't affect cd in case path is relative.
@@ -49,7 +53,7 @@ if [ -t 1 ] ; then
         echo "$*" 1>&2
     else
         left="$(colorize "$l")"
-        # shellcheck disable=SC2086
+        # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         right="$(tput $KERL_COLOR_RESET)"
         echo "${left}$*${right}" 1>&2
         unset -v l
@@ -118,8 +122,7 @@ autoclean()
 
 TMP_DIR=${TMP_DIR:-'/tmp'}
 if [ -z "$HOME" ]; then
-    # shellcheck disable=SC2016
-    l=e stderr 'Error: $HOME is empty or not set.'
+    l=e stderr "Error: \$HOME is empty or not set."
     exit 1
 fi
 
@@ -313,10 +316,10 @@ get_git_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
     git ls-remote --tags --refs "$OTP_GITHUB_URL" > "$tmp"
     ret=$?
-    if [ $ret -eq 0 ]; then
+    if [ "$ret" -eq 0 ]; then
         < "$tmp" cut -f2 \
         | cut -d'/' -f3- \
-        | sed $SED_OPT \
+        | sed "$SED_OPT" \
             -e '# Delete all tags starting with ":" as to not mix' \
             -e '# them with the prefixed lines we`re generating next.' \
             -e '/^:/d' \
@@ -402,13 +405,13 @@ get_git_releases() {
          | cut -d':' -f2-
     fi
     rm -f "$tmp"
-    return $ret
+    return "$ret"
 }
 
 get_tarball_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
-    if [ 200 = "$(\curl -qsL --output "$tmp" --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL/)" ]; then
-        sed $SED_OPT \
+    if [ 200 = "$(\curl -qsL --output "$tmp" --write-out '%{http_code}' "$ERLANG_DOWNLOAD_URL"/)" ]; then
+        sed "$SED_OPT" \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
             -e '/^R1|^[0-9]/!d' "$tmp" \
         | sed -e 's/^R\(.*\)/\1:R\1/' \
@@ -616,7 +619,7 @@ do_git_build() {
 
     assert_build_name_unused "$build_name"
 
-    GIT=$(printf '%s' "$git_url" | $MD5SUM | cut -d ' ' -f $MD5SUM_FIELD)
+    GIT=$(printf '%s' "$git_url" | $MD5SUM | cut -d ' ' -f "$MD5SUM_FIELD")
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
     l=n stderr "Checking out Erlang/OTP git repository from $git_url..."
@@ -662,7 +665,7 @@ do_git_build() {
 }
 
 get_otp_version() {
-    echo "$1" | sed $SED_OPT -e 's/R?([0-9]{1,2}).+/\1/'
+    echo "$1" | sed "$SED_OPT" -e 's/R?([0-9]{1,2}).+/\1/'
 }
 
 get_perl_version() {
@@ -826,6 +829,8 @@ compare_sem_version() {
         ('>' | "==")
             [ "$(printf "%s\n%s" "$version" "$baseline" | sort --version-sort | head -n 1)" = "$baseline" ]
             ;;
+        *)
+            ;;
     esac
 }
 
@@ -893,14 +898,14 @@ is_osx_ventura() {
 apply_bypass_version_check() {
     if [ -f make/configure.in ]; then
         l=n stderr "Bypassing version check in make/configure.in"
-        # shellcheck disable=SC2016
+        # shellcheck disable=SC2016  # Expressions don't expand in single quotes, use double quotes for that.
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' make/configure.in
     elif [ -f configure.in ]; then
         l=n stderr "Bypassing version check in configure.in"
-        # shellcheck disable=SC2016
+        # shellcheck disable=SC2016  # Expressions don't expand in single quotes, use double quotes for that.
         sed -i '' 's/\(#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > $int_macosx_version\)/\1 \&\& false/' configure.in
         l=n stderr "Removing no_weak_imports from LDFLAGS in erts/configure.in"
-        # shellcheck disable=SC2016
+        # shellcheck disable=SC2016  # Expressions don't expand in single quotes, use double quotes for that.
         sed -i '' 's/LDFLAGS="$LDFLAGS -Wl,-no_weak_imports"//' erts/configure.in
     fi
 }
@@ -1030,7 +1035,7 @@ _do_build() {
     TMPOPT="${TMP_DIR}/kerloptions.$$"
     echo "$CFLAGS" >"$TMPOPT"
     echo "$KERL_CONFIGURE_OPTIONS" >>"$TMPOPT"
-    SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f $MD5SUM_FIELD)
+    SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f "$MD5SUM_FIELD")
     # Check for a .kerl_config.md5 file
     if [ -e ./"$KERL_CONFIG_STORAGE_FILENAME".md5 ]; then
         # Compare our current options to the saved ones
@@ -1056,7 +1061,7 @@ _do_build() {
         maybe_patch "$KERL_SYSTEM" "$1"
     fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
-        # shellcheck disable=SC2086
+        # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! (./otp_build autoconf && \
                   _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE") \
              >> "$LOGFILE" 2>&1; then
@@ -1065,7 +1070,7 @@ _do_build() {
             exit 1
         fi
     else
-        # shellcheck disable=SC2086
+        # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
             show_logfile 'Configure failed.' "$LOGFILE"
             list_remove builds "$1 $2"
@@ -1075,7 +1080,7 @@ _do_build() {
     fi
     if echo "$KERL_CONFIGURE_OPTIONS" | \grep -- '--enable-native-libs' >/dev/null 2>&1; then
         make clean >>"$LOGFILE" 2>&1
-        # shellcheck disable=SC2086
+        # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
             show_logfile 'Configure failed.' "$LOGFILE"
             autoclean "$2"
@@ -1110,7 +1115,7 @@ _do_build() {
         done
     fi
 
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
     if ! _flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS >>"$LOGFILE" 2>&1; then
         show_logfile 'Build failed.' "$LOGFILE"
         autoclean "$2"
@@ -1190,7 +1195,7 @@ do_build_install() {
     fi
 
     status=$?
-    if [ $status -ne 0 ]; then
+    if [ "$status" -ne 0 ]; then
         l=e stderr "Build failed! Skipping install step..."
         exit 1
     fi
@@ -1213,6 +1218,7 @@ emit_activate() {
 if type kerl_deactivate 2>/dev/null | \grep -qw function; then
     kerl_deactivate
 fi
+
 _KERL=$(command -v kerl)
 if [ -n "\$_KERL" ]; then
   _KERL_VERSION=\$(\$_KERL version)
@@ -1579,7 +1585,7 @@ do_install() {
     LOGFILE="$KERL_BUILD_DIR/$build_name/otp_install_$rel.log"
     cd "$ERL_TOP" || exit 1
     if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir" &&
-              cd "$absdir" && ./Install $INSTALL_OPT "$absdir") >> "$LOGFILE" 2>&1; then
+              cd "$absdir" && ./Install "$INSTALL_OPT" "$absdir") >> "$LOGFILE" 2>&1; then
         show_logfile "Install of Erlang/OTP $rel ($build_name) in $absdir failed" "$LOGFILE"
         exit 1
     fi
@@ -1648,12 +1654,11 @@ do_install() {
     if command -v apk >/dev/null 2>&1; then
         # Running on Alpine Linux, assuming non-exotic shell
         SHELL_SUFFIX=''
-    elif [ "$(\ps -p $PID -o ppid=)" -eq 0 ]; then
+    elif [ "$(\ps -p "$PID" -o ppid=)" -eq 0 ]; then
         SHELL_SUFFIX=''
     else
-        PARENT_PID=$(\ps -p $PID -o ppid=) || exit 1
-        # shellcheck disable=SC2086
-        PARENT_CMD=$(\ps -p $PARENT_PID -o ucomm | tail -n 1)
+        PARENT_PID=$(\ps -p "$PID" -o ppid=) || exit 1
+        PARENT_CMD=$(\ps -p "$PARENT_PID" -o ucomm | tail -n 1)
         case "$PARENT_CMD" in
             fish)
                 SHELL_SUFFIX='.fish'
@@ -1694,10 +1699,10 @@ build_plt() {
     build_log="$dialyzerd"/build.log
     dirs=$(\find "$1"/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
     apps=$(for app in $dirs; do basename "$app" | cut -d- -f1 ; done | \grep -Ev 'erl_interface|jinterface' | xargs echo)
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
     "$1"/bin/dialyzer --output_plt "$plt" --build_plt --apps $apps >>"$build_log" 2>&1
     status=$?
-    if [ $status -eq 0 ] || [ $status -eq 2 ]; then
+    if [ "$status" -eq 0 ] || [ "$status" -eq 2 ]; then
         l=s stderr "Done building $plt"
         return 0
     else
@@ -1752,27 +1757,28 @@ do_deploy() {
         remotepath="$3"
     fi
 
-    # shellcheck disable=SC2086
-    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true >/dev/null 2>&1; then
+    if ! ssh "$KERL_DEPLOY_SSH_OPTIONS" "$host" true >/dev/null 2>&1; then
         l=e stderr "Couldn't ssh to $host"
         exit 1
     fi
 
     l=n stderr "Cloning Erlang/OTP $rel ($path) to $host ($remotepath) ..."
 
-    # shellcheck disable=SC2086
-    if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"; then
+    # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" "$KERL_DEPLOY_RSYNC_OPTIONS" "$path/" "$host:$remotepath/"; then
         l=e stderr "Couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)"
         exit 1
     fi
 
-    # shellcheck disable=SC2086,SC2029
+    # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    # shellcheck disable=SC2029  # Note that, unescaped, this expands on the client side
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && env ERL_TOP=\"\$(pwd)\" ./Install $INSTALL_OPT \"\$(pwd)\" >/dev/null 2>&1"; then
         l=e stderr "Couldn't install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
     fi
 
-    # shellcheck disable=SC2086,SC2029
+    # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    # shellcheck disable=SC2029  # Note that, unescaped, this expands on the client side
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" "cd \"$remotepath\" && sed -i -e \"s#$path#\"\$(pwd)\"#g\" activate"; then
         l=e stderr "Couldn't completely install Erlang/OTP $rel to $host ($remotepath)"
         exit 1
@@ -1944,7 +1950,7 @@ list_add() {
 
 list_remove() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        sed $SED_OPT -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1" || exit 1
+        sed "$SED_OPT" -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1" || exit 1
     fi
 }
 
@@ -2067,7 +2073,7 @@ tarball_download() {
     fi
     ensure_checksum_file
     l=n stderr 'Verifying archive checksum...'
-    SUM="$($MD5SUM "$KERL_DOWNLOAD_DIR/$1" | cut -d' ' -f $MD5SUM_FIELD)"
+    SUM="$($MD5SUM "$KERL_DOWNLOAD_DIR/$1" | cut -d' ' -f "$MD5SUM_FIELD")"
     ORIG_SUM="$(\grep -F "$1" "$KERL_DOWNLOAD_DIR"/MD5 | cut -d' ' -f2)"
     if [ "$SUM" != "$ORIG_SUM" ]; then
         l=e stderr "Checksum error, check the files in $KERL_DOWNLOAD_DIR"
@@ -2373,10 +2379,10 @@ _END_PATCH
 
 upgrade_kerl() {
     install_folder=$1
-    curl -s -o "$install_folder/kerl" $KERL_GIT_BASE/kerl
+    curl -s -o "$install_folder/kerl" "$KERL_GIT_BASE"/kerl
     chmod +x "$install_folder/kerl"
     version=$(kerl version)
-    current_kerl_path="$(which kerl)"
+    current_kerl_path="$(command -v kerl)"
     l=n stderr "kerl $version is now available at $current_kerl_path."
 }
 
@@ -2498,9 +2504,9 @@ case "$1" in
             upgrade_usage
             exit 1
         fi
-        current_kerl_path="$(which kerl)"
+        current_kerl_path="$(command -v kerl)"
         which_status=$?
-        if [ $which_status != 0 ]; then
+        if [ "$which_status" != 0 ]; then
             if [ -z ${KERL_APP_INSTALL_DIR+x} ]; then
                 install_folder="$PWD"
             else
@@ -2511,7 +2517,7 @@ case "$1" in
         else
             version=$(kerl version)
             l=n stderr "local kerl found ($current_kerl_path) at version $version."
-            latest=$(curl -s $KERL_GIT_BASE/LATEST)
+            latest=$(curl -s "$KERL_GIT_BASE"/LATEST)
             l=n stderr "remote kerl found at version $latest."
             if [ "$version" != "$latest" ]; then
                 l=w stderr "Versions are different. Upgrading to $latest."
@@ -2608,7 +2614,7 @@ case "$1" in
                 else
                     maybe_remove "$(get_install_path_from_name "$3")"
                 fi
-                escaped="$(echo "$3" | \sed $SED_OPT -e 's#/$##' -e 's#\/#\\\/#g')"
+                escaped="$(echo "$3" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
                 list_remove "$2"s "$escaped"
                 l=n stderr "The installation \"$3\" has been deleted"
                 ;;
@@ -2662,7 +2668,7 @@ case "$1" in
             else
                 VALUE="$ACTIVE_NAME"
             fi
-            # shellcheck disable=SC2059
+            # shellcheck disable=SC2059  # Don't use variables in the printf format string. Use printf "..%s.." "$foo"
             printf "$FMT" "$VALUE"
         fi
         exit 0
