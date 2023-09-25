@@ -41,6 +41,7 @@ if [ -n "$KERL_DEBUG" ]; then
 fi
 
 KERL_VERSION='3.1.0'
+OLDEST_OTP_SUPPORTED='24'
 
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
@@ -1922,9 +1923,22 @@ maybe_remove() {
 }
 
 list_print() {
-    if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        if [ "$(\wc -l "$KERL_BASE_DIR/otp_$1")" != '0' ]; then
-            cat "$KERL_BASE_DIR/otp_$1"
+    list_type=$1 # releases | builds | installations
+    list=$KERL_BASE_DIR/otp_${list_type}
+    if [ -f "$list" ]; then
+        if [ "$(\wc -l "$list")" != '0' ]; then
+            if [ "${list_type}" = releases ]; then
+                awk -v target="$OLDEST_OTP_SUPPORTED" '
+                {
+                    split($0, v, ".")
+                    if (v[1] >= target && !/^R/) {
+                        printf "%s\n",$0
+                    }
+                }' "$list"
+            else
+                cat "$KERL_BASE_DIR/otp_$1"
+            fi
+
             return 0
         fi
     fi
