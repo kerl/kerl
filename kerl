@@ -1289,8 +1289,8 @@ fi
 REBAR_CACHE_DIR="$directory/.cache/rebar3"
 
 # https://twitter.com/mononcqc/status/877544929496629248
-kernel_history=\$(echo "\$ERL_AFLAGS" | \\grep 'kernel shell_history' || true)
-if [ -z "\$kernel_history" ]; then
+_KERL_KERNEL_HISTORY=\$(echo "\$ERL_AFLAGS" | \\grep 'kernel shell_history' || true)
+if [ -z "\$_KERL_KERNEL_HISTORY" ]; then
     if [ -n "\${ERL_AFLAGS+x}" ]; then
         add_cleanup "ERL_AFLAGS=\"\$ERL_AFLAGS\""
     else
@@ -1302,7 +1302,7 @@ if [ -z "\$kernel_history" ]; then
         ERL_AFLAGS="-kernel shell_history enabled"
     fi
 fi
-unset kernel_history
+unset _KERL_KERNEL_HISTORY
 
 # shellcheck source=/dev/null
 if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
