@@ -1210,6 +1210,9 @@ emit_activate() {
     cat << \
         =======
 #!/bin/sh
+
+# shellcheck disable=SC2250  # Prefer putting braces around variable references even when not strictly required
+
 if type kerl_deactivate 2>/dev/null | \grep -qw function; then
     kerl_deactivate
 fi
