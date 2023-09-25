@@ -734,10 +734,10 @@ _flags() {
             CC='clang'
         fi
 
-        CFLAGS="$CFLAGS" CC="$CC" "$@"
+        CFLAGS="${CFLAGS:-}" CC="$CC" "$@"
         ;;
     *)
-        CFLAGS="$CFLAGS" "$@"
+        CFLAGS="${CFLAGS:-}" "$@"
         ;;
     esac
 }
@@ -813,7 +813,7 @@ _do_build() {
 
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="${TMP_DIR}/kerloptions.$$"
-    echo "$CFLAGS" >"$TMPOPT"
+    echo "${CFLAGS:-}" >"$TMPOPT"
     echo "$KERL_CONFIGURE_OPTIONS" >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f "$MD5SUM_FIELD")
     # Check for a .kerl_config.md5 file
