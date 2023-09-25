@@ -1213,19 +1213,16 @@ emit_activate() {
 if type kerl_deactivate 2>/dev/null | \grep -qw function; then
     kerl_deactivate
 fi
-
 _KERL=$(command -v kerl)
-
 if [ -n "\$_KERL" ]; then
   _KERL_VERSION=\$(\$_KERL version)
 fi
-
 if [ -n "\$_KERL_VERSION" ] && [ "\$_KERL_VERSION" != "$KERL_VERSION" ]; then
   echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
   echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 fi
-
-unset _KERL_VERSION _KERL
+unset _KERL_VERSION
+unset _KERL
 
 add_cleanup() {
   _KERL_CLEANUP="
@@ -1237,7 +1234,6 @@ add_cleanup() {
 set -o allexport
 
 _KERL_ACTIVE_DIR="$directory"
-
 add_cleanup "unset _KERL_ACTIVE_DIR"
 
 if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
@@ -1305,7 +1301,9 @@ fi
 unset _KERL_KERNEL_HISTORY
 
 # shellcheck source=/dev/null
-if [ -f "$KERL_CONFIG" ]; then . "$KERL_CONFIG"; fi
+if [ -f "$KERL_CONFIG" ]; then
+    . "$KERL_CONFIG"
+fi
 if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     if [ -n "\${PS1+x}" ]; then
         add_cleanup "PS1=\"\$PS1\""
@@ -1319,8 +1317,10 @@ if [ -n "\$KERL_ENABLE_PROMPT" ]; then
     fi
     _KERL_PRMPT=\$(echo "\$_KERL_PROMPT_FORMAT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
     PS1="\$_KERL_PRMPT\$PS1"
-    unset KERL_ENABLE_PROMPT KERL_PROMPT_FORMAT
-    unset _KERL_PRMPT _KERL_PROMPT_FORMAT
+    unset KERL_ENABLE_PROMPT
+    unset KERL_PROMPT_FORMAT
+    unset _KERL_PRMPT
+    unset _KERL_PROMPT_FORMAT
 fi
 
 if [ -n "\$BASH" ] || [ -n "\$ZSH_VERSION" ]; then
