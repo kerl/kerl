@@ -1210,26 +1210,29 @@ emit_activate() {
     cat << \
         =======
 #!/bin/sh
+
+# shellcheck disable=SC2250  # Prefer putting braces around variable references even when not strictly required
+
 if type kerl_deactivate 2>/dev/null | \grep -qw function; then
     kerl_deactivate
 fi
 
 _KERL=$(command -v kerl)
 if [ -n "\$_KERL" ]; then
-  _KERL_VERSION=\$(\$_KERL version)
+    _KERL_VERSION=\$(\$_KERL version)
 fi
 if [ -n "\$_KERL_VERSION" ] && [ "\$_KERL_VERSION" != "$KERL_VERSION" ]; then
-  echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
-  echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
+    echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
+    echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
 fi
 unset _KERL_VERSION
 unset _KERL
 
 add_cleanup() {
-  _KERL_CLEANUP="
+    _KERL_CLEANUP="
     \$1
     \$_KERL_CLEANUP
-  "
+    "
 }
 
 set -o allexport
