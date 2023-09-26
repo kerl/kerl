@@ -1,102 +1,95 @@
 #!/bin/bash
 # bash_completion for kerl
 
-_kerl()
-{
+# shellcheck disable=SC2207  # Prefer mapfile or read -a to split command output (or quote to avoid splitting)
+# shellcheck disable=SC2250  # Prefer putting braces around variable references even when not strictly required
+# shellcheck disable=SC2292  # Prefer `[[ ]]` over `[ ]` for tests in Bash/Ksh
+# shellcheck disable=SC2312  # Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore)
+
+_kerl() {
     local cur prev
-    if type _get_comp_words_by_ref &>/dev/null ; then
+    if type _get_comp_words_by_ref &>/dev/null; then
         _get_comp_words_by_ref cur prev
     else
         cur=$2 prev=$3
     fi
 
     case $prev in
-        kerl)
-            # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W 'build install build-install update upgrade list delete active path status' -- "$cur"))
-            ;;
-        list)
-            # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W 'releases builds installations' -- "$cur"))
-            ;;
-        build)
-            if [ "$COMP_CWORD" -eq 2 ]; then
-                if [ -f "$HOME"/.kerl/otp_releases ]; then
-                    RELEASES=$(cat "$HOME"/.kerl/otp_releases)
-                fi
-                # shellcheck disable=SC2207
-                COMPREPLY=($(compgen -W "git $RELEASES" -- "$cur"))
-            else
-                if [ -f "$HOME"/.kerl/otp_builds ]; then
-                    BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
-                fi
-                # shellcheck disable=SC2207
-                COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
+    kerl)
+        COMPREPLY=($(compgen -W 'build install build-install update upgrade list delete active path status' -- "$cur"))
+        ;;
+    list)
+        COMPREPLY=($(compgen -W 'releases builds installations' -- "$cur"))
+        ;;
+    build)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            if [ -f "$HOME"/.kerl/otp_releases ]; then
+                RELEASES=$(cat "$HOME"/.kerl/otp_releases)
             fi
-            ;;
-        installation)
-            if [ -f "$HOME"/.kerl/otp_installations ]; then
-                PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
-            fi
-            # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
-            ;;
-        install)
+            COMPREPLY=($(compgen -W "git $RELEASES" -- "$cur"))
+        else
             if [ -f "$HOME"/.kerl/otp_builds ]; then
                 BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
             fi
-            # shellcheck disable=SC2207
             COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
-            ;;
-         build-install)
-            if [ "$COMP_CWORD" -eq 2 ]; then
-                if [ -f "$HOME"/.kerl/otp_releases ]; then
-                    RELEASES=$(cat "$HOME"/.kerl/otp_releases)
-                fi
-                # shellcheck disable=SC2207
-                COMPREPLY=($(compgen -W "$RELEASES"))
+        fi
+        ;;
+    installation)
+        if [ -f "$HOME"/.kerl/otp_installations ]; then
+            PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
+        fi
+        COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
+        ;;
+    install)
+        if [ -f "$HOME"/.kerl/otp_builds ]; then
+            BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
+        fi
+        COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
+        ;;
+    build-install)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            if [ -f "$HOME"/.kerl/otp_releases ]; then
+                RELEASES=$(cat "$HOME"/.kerl/otp_releases)
             fi
-            ;;
-         path)
-            INSTALL_LIST="$HOME"/.kerl/otp_installations
-            if [ -f "$INSTALL_LIST" ]; then
-                NAMES=$(cut -d ' ' -f 2 "$INSTALL_LIST" | xargs basename)
+            COMPREPLY=($(compgen -W "$RELEASES"))
+        fi
+        ;;
+    path)
+        INSTALL_LIST="$HOME"/.kerl/otp_installations
+        if [ -f "$INSTALL_LIST" ]; then
+            NAMES=$(cut -d ' ' -f 2 "$INSTALL_LIST" | xargs basename)
+        fi
+        COMPREPLY=($(compgen -W "$NAMES" -- "$cur"))
+        ;;
+    deploy)
+        if [ "$COMP_CWORD" -eq 3 ]; then
+            if [ -f "$HOME"/.kerl/otp_installations ]; then
+                PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
             fi
-            # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W "$NAMES" -- "$cur"))
-            ;;
-         deploy)
-            if [ "$COMP_CWORD" -eq 3 ]; then
-                if [ -f "$HOME"/.kerl/otp_installations ]; then
-                    PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
-                fi
+        fi
+        COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
+        ;;
+    delete)
+        COMPREPLY=($(compgen -W 'build installation' -- "$cur"))
+        ;;
+    update)
+        COMPREPLY=($(compgen -W 'releases' -- "$cur"))
+        ;;
+    *)
+        if [ "$COMP_CWORD" -eq 3 ]; then
+            if [ -f "$HOME"/.kerl/otp_builds ]; then
+                BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
             fi
-            # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
-            ;;
-        delete)
-            # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W 'build installation' -- "$cur"))
-            ;;
-        update)
-            # shellcheck disable=SC2207
-            COMPREPLY=($(compgen -W 'releases' -- "$cur"))
-            ;;
-        *)
-            if [ "$COMP_CWORD" -eq 3 ]; then
-                if [ -f "$HOME"/.kerl/otp_builds ]; then
-                    BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
-                fi
-                if [ -n "$BUILDS" ]; then
-                    for b in $BUILDS; do
-                        if [ "$prev" = "$b" ]; then
-                            _filedir
-                            return 0
-                        fi
-                    done
-                fi
+            if [ -n "$BUILDS" ]; then
+                for b in $BUILDS; do
+                    if [ "$prev" = "$b" ]; then
+                        _filedir
+                        return 0
+                    fi
+                done
             fi
-            ;;
+        fi
+        ;;
     esac
 }
 complete -F _kerl kerl

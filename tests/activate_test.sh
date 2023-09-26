@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# shellcheck disable=SC2250  # Prefer putting braces around variable references even when not strictly required
+
 expected_env() {
     DIR="$1"
     OLD="$2"
@@ -28,7 +30,7 @@ expected_prompt() {
     BLD=$1
     OLD=$2
     if grep -q 'PS1=' "$OLD"; then
-        sed "s/PS1='/PS1='($BLD)/" < "$OLD"
+        sed "s/PS1='/PS1='($BLD)/" <"$OLD"
     else
         echo "PS1='($BLD)'"
     fi
@@ -100,11 +102,23 @@ test_it() {
         cp /tmp/old_prompt /tmp/exp_prompt
     fi
 
-    diff /tmp/exp_prompt /tmp/act_prompt || { echo "prompt setup failed"; exit 1; }
-    diff /tmp/old_prompt /tmp/new_prompt || { echo "prompt cleanup failed"; exit 1; }
+    diff /tmp/exp_prompt /tmp/act_prompt || {
+        echo "prompt setup failed"
+        exit 1
+    }
+    diff /tmp/old_prompt /tmp/new_prompt || {
+        echo "prompt cleanup failed"
+        exit 1
+    }
 
-    diff /tmp/env_exp /tmp/env_act || { echo "env setup failed"; exit 1; }
-    diff /tmp/env_old /tmp/env_new || { echo "env cleanup failed"; exit 1; }
+    diff /tmp/env_exp /tmp/env_act || {
+        echo "env setup failed"
+        exit 1
+    }
+    diff /tmp/env_old /tmp/env_new || {
+        echo "env cleanup failed"
+        exit 1
+    }
 }
 
 release=$1

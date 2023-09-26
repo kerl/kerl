@@ -52,6 +52,8 @@ and is repeatable in any way, should be tested, to guarantee backwards compatibl
 - try not to introduce lines longer than 100 characters
 - write small functions whenever possible, and use descriptive names for functions and variables
 - comment tricky or non-obvious decisions made to explain their rationale
+- the tool is linted with `shellcheck` and formatted with `shfmt`: make sure you run these locally
+to avoid CI issues (their options are listed in `lint.yml`)
 
 ### Pre- continuous integration
 
