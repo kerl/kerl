@@ -693,6 +693,20 @@ show_logfile() {
     l=t stderr "Please see $2 for full details."
 }
 
+maybe_patch() {
+    # $1 = OS platform e.g., Darwin, etc
+    # $2 = OTP release
+
+    release=$(get_otp_version "$2")
+    case "$1" in
+    Darwin)
+        ;;
+    SunOS)
+        ;;
+    *) ;;
+    esac
+}
+
 do_normal_build() {
     assert_valid_release "$1"
     assert_build_name_unused "$2"
