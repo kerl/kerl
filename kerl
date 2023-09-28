@@ -849,6 +849,11 @@ _do_build() {
         echo "$SUM" >.kerl_config.md5
     fi
 
+    # Don't apply patches to "custom" git builds. We have no idea if they will apply
+    # cleanly or not.
+    if [ "$1" != 'git' ]; then
+        maybe_patch "$KERL_SYSTEM" "$1"
+    fi
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! (./otp_build autoconf &&
