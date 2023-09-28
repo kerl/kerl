@@ -262,20 +262,20 @@ setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build `<orgname
 ```console
 $ export KERL_BUILD_BACKEND=git
 $ export OTP_GITHUB_URL='https://github.com/<orgname>/otp'
-$ kerl update releases
+$ KERL_INCLUDE_RELEASE_CANDIDATES=yes kerl update releases
 The available releases are:
-24.0-rc1
-24.0-rc1.1-orgname
+24.0-rc1 *
+24.0-rc1.1-orgname *
 ...
-24.3.4.13
-24.3.4.13.1-orgname
-25.0-rc1
+24.3.4.13 *
+24.3.4.13.1-orgname *
+25.0-rc1 *
 ...
-25.3.2.3
-26.0-rc1
-26.0-rc1.1-orgname
+25.3.2.3 *
+26.0-rc1 *
+26.0-rc1.1-orgname *
 ...
-26.0.2
+26.0.2 *
 ```
 <!-- markdownlint-enable MD007 # line-length -->
 
@@ -700,6 +700,9 @@ releases from erlang.org.
 If it is set to `KERL_BUILD_BACKEND=git` this command fetches an up-to-date
 list of Erlang/OTP tags from the official Erlang/OTP GitHub repository.
 
+**Note**: the output of this function can be tweaked with `KERL_INCLUDE_RELEASE_CANDIDATES=yes` to
+print release candidates.
+
 ### `list`
 
 ```console
@@ -710,7 +713,8 @@ Lists the releases, builds or installations available.
 
 When listing releases (without option `all`), the following applies:
 
-- no release candidates are shown
+- no release candidates are shown, unless you set environment variable
+`KERL_INCLUDE_RELEASE_CANDIDATES` to `yes`
 - no "very old" releases are shown (depends on the current `kerl` version)
 - versions included in the support policy are flagged with `*`
 

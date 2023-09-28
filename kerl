@@ -134,6 +134,7 @@ KERL_BUILD_DIR=${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
 KERL_GIT_DIR=${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
 KERL_GIT_BASE=https://raw.githubusercontent.com/kerl/kerl/master
 KERL_COLORIZE=${KERL_COLORIZE:=$KERL_COLOR_AVAILABLE}
+KERL_INCLUDE_RELEASE_CANDIDATES=${KERL_INCLUDE_RELEASE_CANDIDATES:=no}
 
 if [ -n "$OTP_GITHUB_URL" ]; then
     _OGU="$OTP_GITHUB_URL"
@@ -1933,29 +1934,43 @@ list_print() {
             if [ "${list_type}" = releases ] && [ "$maybe_all" != all ]; then
                 awk -v oldest_listed="$OLDEST_OTP_LISTED" \
                     -v oldest_supported="$OLDEST_OTP_SUPPORTED" \
-                    -v last_major="$OLDEST_OTP_LISTED" '
+                    -v include_rc="$KERL_INCLUDE_RELEASE_CANDIDATES" '
+                function _print(vsn, is_this_supported) {
+                    if (is_this_supported) {
+                        suf=" *"
+                    }
+                    printf "%s%s\n", vsn, suf
+                }
                 {
-                    full_version=$0
-                    split(full_version, version_components, ".")
-                    major=version_components[1]
-                    if (major >= oldest_listed && !/-rc/ && !/^R/) {
-                        if (major > last_major) {
-                            printf "%s",last_full_version
+                    this_version=$0
+                    split(this_version, version_components, ".")
+                    this_major=version_components[1]
 
-                            if (last_major >= oldest_supported) {
-                                printf " *"
-                            }
+                    if (last_major == "") {
+                        last_major = oldest_supported - 1
+                    }
 
-                            printf "\n"
-                        }
-                        last_major=major
-                        last_full_version=full_version
+                    is_this_r=/^R/
+                    is_this_rc=/-rc/
+                    is_rc_printable=(include_rc == "yes")
+                    is_this_supported=(last_major >= oldest_supported)
+
+                    if (!is_this_r) {
+                        is_transition_to_rc=(is_last_not_rc && is_this_rc)
+                        is_transition_from_rc=(!is_last_not_rc && !is_this_rc && is_rc_printable)
+                        (is_transition_to_rc || is_transition_from_rc) \
+                            && _print(last_version, is_this_supported)
+
+                        last_version=this_version
+                        last_major=this_major
+                        is_last_not_rc=!is_this_rc
                     }
                 }
                 END {
-                    if (!/-rc/) {
-                        printf "%s *\n",$0
-                    }
+                    last_version=$0
+                    is_supported=1
+                    (!is_this_rc || is_rc_printable) \
+                        && _print(last_version, is_supported)
                 }' "$list"
             else
                 cat "$KERL_BASE_DIR/otp_$1"
