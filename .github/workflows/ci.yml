@@ -48,7 +48,7 @@ jobs:
               _KERL_REL=git
               ;;
             *)
-              _VERSION=$(./kerl list releases | grep "^${_VERSION}" | tail -1)
+              _VERSION=$(./kerl list releases all | grep "^${_VERSION}" | tail -1)
               _KERL_REL=${_VERSION}
               ;;
           esac

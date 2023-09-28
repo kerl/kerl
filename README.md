@@ -89,16 +89,20 @@ List the available releases:
 <!-- markdownlint-disable MD007 # line-length -->
 ```console
 $ kerl list releases
-24.0-rc1
-...
-24.3.4.13
-25.0-rc1
-...
-25.3.2.3
-26.0-rc1
-...
-26.0.2
-Run '/usr/local/bin/kerl update releases' to update this list from erlang.org
+
+17.5.6.10
+18.3.4.11
+19.3.6.13
+20.3.8.26
+21.3.8.24
+22.3.4.26
+23.3.4.19
+24.3.4.13 *
+25.3.2.6 *
+26.1 *
+Run './kerl update releases' to update this list
+Run './kerl list releases all' to view all available releases
+Note: * means "currently supported"
 ```
 <!-- markdownlint-enable MD007 # line-length -->
 
@@ -258,20 +262,20 @@ setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build `<orgname
 ```console
 $ export KERL_BUILD_BACKEND=git
 $ export OTP_GITHUB_URL='https://github.com/<orgname>/otp'
-$ kerl update releases
+$ KERL_INCLUDE_RELEASE_CANDIDATES=yes kerl update releases
 The available releases are:
-24.0-rc1
-24.0-rc1.1-orgname
+24.0-rc1 *
+24.0-rc1.1-orgname *
 ...
-24.3.4.13
-24.3.4.13.1-orgname
-25.0-rc1
+24.3.4.13 *
+24.3.4.13.1-orgname *
+25.0-rc1 *
 ...
-25.3.2.3
-26.0-rc1
-26.0-rc1.1-orgname
+25.3.2.3 *
+26.0-rc1 *
+26.0-rc1.1-orgname *
 ...
-26.0.2
+26.0.2 *
 ```
 <!-- markdownlint-enable MD007 # line-length -->
 
@@ -696,13 +700,25 @@ releases from erlang.org.
 If it is set to `KERL_BUILD_BACKEND=git` this command fetches an up-to-date
 list of Erlang/OTP tags from the official Erlang/OTP GitHub repository.
 
+**Note**: the output of this function can be tweaked with `KERL_INCLUDE_RELEASE_CANDIDATES=yes` to
+print release candidates.
+
 ### `list`
 
 ```console
-$ kerl list <releases|builds|installations>
+$ kerl list <releases|builds|installations> [all]
 ```
 
 Lists the releases, builds or installations available.
+
+When listing releases (without option `all`), the following applies:
+
+- no release candidates are shown, unless you set environment variable
+`KERL_INCLUDE_RELEASE_CANDIDATES` to `yes`
+- no "very old" releases are shown (depends on the current `kerl` version)
+- versions included in the support policy are flagged with `*`
+
+**Note**: using `all` means all available releases are shown without filters.
 
 ### `delete`
 

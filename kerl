@@ -41,6 +41,8 @@ if [ -n "$KERL_DEBUG" ]; then
 fi
 
 KERL_VERSION='3.1.0'
+OLDEST_OTP_LISTED='17'
+OLDEST_OTP_SUPPORTED='24'
 
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
@@ -132,6 +134,7 @@ KERL_BUILD_DIR=${KERL_BUILD_DIR:="${KERL_BASE_DIR:?}"/builds}
 KERL_GIT_DIR=${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
 KERL_GIT_BASE=https://raw.githubusercontent.com/kerl/kerl/master
 KERL_COLORIZE=${KERL_COLORIZE:=$KERL_COLOR_AVAILABLE}
+KERL_INCLUDE_RELEASE_CANDIDATES=${KERL_INCLUDE_RELEASE_CANDIDATES:=no}
 
 if [ -n "$OTP_GITHUB_URL" ]; then
     _OGU="$OTP_GITHUB_URL"
@@ -1922,9 +1925,57 @@ maybe_remove() {
 }
 
 list_print() {
-    if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        if [ "$(\wc -l "$KERL_BASE_DIR/otp_$1")" != '0' ]; then
-            cat "$KERL_BASE_DIR/otp_$1"
+    list_type=$1 # releases | builds | installations
+    maybe_all=$2
+
+    list=$KERL_BASE_DIR/otp_${list_type}
+    if [ -f "$list" ]; then
+        if [ "$(\wc -l "$list")" != '0' ]; then
+            if [ "${list_type}" = releases ] && [ "$maybe_all" != all ]; then
+                awk -v oldest_listed="$OLDEST_OTP_LISTED" \
+                    -v oldest_supported="$OLDEST_OTP_SUPPORTED" \
+                    -v include_rc="$KERL_INCLUDE_RELEASE_CANDIDATES" '
+                function _print(vsn, is_this_supported) {
+                    if (is_this_supported) {
+                        suf=" *"
+                    }
+                    printf "%s%s\n", vsn, suf
+                }
+                {
+                    this_version=$0
+                    split(this_version, version_components, ".")
+                    this_major=version_components[1]
+
+                    if (last_major == "") {
+                        last_major = oldest_supported - 1
+                    }
+
+                    is_this_r=/^R/
+                    is_this_rc=/-rc/
+                    is_rc_printable=(include_rc == "yes")
+                    is_this_supported=(last_major >= oldest_supported)
+
+                    if (!is_this_r) {
+                        is_transition_to_rc=(is_last_not_rc && is_this_rc)
+                        is_transition_from_rc=(!is_last_not_rc && !is_this_rc && is_rc_printable)
+                        (is_transition_to_rc || is_transition_from_rc) \
+                            && _print(last_version, is_this_supported)
+
+                        last_version=this_version
+                        last_major=this_major
+                        is_last_not_rc=!is_this_rc
+                    }
+                }
+                END {
+                    last_version=$0
+                    is_supported=1
+                    (!is_this_rc || is_rc_printable) \
+                        && _print(last_version, is_supported)
+                }' "$list"
+            else
+                cat "$KERL_BASE_DIR/otp_$1"
+            fi
+
             return 0
         fi
     fi
@@ -1962,7 +2013,7 @@ path_usage() {
 }
 
 list_usage() {
-    stderr "usage: $0 list <releases|builds|installations>"
+    stderr "usage: $0 list <releases|builds|installations> [all]"
 }
 
 delete_usage() {
@@ -2526,20 +2577,36 @@ upgrade)
     fi
     ;;
 list)
-    if [ $# -ne 2 ]; then
-        list_usage
-        exit 1
-    fi
     case "$2" in
     releases)
+        if [ $# -ne 2 ] && [ $# -ne 3 ]; then
+            list_usage
+            exit 1
+        fi
+        if [ $# -eq 3 ] && [ "$3" != 'all' ]; then
+            list_usage
+            exit 1
+        fi
         check_releases
-        list_print "$2"
-        l=t stderr "Run '$0 update releases' to update this list from erlang.org"
+        list_print "$2" "$3"
+        l=t stderr "Run '$0 update releases' to update this list"
+        if [ $# -eq 2 ]; then
+            l=t stderr "Run '$0 list releases all' to view all available releases"
+            l=t stderr "Note: * means \"currently supported\""
+        fi
         ;;
     builds)
+        if [ $# -ne 2 ]; then
+            list_usage
+            exit 1
+        fi
         list_print "$2"
         ;;
     installations)
+        if [ $# -ne 2 ]; then
+            list_usage
+            exit 1
+        fi
         list_print "$2"
         ;;
     *)
