@@ -1940,11 +1940,13 @@ list_print() {
                     major=version_components[1]
                     if (major >= oldest_listed && !/-rc/ && !/^R/) {
                         if (major > last_major) {
+                            printf "%s",last_full_version
+
                             if (last_major >= oldest_supported) {
-                                printf "* "
+                                printf " *"
                             }
 
-                            printf "%s\n",last_full_version
+                            printf "\n"
                         }
                         last_major=major
                         last_full_version=full_version
@@ -1952,7 +1954,7 @@ list_print() {
                 }
                 END {
                     if (!/-rc/) {
-                        printf "* %s\n",$0
+                        printf "%s *\n",$0
                     }
                 }' "$list"
             else
@@ -2572,7 +2574,7 @@ list)
         fi
         check_releases
         list_print "$2" "$3"
-        l=t stderr "Run '$0 update releases' to update this list from erlang.org"
+        l=t stderr "Run '$0 update releases' to update this list"
         if [ $# -eq 2 ]; then
             l=t stderr "Run '$0 list releases all' to view all available releases"
             l=t stderr "Note: * means \"currently supported\""

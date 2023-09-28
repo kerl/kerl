@@ -97,10 +97,10 @@ $ kerl list releases
 21.3.8.24
 22.3.4.26
 23.3.4.19
-* 24.3.4.13
-* 25.3.2.6
-* 26.1
-Run './kerl update releases' to update this list from erlang.org
+24.3.4.13 *
+25.3.2.6 *
+26.1 *
+Run './kerl update releases' to update this list
 Run './kerl list releases all' to view all available releases
 Note: * means "currently supported"
 ```
