@@ -44,8 +44,8 @@ KERL_VERSION='3.1.0'
 OLDEST_OTP_LISTED='17'
 OLDEST_OTP_SUPPORTED='24'
 
-_KERL_SCRIPT=$0
-_KERL_CMD=$1
+_KERL_SCRIPT="$0"
+_KERL_CMD="$1"
 
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
@@ -81,7 +81,7 @@ else
 fi
 
 colorize() {
-    what=$1
+    what="$1"
 
     case "$what" in
     "error" | "err" | "e")
@@ -107,7 +107,7 @@ colorize() {
 }
 
 autoclean() {
-    build_name=$1
+    build_name="$1"
 
     if [ "${KERL_AUTOCLEAN:=1}" -eq 1 ]; then
         l=n stderr "Removing all artifacts except the logfile"
@@ -452,7 +452,7 @@ check_releases() {
 }
 
 is_valid_release() {
-    release=$1
+    release="$1"
 
     check_releases
     while read -r rel; do
@@ -464,7 +464,7 @@ is_valid_release() {
 }
 
 assert_valid_release() {
-    release=$1
+    release="$1"
 
     if ! is_valid_release "$release"; then
         l=e stderr "$release is not a valid Erlang/OTP release"
@@ -474,7 +474,7 @@ assert_valid_release() {
 }
 
 get_release_from_name() {
-    build_name=$1
+    build_name="$1"
 
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
         while read -r l; do
@@ -503,7 +503,7 @@ get_newest_valid_release() {
 }
 
 is_valid_installation() {
-    directory=$1
+    directory="$1"
 
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
         while read -r l; do
@@ -520,7 +520,7 @@ is_valid_installation() {
 }
 
 assert_valid_installation() {
-    directory=$1
+    directory="$1"
 
     if ! is_valid_installation "$directory"; then
         l=e stderr "$directory is not a kerl-managed Erlang/OTP installation"
@@ -530,7 +530,7 @@ assert_valid_installation() {
 }
 
 assert_build_name_unused() {
-    build_name=$1
+    build_name="$1"
 
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
         while read -r l; do
@@ -566,7 +566,7 @@ _check_required_pkgs() {
 }
 
 _dpkg_is_installed() {
-    pkg=$1
+    pkg="$1"
 
     # gratefully stolen from
     # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
@@ -592,7 +592,7 @@ g++
 }
 
 _rpm_is_installed() {
-    pkg=$1
+    pkg="$1"
 
     rpm --quiet -q "$pkg" >/dev/null 2>&1
 }
@@ -615,7 +615,7 @@ g++
 }
 
 _apk_is_installed() {
-    pkg=$1
+    pkg="$1"
 
     apk -e info "$pkg" >/dev/null 2>&1
 }
@@ -637,9 +637,9 @@ g++
 }
 
 do_git_build() {
-    git_url=$1
-    git_version=$2
-    build_name=$3
+    git_url="$1"
+    git_version="$2"
+    build_name="$3"
 
     assert_build_name_unused "$build_name"
 
@@ -689,14 +689,14 @@ do_git_build() {
 }
 
 get_otp_version() {
-    release_or_build_name=$1
+    release_or_build_name="$1"
 
     echo "$release_or_build_name" | sed "$SED_OPT" -e 's/R?([0-9]{1,2}).+/\1/'
 }
 
 show_configuration_warnings() {
-    logfile=$1
-    section_header=$2 # e.g. "APPLICATIONS DISABLED"
+    logfile="$1"
+    section_header="$2" # e.g. "APPLICATIONS DISABLED"
 
     # Find the row number for the section we are looking for
     INDEX=$(\grep -n -m1 "$section_header" "$logfile" | cut -d: -f1)
@@ -709,14 +709,14 @@ show_configuration_warnings() {
             sed -n '1,/\*/p' |
             awk -F: -v logfile="$logfile" -v section="$section_header" \
                 'BEGIN { printf "%s (See: %s)\n", section, logfile }
-                 /^[^\*]/ { print " *", $0 }
+                 /^[^\*]/ { print " *", "$0" }
                  END { print "" } '
     fi
 }
 
 show_logfile() {
-    title=$1
-    logfile=$2
+    title="$1"
+    logfile="$2"
 
     l=e stderr "$title"
     tail "$logfile" 1>&2
@@ -725,8 +725,8 @@ show_logfile() {
 }
 
 maybe_patch() {
-    os_platform=$1
-    release=$2
+    os_platform="$1"
+    release="$2"
 
     release=$(get_otp_version "$release")
     case "$os_platform" in
@@ -737,8 +737,8 @@ maybe_patch() {
 }
 
 do_normal_build() {
-    release=$1
-    build_name=$2
+    release="$1"
+    build_name="$2"
 
     assert_valid_release "$release"
     assert_build_name_unused "$build_name"
@@ -789,8 +789,8 @@ _flags() {
 }
 
 _do_build() {
-    release_or_git=$1
-    build_name=$2
+    release_or_git="$1"
+    build_name="$2"
 
     case "$KERL_SYSTEM" in
     Darwin)
@@ -999,11 +999,11 @@ _do_build() {
 }
 
 do_build_install() {
-    release_or_git=$1
-    git_url=$2
-    git_version=$3
-    build_name=$4
-    directory=$5
+    release_or_git="$1"
+    git_url="$2"
+    git_version="$3"
+    build_name="$4"
+    directory="$5"
 
     if is_valid_installation "$build_name"; then
         l=e stderr "There's already an installation named $build_name. Skipping build step..."
@@ -1036,9 +1036,9 @@ do_build_install() {
 # @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
 # @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
 emit_activate() {
-    release=$1
-    build_name=$2
-    directory=$3
+    release="$1"
+    build_name="$2"
+    directory="$3"
 
     cat << \
         =======
@@ -1187,9 +1187,9 @@ unset _KERL_CLEANUP
 # @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
 # @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
 emit_activate_fish() {
-    release=$1
-    build_name=$2
-    directory=$3
+    release="$1"
+    build_name="$2"
+    directory="$3"
 
     cat << \
         =======
@@ -1299,9 +1299,9 @@ set -e _KERL_CLEANUP
 # @param $2/build_name: the <build_name> argument in e.g. kerl build <release> <build_name>
 # @param $3/directory: the [directory] argument in e.g. kerl install <build_name> [directory]
 emit_activate_csh() {
-    release=$1
-    build_name=$2
-    directory=$3
+    release="$1"
+    build_name="$2"
+    directory="$3"
 
     cat << \
         =======
@@ -1402,8 +1402,8 @@ rehash
 }
 
 do_install() {
-    build_name=$1
-    directory=$2
+    build_name="$1"
+    directory="$2"
 
     if ! rel=$(get_release_from_name "$build_name"); then
         l=e stderr "No build named $build_name"
@@ -1512,7 +1512,7 @@ do_install() {
 }
 
 download_manpages() {
-    rel=$1
+    rel="$1"
 
     FILENAME=otp_doc_man_$rel.tar.gz
     tarball_download "$FILENAME"
@@ -1521,7 +1521,7 @@ download_manpages() {
 }
 
 download_htmldocs() {
-    rel=$1
+    rel="$1"
 
     FILENAME=otp_doc_html_"$rel".tar.gz
     tarball_download "$FILENAME"
@@ -1530,7 +1530,7 @@ download_htmldocs() {
 }
 
 build_plt() {
-    absdir=$1
+    absdir="$1"
 
     dialyzerd="$absdir"/dialyzer
     mkdir -p "$dialyzerd" || exit 1
@@ -1551,7 +1551,7 @@ build_plt() {
 }
 
 do_plt() {
-    ACTIVE_PATH=$1
+    ACTIVE_PATH="$1"
 
     if [ -n "$ACTIVE_PATH" ]; then
         plt="$ACTIVE_PATH"/dialyzer/plt
@@ -1570,7 +1570,7 @@ do_plt() {
 }
 
 print_buildopts() {
-    active_path=$1
+    active_path="$1"
 
     buildopts="$active_path/$KERL_CONFIG_STORAGE_FILENAME"
     if [ -f "$buildopts" ]; then
@@ -1584,8 +1584,8 @@ print_buildopts() {
 }
 
 do_deploy() {
-    host=$1
-    directory=$2
+    host="$1"
+    directory="$2"
 
     if [ -z "$host" ]; then
         l=e stderr 'No host given'
@@ -1594,7 +1594,7 @@ do_deploy() {
 
     assert_valid_installation "$directory"
     rel="$(get_name_from_install_path "$directory")"
-    _remotepath=$3
+    _remotepath="$3"
     remotepath="$directory"
 
     if [ -n "$_remotepath" ]; then
@@ -1638,19 +1638,19 @@ do_deploy() {
 # LICENSE: MIT
 
 realpath() {
-    directory=$1
+    directory="$1"
 
     canonicalize_path "$(resolve_symlinks "$directory")"
 }
 
 resolve_symlinks() {
-    directory=$1
+    directory="$1"
 
     _resolve_symlinks "$directory"
 }
 
 _resolve_symlinks() {
-    directory=$1
+    directory="$1"
 
     _assert_no_path_cycles "$@" || return
 
@@ -1663,8 +1663,8 @@ _resolve_symlinks() {
 }
 
 _prepend_dir_context_if_necessary() {
-    dir_context=$1
-    path=$2
+    dir_context="$1"
+    path="$2"
 
     if [ "$dir_context" = . ]; then
         printf '%s\n' "$path"
@@ -1674,8 +1674,8 @@ _prepend_dir_context_if_necessary() {
 }
 
 _prepend_path_if_relative() {
-    dir_context=$1
-    path=$2
+    dir_context="$1"
+    path="$2"
 
     case "$path" in
     /*) printf '%s\n' "$path" ;;
@@ -1684,7 +1684,7 @@ _prepend_path_if_relative() {
 }
 
 _assert_no_path_cycles() {
-    target=$1
+    target="$1"
 
     shift
 
@@ -1696,7 +1696,7 @@ _assert_no_path_cycles() {
 }
 
 canonicalize_path() {
-    file=$1
+    file="$1"
 
     if [ -d "$file" ]; then
         _canonicalize_dir_path "$file"
@@ -1706,13 +1706,13 @@ canonicalize_path() {
 }
 
 _canonicalize_dir_path() {
-    directory=$1
+    directory="$1"
 
     (cd "$directory" 2>/dev/null && pwd -P)
 }
 
 _canonicalize_file_path() {
-    file=$1
+    file="$1"
 
     dir=$(dirname -- "$file")
     file=$(basename -- "$file")
@@ -1722,7 +1722,7 @@ _canonicalize_file_path() {
 # END QUOTE
 
 is_valid_install_path() {
-    directory=$1
+    directory="$1"
 
     # don't allow installs into .erlang because
     # it's a special configuration file location for OTP
@@ -1772,7 +1772,7 @@ is_valid_install_path() {
 }
 
 maybe_remove() {
-    directory=$1
+    directory="$1"
 
     candidate=$(realpath "$directory")
     canonical_home=$(realpath "$HOME")
@@ -1792,8 +1792,8 @@ maybe_remove() {
 }
 
 list_print() {
-    list_type=$1 # releases | builds | installations
-    maybe_all=$2
+    list_type="$1" # releases | builds | installations
+    maybe_all="$2"
 
     list=$KERL_BASE_DIR/otp_${list_type}
     if [ -f "$list" ]; then
@@ -1809,7 +1809,7 @@ list_print() {
                     printf "%s%s\n", vsn, suf
                 }
                 {
-                    this_version=$0
+                    this_version="$0"
                     split(this_version, version_components, ".")
                     this_major=version_components[1]
 
@@ -1834,7 +1834,7 @@ list_print() {
                     }
                 }
                 END {
-                    last_version=$0
+                    last_version="$0"
                     is_supported=1
                     (!is_this_rc || is_rc_printable) \
                         && _print(last_version, is_supported)
@@ -1850,8 +1850,8 @@ list_print() {
 }
 
 list_add() {
-    list_type=$1
-    list_item=$2
+    list_type="$1"
+    list_item="$2"
 
     if [ -f "$KERL_BASE_DIR/otp_$list_type" ]; then
         while read -r l; do
@@ -1866,8 +1866,8 @@ list_add() {
 }
 
 list_remove() {
-    list_type=$1
-    list_item=$2
+    list_type="$1"
+    list_item="$2"
 
     if [ -f "$KERL_BASE_DIR/otp_$list_type" ]; then
         sed "$SED_OPT" -i -e "/^.*$list_item$/d" "$KERL_BASE_DIR/otp_$list_type" || exit 1
@@ -1875,8 +1875,8 @@ list_remove() {
 }
 
 list_has() {
-    list_type=$1
-    list_item=$2
+    list_type="$1"
+    list_item="$2"
 
     if [ -f "$KERL_BASE_DIR/otp_$list_type" ]; then
         \grep "$list_item" "$KERL_BASE_DIR/otp_$list_type" >/dev/null 2>&1 && return 0
@@ -1920,7 +1920,7 @@ get_active_path() {
 }
 
 get_name_from_install_path() {
-    directory=$1
+    directory="$1"
 
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
         \grep -m1 -E "$directory$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
@@ -1929,7 +1929,7 @@ get_name_from_install_path() {
 }
 
 get_install_path_from_name() {
-    directory=$1
+    directory="$1"
 
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
         \grep -m1 -E "$directory$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f2
@@ -1950,13 +1950,13 @@ do_active() {
 }
 
 make_filename() {
-    release=$1
+    release="$1"
 
     echo "OTP-$release"
 }
 
 download() {
-    release=$1
+    release="$1"
 
     mkdir -p "$KERL_DOWNLOAD_DIR" || exit 1
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
@@ -1969,8 +1969,8 @@ download() {
 }
 
 github_download() {
-    release=$1
-    tar_gz=$2
+    release="$1"
+    tar_gz="$2"
 
     tarball_file="$KERL_DOWNLOAD_DIR/$tar_gz"
     tarball_url="$OTP_GITHUB_URL/archive/$tar_gz"
@@ -1995,7 +1995,7 @@ github_download() {
 }
 
 tarball_download() {
-    tar_gz=$1
+    tar_gz="$1"
 
     if [ ! -s "$KERL_DOWNLOAD_DIR/$tar_gz" ]; then
         l=n stderr "Downloading $tar_gz to $KERL_DOWNLOAD_DIR"
@@ -2014,7 +2014,7 @@ tarball_download() {
 }
 
 upgrade_kerl() {
-    install_folder=$1
+    install_folder="$1"
 
     curl -s -o "$install_folder/kerl" "$KERL_GIT_BASE"/kerl
     chmod +x "$install_folder/kerl"
@@ -2029,12 +2029,12 @@ version)
     exit 0
     ;;
 build)
-    build_type=$2
+    build_type="$2"
 
     if [ "$build_type" = 'git' ]; then
-        git_url=$3
-        git_version=$4
-        build_name=$5
+        git_url="$3"
+        git_version="$4"
+        build_name="$5"
 
         if [ $# -ne 5 ]; then
             l=e stderr "usage: $_KERL_SCRIPT $_KERL_CMD $build_type <git_url> <git_version> <build_name>"
@@ -2042,8 +2042,8 @@ build)
         fi
         do_git_build "$git_url" "$git_version" "$build_name"...
     else
-        release=$2
-        build_name=$3
+        release="$2"
+        build_name="$3"
 
         if [ $# -eq 2 ]; then
             do_normal_build "$release" "$release"
@@ -2057,11 +2057,11 @@ build)
     ;;
 build-install)
     # naming contains _or_ because do_build_install either accepts $2 as "git" or otherwise
-    release_or_git=$2
-    build_name_or_git_url=$3
-    directory_or_git_version=$4
-    build_name=$5
-    directory=$6
+    release_or_git="$2"
+    build_name_or_git_url="$3"
+    directory_or_git_version="$4"
+    build_name="$5"
+    directory="$6"
 
     if [ "$release_or_git" = "git" ]; then
         if [ $# -ne 5 ] && [ $# -ne 6 ]; then
@@ -2099,12 +2099,12 @@ install)
         exit 1
     fi
     if [ $# -eq 3 ]; then
-        build_name=$2
-        directory=$3
+        build_name="$2"
+        directory="$3"
 
         do_install "$build_name" "$directory"
     else
-        build_name=$2
+        build_name="$2"
 
         if [ -z "$KERL_DEFAULT_INSTALL_DIR" ]; then
             do_install "$build_name" "$PWD"
@@ -2114,9 +2114,9 @@ install)
     fi
     ;;
 deploy)
-    host=$2
-    directory=$3
-    remote_directory=$4
+    host="$2"
+    directory="$3"
+    remote_directory="$4"
 
     if [ $# -lt 2 ]; then
         l=e stderr "usage: $_KERL_SCRIPT $_KERL_CMD <[user@]host> [directory] [remote_directory]"
@@ -2133,7 +2133,7 @@ deploy)
     fi
     ;;
 update)
-    update_type=$2
+    update_type="$2"
 
     if [ $# -lt 2 ]; then
         update_usage
@@ -2189,8 +2189,8 @@ upgrade)
     fi
     ;;
 list)
-    list_type=$2
-    maybe_all=$3
+    list_type="$2"
+    maybe_all="$3"
 
     case "$list_type" in
     releases)
@@ -2237,7 +2237,7 @@ path)
     # # Print currently active installation path, else non-zero exit
     # kerl path <installation>
     # Print path to installation with name <installation>, else non-zero exit
-    installation=$2
+    installation="$2"
 
     if [ -z "$installation" ]; then
         activepath=$(get_active_path)
@@ -2267,7 +2267,7 @@ path)
     fi
     ;;
 delete)
-    delete_type=$2
+    delete_type="$2"
 
     if [ $# -ne 3 ]; then
         delete_usage
@@ -2275,7 +2275,7 @@ delete)
     fi
     case "$delete_type" in
     build)
-        build_name=$3
+        build_name="$3"
 
         rel="$(get_release_from_name "$build_name")"
         if [ -d "${KERL_BUILD_DIR:?}/$build_name" ]; then
@@ -2290,7 +2290,7 @@ delete)
         l=n stderr "The $build_name build has been deleted"
         ;;
     installation)
-        directory=$3
+        directory="$3"
 
         assert_valid_installation "$directory"
         if [ -d "$directory" ]; then
@@ -2340,7 +2340,7 @@ status)
     exit 0
     ;;
 prompt)
-    _fmt=$2
+    _fmt="$2"
 
     FMT=' (%s)'
     if [ -n "$_fmt" ]; then
@@ -2360,7 +2360,7 @@ prompt)
     exit 0
     ;;
 cleanup)
-    build_name_or_all=$2
+    build_name_or_all="$2"
 
     if [ $# -ne 2 ]; then
         cleanup_usage
@@ -2382,10 +2382,10 @@ cleanup)
     esac
     ;;
 emit-activate)
-    release=$2
-    build_name=$3
-    directory=$4
-    shell=$5
+    release="$2"
+    build_name="$3"
+    directory="$4"
+    shell="$5"
 
     if [ $# -ne 4 ] && [ $# -ne 5 ]; then
         emit_activate_usage
