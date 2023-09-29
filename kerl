@@ -699,10 +699,8 @@ maybe_patch() {
 
     release=$(get_otp_version "$2")
     case "$1" in
-    Darwin)
-        ;;
-    SunOS)
-        ;;
+    Darwin) ;;
+    SunOS) ;;
     *) ;;
     esac
 }
