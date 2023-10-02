@@ -1550,7 +1550,8 @@ do_deploy() {
         remotepath="$3"
     fi
 
-    if ! ssh "$KERL_DEPLOY_SSH_OPTIONS" "$host" true >/dev/null 2>&1; then
+    # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true >/dev/null 2>&1; then
         l=e stderr "Couldn't ssh to $host"
         exit 1
     fi
@@ -1558,7 +1559,7 @@ do_deploy() {
     l=n stderr "Cloning Erlang/OTP $rel ($path) to $host ($remotepath) ..."
 
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
-    if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" "$KERL_DEPLOY_RSYNC_OPTIONS" "$path/" "$host:$remotepath/"; then
+    if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"; then
         l=e stderr "Couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)"
         exit 1
     fi
