@@ -31,6 +31,7 @@ jobs:
             sudo apt-add-repository -y ppa:fish-shell/release-3
             sudo apt-get update -y
             sudo apt-get install -y --no-install-recommends fish
+            sudo apt-get install -y --no-install-recommends csh
           fi
           echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
@@ -110,6 +111,8 @@ jobs:
         run: tests/activate_test.sh $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN")
       - name: Test activate/cleanup (fish)
         run: tests/activate_test.fish $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN")
+      - name: Test activate/cleanup (csh)
+        run: tests/activate_test.csh $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN")
       - name: Delete installation
         run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
       - name: Delete build

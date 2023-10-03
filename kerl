@@ -1269,28 +1269,11 @@ emit_activate_csh() {
 # This file must be used with "source bin/activate.csh" *from csh*.
 # You cannot run it directly.
 
-alias kerl_deactivate '\\\\
-test \$?_KERL_PATH_REMOVABLE != 0 && unset _KERL_PATH_REMOVABLE; \\\\
-test \$?_KERL_MANPATH_REMOVABLE != 0 && unset _KERL_MANPATH_REMOVABLE; \\\\
-test \$?_KERL_SAVED_PATH != 0 && setenv PATH "\$_KERL_SAVED_PATH" && unset _KERL_SAVED_PATH; rehash; \\\\
-test \$?_KERL_SAVED_MANPATH != 0 && setenv MANPATH "\$_KERL_SAVED_MANPATH" && unset _KERL_SAVED_MANPATH; \\\\
-test \$?_KERL_REBAR_PLT_DIR_SET != 0 && test "\$_KERL_REBAR_PLT_DIR_SET" == "no" && \\\\
-unset _KERL_REBAR_PLT_DIR_SET && test \$?REBAR_PLT_DIR != 0 && unsetenv REBAR_PLT_DIR; \\\\
-test \$?_KERL_REBAR_PLT_DIR_SET != 0 && test "\$_KERL_REBAR_PLT_DIR_SET" == "yes" && \\\\
-unset _KERL_REBAR_PLT_DIR_SET && setenv REBAR_PLT_DIR "\$_KERL_SAVED_REBAR_PLT_DIR"; \\\\
-test \$?_KERL_SAVED_REBAR_PLT_DIR && unset _KERL_SAVED_REBAR_PLT_DIR; \\\\
-test \$?_KERL_REBAR_CACHE_DIR_SET != 0 && test "\$_KERL_REBAR_CACHE_DIR_SET" == "no" && \\\\
-unset _KERL_REBAR_CACHE_DIR_SET && test \$?REBAR_CACHE_DIR != 0 && unsetenv REBAR_CACHE_DIR; \\\\
-test \$?_KERL_REBAR_CACHE_DIR_SET != 0 && test "\$_KERL_REBAR_CACHE_DIR_SET" == "yes" && \\\\
-unset _KERL_REBAR_CACHE_DIR_SET && setenv REBAR_CACHE_DIR "\$_KERL_SAVED_REBAR_CACHE_DIR"; \\\\
-test \$?_KERL_SAVED_REBAR_CACHE_DIR && unset _KERL_SAVED_REBAR_CACHE_DIR; \\\\
-test \$?_KERL_ACTIVE_DIR != 0 && unset _KERL_ACTIVE_DIR; \\\\
-test \$?_KERL_ERL_CALL_REMOVABLE != 0 && unset _KERL_ERL_CALL_REMOVABLE; \\\\
-test \$?_KERL_SAVED_PROMPT != 0 && set prompt="\$_KERL_SAVED_PROMPT" && unset _KERL_SAVED_PROMPT; \\\\
-test "!:*" != "nondestructive" && unalias deactivate'
-
 # Unset irrelevant variables.
-kerl_deactivate nondestructive
+which kerl_deactivate >& /dev/null
+if ( \$status == 0 ) then
+    kerl_deactivate
+endif
 
 set _KERL = $(command -v kerl)
 
@@ -1298,67 +1281,93 @@ if ( "\$_KERL" != "" ) then
   set _KERL_VERSION = \`\$_KERL version\`
 endif
 
-if ("\$_KERL_VERSION" != "" && "\$_KERL_VERSION" != "$KERL_VERSION") then
-  echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
-  echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
+if ( \$?_KERL_VERSION ) then
+  if ( "\$_KERL_VERSION" != "" && "\$_KERL_VERSION" != "$KERL_VERSION" ) then
+    echo "WARNING: this Erlang/OTP installation appears to be stale. Please consider reinstalling."
+    echo "         It was created with kerl $KERL_VERSION, and the current version is \$_KERL_VERSION."
+  endif
 endif
 
 unset _KERL_VERSION _KERL
 
-if ( \$?REBAR_CACHE_DIR ) then
-    set _KERL_REBAR_CACHE_DIR_SET = "yes"
-    set _KERL_SAVED_REBAR_CACHE_DIR = "\$REBAR_CACHE_DIR"
-else
-    set _KERL_REBAR_CACHE_DIR_SET = "no"
-    set _KERL_SAVED_REBAR_CACHE_DIR = ""
-endif
+alias add_cleanup 'set _KERL_CLEANUP = '\"'\!:1*; \$_KERL_CLEANUP'\"''
+alias _kerl_remove_el 'setenv \!:1 \`echo \$\!:1 | sed -r "s%\!:2*%%"\`'
+alias _kerl_cleanup_manpath 'eval "if ( '\''\${MANPATH}'\'' == '\'''\'' ) then \\\\
+    unsetenv MANPATH \\\\
+endif"'
 
-if ( \$?REBAR_PLT_DIR ) then
-    set _KERL_REBAR_PLT_DIR_SET = "yes"
-    set _KERL_SAVED_REBAR_PLT_DIR = "\$REBAR_PLT_DIR"
-else
-    set _KERL_REBAR_PLT_DIR_SET = "no"
-    set _KERL_SAVED_REBAR_PLT_DIR = ""
-endif
-
-set _KERL_PATH_REMOVABLE = "$directory/bin"
-set _KERL_SAVED_PATH = "\$PATH"
-setenv PATH "\${_KERL_PATH_REMOVABLE}:\$PATH"
-
-if ( ! \$?MANPATH ) then
-    set MANPATH = ""
-endif
-set _KERL_MANPATH_REMOVABLE = "$directory/lib/erlang/man:$directory/man"
-set _KERL_SAVED_MANPATH = "\$MANPATH"
-setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
-
-setenv REBAR_CACHE_DIR "$directory/.cache/rebar3"
-
-setenv REBAR_PLT_DIR "$directory"
+set _KERL_CLEANUP = ""
 
 set _KERL_ACTIVE_DIR = "$directory"
+add_cleanup unset _KERL_ACTIVE_DIR
 
-set _KERL_ERL_CALL_REMOVABLE = $(\find "$directory" -type d -path "*erl_interface*/bin")
-setenv PATH "\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+if ( \$?REBAR_CACHE_DIR ) then
+    add_cleanup setenv REBAR_CACHE_DIR \$REBAR_CACHE_DIR
+else
+    add_cleanup unsetenv REBAR_CACHE_DIR
+endif
+setenv REBAR_CACHE_DIR "$directory/.cache/rebar3"
+
+if ( \$?REBAR_PLT_DIR ) then
+    add_cleanup setenv REBAR_PLT_DIR \$REBAR_PLT_DIR
+else
+    add_cleanup unsetenv REBAR_PLT_DIR
+endif
+setenv REBAR_PLT_DIR "$directory"
+
+set _KERL_PATH_REMOVABLE = "$directory/bin"
+add_cleanup setenv PATH \$PATH
+setenv PATH "\${_KERL_PATH_REMOVABLE}:\$PATH"
+unset _KERL_PATH_REMOVABLE
+
+set _KERL_MANPATH_REMOVABLE = "$directory/lib/erlang/man:$directory/man"
+if ( \$?MANPATH ) then
+    if ( "\$MANPATH" == "" ) then
+        setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}"
+    else
+        setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
+    endif
+else
+    add_cleanup _kerl_cleanup_manpath
+    setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}"
+endif
+add_cleanup _kerl_remove_el MANPATH \${_KERL_MANPATH_REMOVABLE}
+add_cleanup _kerl_remove_el MANPATH \${_KERL_MANPATH_REMOVABLE}:
+unset _KERL_MANPATH_REMOVABLE
+
+set _KERL_ERL_CALL_REMOVABLE = $(\find "$directory" -type d -path '*erl_interface*/bin' 2>/dev/null)
+if ("\$_KERL_ERL_CALL_REMOVABLE" != "") then
+    add_cleanup setenv PATH \$PATH
+    setenv PATH "\${_KERL_ERL_CALL_REMOVABLE}:\$PATH"
+endif
+unset _KERL_ERL_CALL_REMOVABLE
 
 if ( -f "$KERL_CONFIG.csh" ) then
     source "$KERL_CONFIG.csh"
 endif
 
 if ( \$?KERL_ENABLE_PROMPT ) then
-    set _KERL_SAVED_PROMPT = "\$prompt"
-
     if ( \$?KERL_PROMPT_FORMAT ) then
         set FRMT = "\$KERL_PROMPT_FORMAT"
     else
         set FRMT = "(%BUILDNAME%)"
     endif
-
-    set PROMPT = \$(echo "\$FRMT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^')
-    set prompt = "\$PROMPT\$prompt"
+    set PROMPT = \`echo "\$FRMT" | sed 's^%RELEASE%^$release^;s^%BUILDNAME%^$build_name^'\`
+    if ( \$?prompt ) then
+        add_cleanup set prompt = '\$prompt'
+        set prompt = "\$PROMPT\$prompt"
+    else
+        add_cleanup unset prompt
+        set prompt = "\$PROMPT"
+    endif
+    unset FRMT PROMPT
 endif
 
 rehash
+
+unalias add_cleanup
+eval 'alias kerl_deactivate "\$_KERL_CLEANUP; unalias kerl_deactivate _kerl_remove_el _kerl_cleanup_manpath"'
+unset _KERL_CLEANUP
 =======
 }
 
