@@ -135,6 +135,7 @@ KERL_GIT_DIR=${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
 KERL_GIT_BASE=https://raw.githubusercontent.com/kerl/kerl/master
 KERL_COLORIZE=${KERL_COLORIZE:=$KERL_COLOR_AVAILABLE}
 KERL_INCLUDE_RELEASE_CANDIDATES=${KERL_INCLUDE_RELEASE_CANDIDATES:=no}
+KERL_CHECK_BUILD_PACKAGES=${KERL_CHECK_BUILD_PACKAGES:="1"}
 
 if [ -n "$OTP_GITHUB_URL" ]; then
     _OGU="$OTP_GITHUB_URL"
@@ -524,93 +525,6 @@ assert_build_name_unused() {
     fi
 }
 
-_check_required_pkgs() {
-    has_dpkg=$(command -v dpkg)
-    has_rpm=$(command -v rpm)
-    has_apk=$(command -v apk)
-    if [ -n "$has_dpkg" ] || [ -n "$has_rpm" ] || [ -n "$has_apk" ]; then
-        # found either dpkg, rpm or apk (or maybe even both!)
-        if [ -n "$has_dpkg" ] && [ -n "$has_rpm" ]; then
-            l=w stderr 'WARNING: You appear to have BOTH rpm and dpkg. This is very strange. No package checks done.'
-        elif [ -n "$has_dpkg" ] && [ -n "$has_apk" ]; then
-            l=w stderr 'WARNING: You appear to have BOTH apk and dpkg. This is very strange. No package checks done.'
-        elif [ -n "$has_rpm" ] && [ -n "$has_apk" ]; then
-            l=w stderr 'WARNING: You appear to have BOTH apk and rpm. This is very strange. No package checks done.'
-        elif [ -n "$has_dpkg" ]; then
-            _check_dpkg
-        elif [ -n "$has_rpm" ]; then
-            _check_rpm
-        elif [ -n "$has_apk" ]; then
-            _check_apk
-        fi
-    fi
-}
-
-_dpkg_is_installed() {
-    # gratefully stolen from
-    # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
-    # returns 0 (true) if found, 1 otherwise
-    dpkg-query -Wf'${db:Status-abbrev}' "$1" 2>/dev/null | \grep -q '^i'
-}
-
-_check_dpkg() {
-    required='
-libssl-dev
-make
-automake
-autoconf
-libncurses5-dev
-gcc
-g++
-'
-    for pkg in $required; do
-        if ! _dpkg_is_installed "$pkg"; then
-            l=w stderr "WARNING: It appears that a required development package '$pkg' is not installed."
-        fi
-    done
-}
-
-_rpm_is_installed() {
-    rpm --quiet -q "$1" >/dev/null 2>&1
-}
-
-_check_rpm() {
-    required='
-openssl-devel
-make
-automake
-autoconf
-ncurses-devel
-gcc
-g++
-'
-    for pkg in $required; do
-        if ! _rpm_is_installed "$pkg"; then
-            l=w stderr "WARNING: It appears a required development package '$pkg' is not installed."
-        fi
-    done
-}
-
-_apk_is_installed() {
-    apk -e info "$1" >/dev/null 2>&1
-}
-
-_check_apk() {
-    required='
-openssl-dev
-make
-autoconf
-ncurses-dev
-gcc
-g++
-'
-    for pkg in $required; do
-        if ! _apk_is_installed "$pkg"; then
-            l=w stderr "WARNING: It appears a required development package '$pkg' is not installed."
-        fi
-    done
-}
-
 do_git_build() {
     git_url=$1
     git_version=$2
@@ -754,7 +668,133 @@ _flags() {
     esac
 }
 
+_dpkg() {
+    # gratefully stolen from
+    # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
+    # returns 0 (true) if found, 1 otherwise
+    dpkg-query -Wf'${db:Status-abbrev}' "$1" 2>/dev/null | \grep -q '^i'
+}
+
+_rpm() {
+    rpm --quiet -q "$1" >/dev/null 2>&1
+}
+
+_apk() {
+    apk -e info "$1" >/dev/null 2>&1
+}
+
+# To add package guessing magic for your Linux distro/package,
+# create a variable named _KPP_<distro>_pkgs where the content
+# is an array with packages, and then create a unique probe
+# command, in variable _KPP_<distro>_probe to check from the package manager.
+# It should return 0 if package installation is Ok, non-0 otherwise.
+# Special feature: the probe's \$1 is used for string substitution to eval it.
+
+_KPP_alpine="openssl-dev make autoconf ncurses-dev gcc g++"
+_KPP_alpine_probe="_apk \$1"
+
+_KPP_debian="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_debian_probe="_dpkg \$1"
+
+_KPP_fedora="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_fedora_probe="_rpm \$1"
+
+_KPP_linuxmint="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_linuxmint_probe="_dpkg \$1"
+
+_KPP_opensuse="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_opensuse_probe="_rpm \$1"
+
+_KPP_rhel="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_rhel_probe="_rpm \$1"
+
+_KPP_ubuntu="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_ubuntu_probe="_dpkg \$1"
+
+parse_os_release() {
+    # $1: path to os-release
+    # returns:
+    # - 2 if release ID is not found in os-release file
+    os_release_id0=$(\grep "^ID=" "$1")
+    os_release_id=$(echo "${os_release_id0}" | \sed 's|.*=||')
+    os_release_pretty_name0=$(\grep "^PRETTY_NAME=" "$1")
+    os_release_pretty_name=$(echo "${os_release_pretty_name0}" | \sed 's|.*=||')
+    echo "[packages] Found ${os_release_pretty_name} with ID ${os_release_id}" >>"$LOGFILE"
+    if [ -z "${os_release_id}" ]; then
+        echo "[packages] Release ID not found in $1" >>"$LOGFILE"
+        echo "2"
+    else
+        echo "[packages] Release ID found in $1: ${os_release_id}" >>"$LOGFILE"
+        echo "${os_release_id}"
+    fi
+}
+
+get_id_from_os_release_files() {
+    # returns:
+    # 1 - if no release files exist
+    files="/etc/os-release /usr/lib/os-release"
+    for file in ${files}; do
+        if [ -f "${file}" ]; then
+            parsed=$(parse_os_release "${file}")
+            if [ "${parsed}" != "2" ]; then
+                break
+            fi
+        fi
+    done
+
+    if [ -z "${parsed}" ]; then
+        echo "[packages] Found no file in: ${files}. Bailing out..." >>"$LOGFILE"
+        echo "1"
+    fi
+
+    echo "${parsed}"
+}
+
+probe_pkgs() {
+    os_release_id=$(get_id_from_os_release_files)
+
+    if [ "${os_release_id}" = "1" ]; then
+        msg="[packages] Unable to determine Linux flavor (no release files); not checking build packages."
+        echo "${msg}" >>"$LOGFILE"
+        l=w stderr "${msg}"
+        return
+    elif [ "${os_release_id}" = "2" ]; then
+        msg="[packages] Unable to determine Linux flavor (no ID); not checking build packages."
+        echo "${msg}" >>"$LOGFILE"
+        l=w stderr "${msg}"
+        return
+    fi
+
+    kpp=$(eval echo \$_KPP_"${os_release_id}"_pkgs)
+    if [ -n "${kpp}" ]; then
+        echo "[packages] Found package declarations for ${os_release_id}. Linux flavor is known." >>"$LOGFILE"
+        echo "[packages] Acting on known Linux distro ${os_release_id}" >>"$LOGFILE"
+        for pkg in ${kpp}; do
+            cmd=$(eval echo "\$_KPP_${os_release_id}_probe")
+            probe_without_1=$(echo "${cmd}" | sed "s|\$1||")
+            if [ "${probe_without_1}" != "${cmd}" ]; then
+                cmd=$(echo "${cmd}" | sed "s|\$1|${pkg}|")
+            fi
+            eval "${cmd}" >/dev/null 2>&1
+            probe_res=$?
+            if [ "${probe_res}" != 0 ]; then
+                msg="[packages] Probe failed for ${pkg} (distro: ${os_release_id}): \"${cmd}\" returned ${probe_res}"
+                echo "${msg}" >>"$LOGFILE"
+                l=w stderr "${msg}"
+            else
+                echo "[packages] Probe success for ${pkg} (distro: ${os_release_id})!" >>"$LOGFILE"
+            fi
+        done
+    else
+        msg="[packages] Unknown Linux flavor ${os_release_id}; not checking build packages."
+        echo "${msg}" >>"$LOGFILE"
+        l=w stderr "${msg}"
+    fi
+}
+
 _do_build() {
+    LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
+
     case "$KERL_SYSTEM" in
     Darwin)
         # Ensure that the --enable-darwin-64bit flag is set on all macOS
@@ -778,21 +818,20 @@ _do_build() {
         fi
         ;;
     Linux)
-        # we are going to check here to see if the Linux uses dpkg or rpms
-        #
-        # this is a "best effort" attempt to discover if a Linux has the
+        # We implement a "best effort" attempt to discover if a Linux distro has the
         # packages needed to build Erlang. We will always assume the user
         # knows better than us and are going to go ahead and try to build
-        # Erlang anyway. But at least it will be a clear warning to the
+        # Erlang anyway. But at least there will be a clear warning to the
         # user if a build fails.
-        _check_required_pkgs
+        if [ "${KERL_CHECK_BUILD_PACKAGES}" = "1" ]; then
+            probe_pkgs
+        fi
         ;;
     *) ;;
     esac
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
-    LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
     # Add a build date and env in logfile
     echo "*** $(date) - kerl build $1 ***" >>"$LOGFILE"
     env | grep KERL_BUILD_ | xargs -n1 echo "*" >>"$LOGFILE"
