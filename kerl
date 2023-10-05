@@ -715,9 +715,9 @@ parse_os_release() {
     # returns:
     # - 2 if release ID is not found in os-release file
     os_release_id0=$(\grep "^ID=" "$1")
-    os_release_id=$(echo "${os_release_id0}" | \sed 's|.*=||')
+    os_release_id=$(echo "${os_release_id0}" | \sed 's|.*=||' | \sed 's|"||g')
     os_release_pretty_name0=$(\grep "^PRETTY_NAME=" "$1")
-    os_release_pretty_name=$(echo "${os_release_pretty_name0}" | \sed 's|.*=||')
+    os_release_pretty_name=$(echo "${os_release_pretty_name0}" | \sed 's|.*=||' | \sed 's|"||g')
     echo "[packages] Found ${os_release_pretty_name} with ID ${os_release_id}" >>"$LOGFILE"
     if [ -z "${os_release_id}" ]; then
         echo "[packages] Release ID not found in $1" >>"$LOGFILE"
