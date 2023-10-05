@@ -672,15 +672,15 @@ _dpkg() {
     # gratefully stolen from
     # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
     # returns 0 (true) if found, 1 otherwise
-    dpkg-query -Wf'${db:Status-abbrev}' "$1" 2>/dev/null | \grep -q '^i'
+    echo "dpkg-query -Wf'\${db:Status-abbrev}' \"$1\" 2>/dev/null | \grep -q '^i'"
 }
 
 _rpm() {
-    rpm --quiet -q "$1" >/dev/null 2>&1
+    echo "rpm --quiet -q \"$1\" >/dev/null 2>&1"
 }
 
 _apk() {
-    apk -e info "$1" >/dev/null 2>&1
+    echo "apk -e info \"$1\" >/dev/null 2>&1"
 }
 
 # To add package guessing magic for your Linux distro/package,
@@ -688,28 +688,27 @@ _apk() {
 # is an array with packages, and then create a unique probe
 # command, in variable _KPP_<distro>_probe to check from the package manager.
 # It should return 0 if package installation is Ok, non-0 otherwise.
-# Special feature: the probe's \$1 is used for string substitution to eval it.
 
 _KPP_alpine_pkgs="openssl-dev make autoconf ncurses-dev gcc g++"
-_KPP_alpine_probe="_apk \$1"
+_KPP_alpine_probe="_apk"
 
 _KPP_debian_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
-_KPP_debian_probe="_dpkg \$1"
+_KPP_debian_probe="_dpkg"
 
 _KPP_fedora_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
-_KPP_fedora_probe="_rpm \$1"
+_KPP_fedora_probe="_rpm"
 
 _KPP_linuxmint_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
-_KPP_linuxmint_probe="_dpkg \$1"
+_KPP_linuxmint_probe="_dpkg"
 
 _KPP_opensuse_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
-_KPP_opensuse_probe="_rpm \$1"
+_KPP_opensuse_probe="_rpm"
 
 _KPP_rhel_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
-_KPP_rhel_probe="_rpm \$1"
+_KPP_rhel_probe="_rpm"
 
 _KPP_ubuntu_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
-_KPP_ubuntu_probe="_dpkg \$1"
+_KPP_ubuntu_probe="_dpkg"
 
 parse_os_release() {
     # $1: path to os-release
@@ -770,15 +769,12 @@ probe_pkgs() {
         echo "[packages] Found package declarations for ${os_release_id}. Linux flavor is known." >>"$LOGFILE"
         echo "[packages] Acting on known Linux distro ${os_release_id}" >>"$LOGFILE"
         for pkg in ${kpp}; do
-            cmd=$(eval echo "\$_KPP_${os_release_id}_probe")
-            probe_without_1=$(echo "${cmd}" | sed "s|\$1||")
-            if [ "${probe_without_1}" != "${cmd}" ]; then
-                cmd=$(echo "${cmd}" | sed "s|\$1|${pkg}|")
-            fi
-            eval "${cmd}" >/dev/null 2>&1
+            cmd=$(eval echo "\$_KPP_${os_release_id}_probe ${pkg}")
+            probe=$(${cmd})
+            eval "${probe}" >/dev/null 2>&1
             probe_res=$?
             if [ "${probe_res}" != 0 ]; then
-                msg="[packages] Probe failed for ${pkg} (distro: ${os_release_id}): \"${cmd}\" returned ${probe_res}"
+                msg="[packages] Probe failed for ${pkg} (distro: ${os_release_id}): \"${probe}\" returned ${probe_res}"
                 echo "${msg}" >>"$LOGFILE"
                 l=w stderr "${msg}"
             else
