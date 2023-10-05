@@ -794,6 +794,8 @@ probe_pkgs() {
 
 _do_build() {
     LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
+    # Add a build date and env in logfile
+    echo "*** $(date) - kerl build $1 ***" >>"$LOGFILE"
 
     case "$KERL_SYSTEM" in
     Darwin)
@@ -832,8 +834,6 @@ _do_build() {
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
-    # Add a build date and env in logfile
-    echo "*** $(date) - kerl build $1 ***" >>"$LOGFILE"
     env | grep KERL_BUILD_ | xargs -n1 echo "*" >>"$LOGFILE"
 
     # Set configuation flags given applications white/black lists
