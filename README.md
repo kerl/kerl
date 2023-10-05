@@ -7,8 +7,8 @@
 
 Easy building and installing of [Erlang/OTP](https://www.erlang.org) instances.
 
-`kerl` aims to be shell agnostic and its only dependencies, excluding what's
-required to actually build Erlang/OTP, are `curl` and `git`.
+`kerl` aims to be shell agnostic (it runs in a POSIX shell) and its only dependencies,
+excluding what's required to actually build Erlang/OTP, are `curl` and `git`.
 
 All is done so that, once a specific release has been built, creating a new
 installation is as fast as possible.
