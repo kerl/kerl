@@ -669,18 +669,15 @@ _flags() {
 }
 
 _dpkg() {
-    # gratefully stolen from
-    # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
-    # returns 0 (true) if found, 1 otherwise
-    echo "dpkg-query -Wf'\${db:Status-abbrev}' \"$1\" 2>/dev/null | \grep -q '^i'"
+    echo "dpkg-query -f='\${Status}' --show $1 | grep \"installed\""
 }
 
 _rpm() {
-    echo "rpm --quiet -q \"$1\" >/dev/null 2>&1"
+    echo "rpm -q \"$1\""
 }
 
 _apk() {
-    echo "apk -e info \"$1\" >/dev/null 2>&1"
+    echo "apk -e info \"$1\""
 }
 
 # To add package guessing magic for your Linux distro/package,
