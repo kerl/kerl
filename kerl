@@ -690,25 +690,25 @@ _apk() {
 # It should return 0 if package installation is Ok, non-0 otherwise.
 # Special feature: the probe's \$1 is used for string substitution to eval it.
 
-_KPP_alpine="openssl-dev make autoconf ncurses-dev gcc g++"
+_KPP_alpine_pkgs="openssl-dev make autoconf ncurses-dev gcc g++"
 _KPP_alpine_probe="_apk \$1"
 
-_KPP_debian="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_debian_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
 _KPP_debian_probe="_dpkg \$1"
 
-_KPP_fedora="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_fedora_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
 _KPP_fedora_probe="_rpm \$1"
 
-_KPP_linuxmint="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_linuxmint_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
 _KPP_linuxmint_probe="_dpkg \$1"
 
-_KPP_opensuse="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_opensuse_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
 _KPP_opensuse_probe="_rpm \$1"
 
-_KPP_rhel="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_rhel_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
 _KPP_rhel_probe="_rpm \$1"
 
-_KPP_ubuntu="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_ubuntu_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
 _KPP_ubuntu_probe="_dpkg \$1"
 
 parse_os_release() {
