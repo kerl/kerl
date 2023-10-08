@@ -771,7 +771,7 @@ probe_pkgs() {
             eval "${probe}" >/dev/null 2>&1
             probe_res=$?
             if [ "${probe_res}" != 0 ]; then
-                msg="[packages] Probe failed for ${pkg} (distro: ${os_release_id}): \"${probe}\" returned ${probe_res}"
+                msg="[packages] Probe failed for ${pkg} (distro: ${os_release_id}): probe \"${probe}\" returned ${probe_res}"
                 echo "${msg}" >>"$LOGFILE"
                 l=w stderr "${msg}"
             else
