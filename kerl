@@ -686,7 +686,7 @@ _apk() {
 # command, in variable _KPP_<distro>_probe to check from the package manager.
 # It should return 0 if package installation is Ok, non-0 otherwise.
 
-_KPP_alpine_pkgs="openssl-dev make autoconf ncurses-dev gcc g++"
+_KPP_alpine_pkgs="openssl-dev make automake autoconf ncurses-dev gcc g++"
 _KPP_alpine_probe="_apk"
 
 _KPP_debian_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
