@@ -701,9 +701,6 @@ _KPP_fedora_probe="_rpm"
 _KPP_linuxmint_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
 _KPP_linuxmint_probe="_dpkg"
 
-_KPP_opensuse_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
-_KPP_opensuse_probe="_rpm"
-
 _KPP_rhel_pkgs="openssl-devel make automake autoconf ncurses-devel gcc gcc-c++"
 _KPP_rhel_probe="_rpm"
 
