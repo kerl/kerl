@@ -750,12 +750,12 @@ probe_pkgs() {
     os_release_id=$(get_id_from_os_release_files)
 
     if [ "${os_release_id}" = "1" ]; then
-        msg="[packages] Unable to determine Linux flavor (no release files); not checking build packages."
+        msg="[packages] Unable to determine Linux distro (no release files); not checking build packages."
         echo "${msg}" >>"$LOGFILE"
         l=w stderr "${msg}"
         return
     elif [ "${os_release_id}" = "2" ]; then
-        msg="[packages] Unable to determine Linux flavor (no ID); not checking build packages."
+        msg="[packages] Unable to determine Linux distro (no ID); not checking build packages."
         echo "${msg}" >>"$LOGFILE"
         l=w stderr "${msg}"
         return
@@ -778,7 +778,7 @@ probe_pkgs() {
             fi
         done
     else
-        msg="[packages] Unknown Linux flavor ${os_release_id}; not checking build packages."
+        msg="[packages] Unknown Linux distro ${os_release_id}; not checking build packages."
         echo "${msg}" >>"$LOGFILE"
         l=w stderr "${msg}"
     fi
