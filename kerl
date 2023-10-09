@@ -763,8 +763,7 @@ probe_pkgs() {
 
     kpp=$(eval echo \$_KPP_"${os_release_id}"_pkgs)
     if [ -n "${kpp}" ]; then
-        echo "[packages] Found package declarations for ${os_release_id}. Linux flavor is known." >>"$LOGFILE"
-        echo "[packages] Acting on known Linux distro ${os_release_id}" >>"$LOGFILE"
+        echo "[packages] Found package declarations for your Linux distro: ${os_release_id}" >>"$LOGFILE"
         for pkg in ${kpp}; do
             cmd=$(eval echo "\$_KPP_${os_release_id}_probe ${pkg}")
             probe=$(${cmd})
