@@ -7,8 +7,8 @@
 
 Easy building and installing of [Erlang/OTP](https://www.erlang.org) instances.
 
-`kerl` aims to be shell agnostic and its only dependencies, excluding what's
-required to actually build Erlang/OTP, are `curl` and `git`.
+`kerl` aims to be shell agnostic (it runs in a POSIX shell) and its only dependencies,
+excluding what's required to actually build Erlang/OTP, are `curl` and `git`.
 
 All is done so that, once a specific release has been built, creating a new
 installation is as fast as possible.
@@ -359,6 +359,13 @@ Default: `${KERL_BASE_DIR}/gits`
 Directory in which `kerl` will clone Git repositories for building.
 
 ### Build configuration
+
+#### `KERL_CHECK_BUILD_PACKAGES`
+
+Default: yes (Enabled)
+Kerl will try to probe your Linux distro for build-required packages logging
+where the probes fail. You can turn off this behaviour by setting the
+environment variable to something other than 1.
 
 #### `KERL_AUTOCLEAN`
 
