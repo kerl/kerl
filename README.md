@@ -362,7 +362,7 @@ Directory in which `kerl` will clone Git repositories for building.
 
 #### `KERL_CHECK_BUILD_PACKAGES`
 
-Default: 1 (Enabled)
+Default: yes (Enabled)
 Kerl will try to probe your Linux distro for build-required packages logging
 where the probes fail. You can turn off this behaviour by setting the
 environment variable to something other than 1.

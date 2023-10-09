@@ -135,7 +135,7 @@ KERL_GIT_DIR=${KERL_GIT_DIR:="${KERL_BASE_DIR:?}"/gits}
 KERL_GIT_BASE=https://raw.githubusercontent.com/kerl/kerl/master
 KERL_COLORIZE=${KERL_COLORIZE:=$KERL_COLOR_AVAILABLE}
 KERL_INCLUDE_RELEASE_CANDIDATES=${KERL_INCLUDE_RELEASE_CANDIDATES:=no}
-KERL_CHECK_BUILD_PACKAGES=${KERL_CHECK_BUILD_PACKAGES:="1"}
+KERL_CHECK_BUILD_PACKAGES=${KERL_CHECK_BUILD_PACKAGES:="yes"}
 
 if [ -n "$OTP_GITHUB_URL" ]; then
     _OGU="$OTP_GITHUB_URL"
@@ -818,7 +818,7 @@ _do_build() {
         # knows better than us and are going to go ahead and try to build
         # Erlang anyway. But at least there will be a clear warning to the
         # user if a build fails.
-        if [ "${KERL_CHECK_BUILD_PACKAGES}" = "1" ]; then
+        if [ "${KERL_CHECK_BUILD_PACKAGES}" = "yes" ]; then
             probe_pkgs
         fi
         ;;
