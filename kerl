@@ -142,7 +142,6 @@ log_install_cmd() {
     eval "$install_cmd" >>"$INSTALL_LOGFILE" 2>&1
 }
 
-
 # Check if tput is available for colorize
 tp=$(tput sgr0 1>/dev/null 2>&1 && printf "OK" || printf "")
 if [ -z "$tp" ]; then
