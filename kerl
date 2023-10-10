@@ -1512,10 +1512,9 @@ do_install() {
     absdir=$(cd "$2" && pwd)
     notice "Installing Erlang/OTP $rel ($build_name) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
-    init_install_logfile "$build_name" "$rel"
     cd "$ERL_TOP" || exit 1
-    if ! (ERL_TOP="$ERL_TOP" ./otp_build release -a "$absdir") &&
-        log_install_cmd "cd $absdir && ./Install $INSTALL_OPT $absdir"; then
+    init_install_logfile "$build_name" "$rel"
+    if ! log_install_cmd "ERL_TOP=$ERL_TOP ./otp_build release -a $absdir && cd $absdir && ./Install $INSTALL_OPT $absdir"; then
         show_install_logfile "install of Erlang/OTP $rel ($build_name), in $absdir, failed!"
         exit 1
     fi
