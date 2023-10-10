@@ -105,11 +105,12 @@ tip() {
 }
 
 init_build_logfile() {
-    # $1: build name
-    # $2: release
+    # $1: release
+    # $2: build name
 
     BUILD_LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
     rm -f "$BUILD_LOGFILE"
+    touch "$BUILD_LOGFILE"
     tip "Initializing (build) logfile at $BUILD_LOGFILE".
 }
 
@@ -127,11 +128,12 @@ log_build_cmd() {
 }
 
 init_install_logfile() {
-    # $1: build name
-    # $2: release
+    # $1: release
+    # $2: build name
 
     INSTALL_LOGFILE="$KERL_BUILD_DIR/$2/otp_install_$1.log"
     rm -f "$INSTALL_LOGFILE"
+    touch "$INSTALL_LOGFILE"
     tip "Initializing (install) logfile at $INSTALL_LOGFILE".
 }
 
@@ -1512,7 +1514,7 @@ do_install() {
     notice "Installing Erlang/OTP $rel ($build_name) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
     cd "$ERL_TOP" || exit 1
-    init_install_logfile "$build_name" "$rel"
+    init_install_logfile "$rel" "$build_name"
     if ! log_install_cmd "ERL_TOP=$ERL_TOP ./otp_build release -a $absdir && cd $absdir && ./Install $INSTALL_OPT $absdir"; then
         show_install_logfile "install of Erlang/OTP $rel ($build_name), in $absdir, failed!"
         exit 1
