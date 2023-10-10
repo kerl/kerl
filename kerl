@@ -2198,7 +2198,7 @@ upgrade)
         latest=$(curl -s "$KERL_GIT_BASE"/LATEST)
         notice "Remote kerl found at version $latest."
         if [ "$version" != "$latest" ]; then
-            notice "Versions are different. Upgrading to $latest!"
+            notice "Versions are different. Upgrading to $latest..."
             current_kerl_path=$(dirname "$current_kerl_path")
             upgrade_kerl "$current_kerl_path"
         else
@@ -2206,7 +2206,7 @@ upgrade)
         fi
         notice "Updating list of available releases... "
         kerl update releases >/dev/null
-        success "... done!"
+        notice "... done!"
     fi
     ;;
 list)
