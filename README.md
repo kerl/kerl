@@ -62,7 +62,7 @@ Run:
 $ kerl upgrade
 Local kerl found (/usr/local/bin/kerl) at version 2.6.0.
 Remote kerl found at version 3.0.0.
-Versions are different. Upgrading to 3.0.0!
+Versions are different. Upgrading to 3.0.0...
 kerl 2.6.0 is now available at /usr/local/bin/kerl.
 Updating list of available releases...
 ... done!
@@ -224,12 +224,12 @@ You can delete builds and installations with the following commands:
 
 ```console
 $ kerl delete build 25.3-builtdocs
-The 25.3-builtdocs build has been deleted
+Build '25.3-builtdocs' has been deleted.
 ```
 
 ```console
 $ kerl delete installation 25.3
-The installation "25.3" has been deleted
+Installation '25.3' has been deleted.
 ```
 
 You can easily deploy an installation to another host having `ssh` and `rsync` access with the
