@@ -764,7 +764,129 @@ _flags() {
     esac
 }
 
+_dpkg() {
+    # gratefully stolen from
+    # https://superuser.com/questions/427318/test-if-a-package-is-installed-in-apt
+    # returns 0 (true) if found, 1 otherwise
+    echo "dpkg-query -Wf'\${db:Status-abbrev}' \"$1\" 2>/dev/null | \grep -q '^i'"
+}
+
+_rpm() {
+    echo "rpm -q \"$1\""
+}
+
+_apk() {
+    echo "apk -e info \"$1\""
+}
+
+# To add package guessing magic for your Linux distro/package,
+# create a variable named _KPP_<distro>_pkgs where the content
+# is an array with packages, and then create a unique probe
+# command, in variable _KPP_<distro>_probe to check from the package manager.
+# It should return 0 if package installation is Ok, non-0 otherwise.
+
+_KPP_alpine_pkgs="openssl-dev make automake autoconf ncurses-dev gcc g++"
+_KPP_alpine_probe="_apk"
+
+_KPP_debian_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_debian_probe="_dpkg"
+
+_KPP_fedora_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_fedora_probe="_rpm"
+
+_KPP_linuxmint_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_linuxmint_probe="_dpkg"
+
+_KPP_rhel_pkgs="openssl-devel make automake autoconf ncurses-devel gcc gcc-c++"
+_KPP_rhel_probe="_rpm"
+
+_KPP_ubuntu_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_ubuntu_probe="_dpkg"
+
+parse_os_release() {
+    # $1: path to os-release
+    # returns:
+    # - 2 if release ID is not found in os-release file
+    os_release_id0=$(\grep "^ID=" "$1")
+    os_release_id=$(echo "${os_release_id0}" | \sed 's|.*=||' | \sed 's|"||g')
+    os_release_pretty_name0=$(\grep "^PRETTY_NAME=" "$1")
+    os_release_pretty_name=$(echo "${os_release_pretty_name0}" | \sed 's|.*=||' | \sed 's|"||g')
+    log_build_entry "[packages] Found ${os_release_pretty_name} with ID ${os_release_id}"
+    if [ -z "${os_release_id}" ]; then
+        log_build_entry "[packages] Release ID not found in $1"
+        echo "2"
+    else
+        log_build_entry "[packages] Release ID found in $1: ${os_release_id}"
+        echo "${os_release_id}"
+    fi
+}
+
+get_id_from_os_release_files() {
+    # returns:
+    # 1 - if no release files exist
+    files="/etc/os-release /usr/lib/os-release"
+    for file in ${files}; do
+        if [ -f "${file}" ]; then
+            parsed=$(parse_os_release "${file}")
+            if [ "${parsed}" != "2" ]; then
+                break
+            fi
+        fi
+    done
+
+    if [ -z "${parsed}" ]; then
+        log_build_entry "[packages] Found no file in: ${files}. Bailing out..."
+        echo "1"
+    fi
+
+    echo "${parsed}"
+}
+
+probe_pkgs() {
+    os_release_id=$(get_id_from_os_release_files)
+
+    if [ "${os_release_id}" = "1" ]; then
+        msg="[packages] Unable to determine Linux distro (no release files); not checking build packages."
+        log_build_entry "${msg}"
+        warn "${msg}"
+        return
+    elif [ "${os_release_id}" = "2" ]; then
+        msg="[packages] Unable to determine Linux distro (no ID); not checking build packages."
+        log_build_entry "${msg}"
+        warn "${msg}"
+        return
+    fi
+
+    kpp=$(eval echo \$_KPP_"${os_release_id}"_pkgs)
+    if [ -n "${kpp}" ]; then
+        log_build_entry "[packages] Found package declarations for your Linux distro: ${os_release_id}"
+        for pkg in ${kpp}; do
+            cmd=$(eval echo "\$_KPP_${os_release_id}_probe ${pkg}")
+            probe=$(${cmd})
+            eval "${probe}" >/dev/null 2>&1
+            probe_res=$?
+            if [ "${probe_res}" != 0 ]; then
+                msg="[packages] Probe failed for ${pkg} (distro: ${os_release_id}): probe \"${probe}\" returned ${probe_res}"
+                log_build_entry "${msg}"
+                warn "${msg}"
+            else
+                log_build_entry "[packages] Probe success for ${pkg} (distro: ${os_release_id})!"
+            fi
+        done
+    else
+        msg="[packages] Unknown Linux distro ${os_release_id}; not checking build packages."
+        log_build_entry "${msg}"
+        warn "${msg}"
+    fi
+}
+
 _do_build() {
+    init_build_logfile "$1" "$2"
+    # Add a build date and env in logfile
+    log_build_entry "*** $(date) - kerl build $1 ***"
+    log_build_entry "Build options:"
+    log_build_cmd "env | grep KERL_BUILD_ | xargs -n1 echo \"*\""
+
     case "$KERL_SYSTEM" in
     Darwin)
         # Ensure that the --enable-darwin-64bit flag is set on all macOS
@@ -802,11 +924,6 @@ _do_build() {
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
-    init_build_logfile "$1" "$2"
-    # Add a build date and env in logfile
-    log_build_entry "*** $(date) - kerl build $1 ***"
-    log_build_entry "Build options:"
-    log_build_cmd "env | grep KERL_BUILD_ | xargs -n1 echo \"*\""
 
     # Set configuation flags given applications white/black lists
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
