@@ -142,6 +142,7 @@ log_install_cmd() {
     eval "$install_cmd" >>"$INSTALL_LOGFILE" 2>&1
 }
 
+
 # Check if tput is available for colorize
 tp=$(tput sgr0 1>/dev/null 2>&1 && printf "OK" || printf "")
 if [ -z "$tp" ]; then
@@ -508,7 +509,7 @@ update_checksum_file() {
         return 0
     else
         notice "Getting checksum file from erlang.org..."
-        curl -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5 || exit 1
+        curl -s -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5 || exit 1
     fi
 }
 
@@ -614,7 +615,7 @@ do_git_build() {
     GIT=$(printf '%s' "$git_url" | $MD5SUM | cut -d ' ' -f "$MD5SUM_FIELD")
     mkdir -p "$KERL_GIT_DIR" || exit 1
     cd "$KERL_GIT_DIR" || exit 1
-    notice "Building (git) Erlang/OTP repository from $git_url..."
+    notice "Checking out Erlang/OTP git repository from $git_url..."
     if [ ! -d "$GIT" ]; then
         if ! git clone -q --mirror "$git_url" "$GIT" >/dev/null 2>&1; then
             error "mirroring remote git repository."
@@ -1542,7 +1543,7 @@ do_plt() {
 print_buildopts() {
     buildopts="$1/$KERL_CONFIG_STORAGE_FILENAME"
     if [ -f "$buildopts" ]; then
-        notice "The build opts for the active installation are:"
+        notice "The build options for the active installation are:"
         cat "$buildopts"
         return 0
     else
@@ -1907,14 +1908,14 @@ github_download() {
     # if the file doesn't exist or the file has no size
     if [ ! -s "$tarball_file" ]; then
         notice "Downloading (from GitHub) Erlang/OTP $1 to $KERL_DOWNLOAD_DIR..."
-        curl -f -L -o "$tarball_file" "$tarball_url" || exit 1
+        curl -s -f -L -o "$tarball_file" "$tarball_url" || exit 1
     else
         # If the downloaded tarball was corrupted due to interruption while
         # downloading.
         if ! gunzip -t "$tarball_file" 2>/dev/null; then
             notice "$tarball_file (from GitHub) corrupted; re-downloading..."
             rm -rf "$tarball_file"
-            curl -f -L -o "$tarball_file" "$tarball_url" || exit 1
+            curl -s -f -L -o "$tarball_file" "$tarball_url" || exit 1
         fi
     fi
 }
@@ -1922,7 +1923,7 @@ github_download() {
 tarball_download() {
     if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
         notice "Downloading tarball $1 to $KERL_DOWNLOAD_DIR..."
-        curl -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || exit 1
+        curl -s -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || exit 1
         update_checksum_file
     fi
     ensure_checksum_file
