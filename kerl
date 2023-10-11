@@ -2385,7 +2385,7 @@ emit-activate)
     shell=$5
 
     if [ $# -lt 4 ] || [ $# -gt 5 ] ||
-        { [ "$5" != "sh" ] && [ "$5" != "bash" ] && [ "$5" != "fish" ] && [ "$5" != "csh" ]; }; then
+        { [ $# -eq 5 ] && [ "$5" != "sh" ] && [ "$5" != "bash" ] && [ "$5" != "fish" ] && [ "$5" != "csh" ]; }; then
         usage_exit "emit-activate <release> <build_name> <directory> [sh|bash|fish|csh]"
     fi
 
