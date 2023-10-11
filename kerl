@@ -2040,18 +2040,22 @@ upgrade_kerl() {
 
 case "$1" in
 version)
+    if [ $# -ne 1 ]; then
+        usage_exit "version"
+    fi
+
     tip "$KERL_VERSION"
     ;;
 build)
     if [ "$2" = 'git' ]; then
         if [ $# -ne 5 ]; then
-            usage_exit "build $2 <git_url> <git_version> <build_name>"
+            usage_exit "build git <git_url> <git_version> <build_name>"
         fi
 
         do_git_build "$3" "$4" "$5"
     else
-        if [ $# -ne 2 ] && [ $# -ne 3 ]; then
-            usage_exit "build <release> <build_name>"
+        if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+            usage_exit "build <release> [build_name]"
         fi
 
         if [ $# -eq 2 ]; then
@@ -2070,14 +2074,14 @@ build-install)
     directory="$6"
 
     if [ "$release_or_git" = "git" ]; then
-        if [ $# -ne 5 ] && [ $# -ne 6 ]; then
+        if [ $# -lt 5 ] || [ $# -gt 6 ]; then
             usage_exit "build-install git <git_url> <git_version> <build_name> [directory]"
         fi
 
         git_url="$build_name_or_git_url"
         git_version="$directory_or_git_version"
     else
-        if [ $# -ne 2 ] && [ $# -ne 3 ] && [ $# -ne 4 ]; then
+        if [ $# -lt 2 ] || [ $# -gt 4 ]; then
             usage_exit "build-install <release> [build_name] [directory]"
         fi
 
@@ -2100,7 +2104,7 @@ build-install)
     do_build_install "$release_or_git" "$git_url" "$git_version" "$build_name" "$directory"
     ;;
 install)
-    if [ $# -lt 2 ]; then
+    if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         usage_exit "install <build_name> [directory]"
     fi
 
@@ -2115,40 +2119,31 @@ install)
     fi
     ;;
 deploy)
-    if [ $# -lt 2 ]; then
+    if [ $# -lt 2 ] || [ $# -gt 4 ]; then
         usage_exit "deploy <[user@]host> [directory] [remote_directory]"
     fi
 
     if [ $# -eq 4 ]; then
         do_deploy "$2" "$3" "$4"
+    elif [ $# -eq 3 ]; then
+        do_deploy "$2" "$3"
     else
-        if [ $# -eq 3 ]; then
-            do_deploy "$2" "$3"
-        else
-            do_deploy "$2" .
-        fi
+        do_deploy "$2" .
     fi
     ;;
 update)
-    if [ $# -lt 2 ]; then
+    if [ $# -ne 2 ] || [ "$2" != "releases" ]; then
         usage_exit "update releases"
     fi
 
-    case "$2" in
-    releases)
-        rm -f "${KERL_BASE_DIR:?}"/otp_releases
-        if check_releases; then
-            notice "The available releases are:"
-            list_print releases
-        else
-            error "check releases failed!"
-            exit 1
-        fi
-        ;;
-    *)
-        usage_exit "update releases"
-        ;;
-    esac
+    rm -f "${KERL_BASE_DIR:?}"/otp_releases
+    if check_releases; then
+        notice "The available releases are:"
+        list_print releases
+    else
+        error "check releases failed!"
+        exit 1
+    fi
     ;;
 upgrade)
     if [ $# -ne 1 ]; then
@@ -2183,12 +2178,10 @@ upgrade)
     fi
     ;;
 list)
-    _usage="list <releases|builds|installations> [all]"
-
     case "$2" in
     releases)
-        if [ $# -ne 2 ] || { [ $# -eq 3 ] && [ "$3" != 'all' ]; }; then
-            usage_exit "$_usage"
+        if [ $# -lt 2 ] || [ $# -gt 3 ] || { [ $# -eq 3 ] && [ "$3" != 'all' ]; }; then
+            usage_exit "list releases [all]"
         fi
 
         check_releases
@@ -2201,25 +2194,31 @@ list)
         ;;
     builds)
         if [ $# -ne 2 ]; then
-            usage_exit "$_usage"
+            usage_exit "list builds"
         fi
 
         list_print "$2"
         ;;
     installations)
         if [ $# -ne 2 ]; then
-            usage_exit "$_usage"
+            usage_exit "list installations"
         fi
 
         list_print "$2"
         ;;
     *)
-        error "cannot list $2."
-        usage_exit "$_usage"
+        if [ -n "$2" ]; then
+            error "cannot list $2."
+        fi
+        usage_exit "list <releases|builds|installations> [all]"
         ;;
     esac
     ;;
 path)
+    if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+        usage_exit "path [installation]"
+    fi
+
     # Usage:
     # kerl path
     # # Print currently active installation path, else non-zero exit
@@ -2256,14 +2255,12 @@ path)
     fi
     ;;
 delete)
-    _usage="delete <build|installation> <build_name or directory>"
-
-    if [ $# -ne 3 ]; then
-        usage_exit "${_usage}"
-    fi
-
     case "$2" in
     build)
+        if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+            usage_exit "delete build [build_name]"
+        fi
+
         rel="$(get_release_from_name "$3")"
         if [ -d "${KERL_BUILD_DIR:?}/$3" ]; then
             maybe_remove "${KERL_BUILD_DIR:?}/$3"
@@ -2277,6 +2274,10 @@ delete)
         notice "Build '$3' has been deleted."
         ;;
     installation)
+        if [ $# -ne 3 ]; then
+            usage_exit "delete installation <directory>"
+        fi
+
         assert_valid_installation "$3"
         if [ -d "$3" ]; then
             maybe_remove "$3"
@@ -2288,23 +2289,37 @@ delete)
         notice "Installation '$3' has been deleted."
         ;;
     *)
-        error "cannot delete '$2'."
-        usage_exit "${_usage}"
+        if [ -n "$2" ]; then
+            error "cannot delete $2."
+        fi
+        usage_exit "delete <build|installation> <build_name or directory>"
         ;;
     esac
     ;;
 active)
+    if [ $# -ne 1 ]; then
+        usage_exit "active"
+    fi
+
     if ! do_active; then
         exit 1
     fi
     ;;
 plt)
+    if [ $# -ne 1 ]; then
+        usage_exit "plt"
+    fi
+
     ACTIVE_PATH=$(get_active_path)
     if ! do_plt "$ACTIVE_PATH"; then
         exit 1
     fi
     ;;
 status)
+    if [ $# -ne 1 ]; then
+        usage_exit "status"
+    fi
+
     notice "Available builds:"
     list_print builds
     nocolor '----------'
@@ -2323,6 +2338,10 @@ status)
     fi
     ;;
 prompt)
+    if [ $# -ne 1 ]; then
+        usage_exit "prompt"
+    fi
+
     FMT=' (%s)'
     if [ -n "$2" ]; then
         FMT="$2"
@@ -2365,10 +2384,9 @@ emit-activate)
     directory=$4
     shell=$5
 
-    _usage="emit-activate <release> <build_name> <directory> [sh|bash|fish|csh]"
-
-    if [ $# -ne 4 ] && [ $# -ne 5 ]; then
-        usage_exit "${_usage}"
+    if [ $# -lt 4 ] || [ $# -gt 5 ] ||
+        { [ "$5" != "sh" ] && [ "$5" != "bash" ] && [ "$5" != "fish" ] && [ "$5" != "csh" ]; }; then
+        usage_exit "emit-activate <release> <build_name> <directory> [sh|bash|fish|csh]"
     fi
 
     if [ -z "$5" ]; then
@@ -2387,9 +2405,7 @@ emit-activate)
     csh)
         emit_activate_csh "$release" "$build_name" "$directory"
         ;;
-    *)
-        usage_exit "${_usage}"
-        ;;
+    *) ;;
     esac
     ;;
 *)
