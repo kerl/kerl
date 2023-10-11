@@ -2423,6 +2423,6 @@ emit-activate)
     ;;
 *)
     error "unknown command: '$1'."
-    usage
+    k_usage
     ;;
 esac
