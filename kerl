@@ -47,6 +47,8 @@ OLDEST_OTP_SUPPORTED='24'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
 
+_KERL_SCRIPT=$0
+
 # Redirect to stderr only if it is a terminal, otherwise mute
 stderr() {
     if [ -t 1 ]; then
@@ -71,7 +73,7 @@ nocolor() {
 usage() {
     # $1: usage tip
 
-    l=error stderr "usage: $0 $1"
+    l=error stderr "usage: ${_KERL_SCRIPT} $1"
 }
 
 error() {
@@ -192,7 +194,7 @@ autoclean() {
         test -f "$BUILD_LOGFILE" && cp -f "$BUILD_LOGFILE" "$tmplf"
         # Cleaning current build
         cd - 1>/dev/null 2>&1 || exit
-        test -n "$1" && $0 cleanup "$1"
+        test -n "$1" && ${_KERL_SCRIPT} cleanup "$1"
         # Copy BUILD_LOGFILE back to keep track of all attempts until success
         mkdir -p "$(dirname "$BUILD_LOGFILE")"
         mv -f "$tmplf" "$BUILD_LOGFILE"
@@ -362,7 +364,7 @@ esac
 
 k_usage() {
     nocolor "kerl: build and install Erlang/OTP"
-    nocolor "usage: $0 <command> [options ...]"
+    nocolor "usage: ${_KERL_SCRIPT} <command> [options ...]"
     nocolor ""
     nocolor "  <command>       Command to be executed"
     nocolor ""
@@ -1106,10 +1108,10 @@ do_build_install() {
     fi
 
     if [ "$release_or_git" = "git" ]; then
-        $0 build git "$git_url" "$git_version" "$build_name"
+        ${_KERL_SCRIPT} build git "$git_url" "$git_version" "$build_name"
     else
         release="$release_or_git"
-        $0 build "$release" "$build_name"
+        ${_KERL_SCRIPT} build "$release" "$build_name"
     fi
 
     status=$?
@@ -1118,7 +1120,7 @@ do_build_install() {
         exit 1
     fi
 
-    $0 install "$build_name" "$directory"
+    ${_KERL_SCRIPT} install "$build_name" "$directory"
 }
 
 # emit_activate: outputs (via cat) the content of the 'activate' script, as used by kerl (sh/bash)
