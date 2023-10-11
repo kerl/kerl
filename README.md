@@ -515,7 +515,7 @@ You can also get information on the following by executing `kerl` (no parameters
 ### `build`
 
 ```console
-$ kerl build <release> <build_name>
+$ kerl build <release> [build_name]
 $ # or
 $ kerl build git <git_url> <git_version> <build_name>
 ```
