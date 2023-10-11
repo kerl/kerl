@@ -33,7 +33,7 @@ unset CDPATH
 
 if [ -n "$KERL_DEBUG" ]; then
     set -x
-    ## Line numbers do not work in dash (aka debian/ubuntu sh)
+    ## Line numbers do not work in dash (aka Debian/Ubuntu sh)
     ## so you may want to change sh to bash to get better debug info
     if [ -n "${LINENO}" ]; then
         PS4='+ ${LINENO}: '
@@ -111,7 +111,7 @@ init_build_logfile() {
     BUILD_LOGFILE="$KERL_BUILD_DIR/$2/otp_build_$1.log"
     rm -f "$BUILD_LOGFILE"
     touch "$BUILD_LOGFILE"
-    tip "Initializing (build) logfile at $BUILD_LOGFILE".
+    tip "Initializing (build) log file at $BUILD_LOGFILE".
 }
 
 log_build_entry() {
@@ -134,7 +134,7 @@ init_install_logfile() {
     INSTALL_LOGFILE="$KERL_BUILD_DIR/$2/otp_install_$1.log"
     rm -f "$INSTALL_LOGFILE"
     touch "$INSTALL_LOGFILE"
-    tip "Initializing (install) logfile at $INSTALL_LOGFILE".
+    tip "Initializing (install) log file at $INSTALL_LOGFILE".
 }
 
 log_install_cmd() {
@@ -185,7 +185,7 @@ colorize() {
 
 autoclean() {
     if [ "${KERL_AUTOCLEAN:=1}" -eq 1 ]; then
-        notice "Auto cleaning all artifacts except the logfile..."
+        notice "Auto cleaning all artifacts except the log file..."
         tip "(use KERL_AUTOCLEAN=0 to keep build on failure, if desired)"
         # Save LOGFILE
         tmplf="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
@@ -341,7 +341,7 @@ fi
 if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
     KERL_USE_AUTOCONF=1
 elif [ "$KERL_BUILD_BACKEND" != 'tarball' ]; then
-    error "enhandled value KERL_BUILD_BACKEND=${KERL_BUILD_BACKEND}."
+    error "unhandled value KERL_BUILD_BACKEND=${KERL_BUILD_BACKEND}."
     tip "KERL_BUILD_BACKEND must be either 'git' (default), or 'tarball'."
     exit 1
 fi
@@ -416,11 +416,11 @@ get_git_releases() {
                 -e '#  - "OTP-19.0-rc2"    =>  ":19.0-rc2 OTP-19.0-rc2"' \
                 -e 's/^(OTP[-_](R?([0-9][^ :]*).*))/:\3 \2/' \
                 \
-                -e '# Delete all lines that didn`t get prefixed above.' \
+                -e '# Delete all lines that did not get prefixed above.' \
                 -e '/^[^:]/d' \
                 \
                 -e '# Move the colon markers preceding each version prefix' \
-                -e '# as to preceed the tag suffix instead, which will make' \
+                -e '# as to precede the tag suffix instead, which will make' \
                 -e '# throwing the version prefixes easier later on.' \
                 -e '#  - ":16B01_RC1 OTP_R16B03"  =>  "16B01_RC1 :OTP_R16B01_RC1"' \
                 -e '#  -     ":16B03 OTP_R16B03"  =>  "16B03 :OTP_R16B03"' \
@@ -664,7 +664,7 @@ get_otp_version() {
 }
 
 show_configuration_warnings() {
-    # $1 is logfile
+    # $1 is log file
     # $2 is section header (E.g. "APPLICATIONS DISABLED")
     # Find the row number for the section we are looking for
     INDEX=$(\grep -n -m1 "$2" "$1" | cut -d: -f1)
@@ -676,7 +676,7 @@ show_configuration_warnings() {
         tail -n +$((INDEX + 3)) "$1" |
             sed -n '1,/\*/p' |
             awk -F: -v logfile="$1" -v section="$2" \
-                'BEGIN { printf "%s (See: %s)\n", section, logfile }
+                'BEGIN { printf "%s (See: %s)\n", section, log file }
                  /^[^\*]/ { print " *", $0 }
                  END { print "" } '
     fi
@@ -883,7 +883,6 @@ probe_pkgs() {
 
 _do_build() {
     init_build_logfile "$1" "$2"
-    # Add a build date and env in logfile
     log_build_entry "*** $(date) - kerl build $1 ***"
     log_build_entry "Build options:"
     log_build_cmd "env | grep KERL_BUILD_ | xargs -n1 echo \"*\""
@@ -898,7 +897,7 @@ _do_build() {
         fi
 
         # Attempt to use brew to discover if and where openssl has been
-        # installed unless the user has already explictly set it.
+        # installed unless the user has already explicitly set it.
 
         if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep 'with-ssl' >/dev/null 2>&1; then
             whichbrew=$(command -v brew)
@@ -926,7 +925,7 @@ _do_build() {
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     cd "$ERL_TOP" || exit 1
 
-    # Set configuation flags given applications white/black lists
+    # Set configuration flags given applications white/black lists
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
         for app in $KERL_CONFIGURE_APPLICATIONS; do
             case "$KERL_CONFIGURE_OPTIONS" in
@@ -962,7 +961,7 @@ _do_build() {
         # Compare our current options to the saved ones
         read -r OLD_SUM <./"$KERL_CONFIG_STORAGE_FILENAME".md5
         if [ "$SUM" != "$OLD_SUM" ]; then
-            notice "Configuration options changed. Reconfiguring..."
+            notice "Configuration options changed. Re-configuring..."
             rm -f configure
             mv "$TMPOPT" ./"$KERL_CONFIG_STORAGE_FILENAME"
             echo "$SUM" >./"$KERL_CONFIG_STORAGE_FILENAME".md5
@@ -1559,7 +1558,7 @@ do_install() {
         if [ "$KERL_BUILD_BACKEND" = 'tarball' ]; then
             if [ "$rel" != 'git' ]; then
                 if [ -n "$KERL_INSTALL_MANPAGES" ]; then
-                    notice "Fetching and installing manpages..."
+                    notice "Fetching and installing man pages..."
                     download_manpages "$rel"
                 fi
 
@@ -1610,7 +1609,7 @@ do_install() {
 download_manpages() {
     FILENAME=otp_doc_man_$1.tar.gz
     tarball_download "$FILENAME"
-    notice "Extracting manpages..."
+    notice "Extracting man pages..."
     cd "$absdir" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME"
 }
 
@@ -2265,7 +2264,7 @@ path)
     else
         # There are some possible extensions to this we could
         # consider, such as:
-        # - if 2+ matches: prefer one in a subdir from $PWD
+        # - if 2+ matches: prefer one in a sub dir from $PWD
         # - prefer $KERL_DEFAULT_INSTALL_DIR
         match=
         for ins in $(list_print installations | cut -d' ' -f2); do
