@@ -1,6 +1,21 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+12 October 2023 - 4.0.0
+
+  - Fix fish shell deactivate (#460)
+  - Fix sh shell deactivate (#461)
+  - Shellcheck and shfmt completion scripts (#463)
+  - Shellcheck and shfmt generated files (#464)
+  - Trim kerl releases output **Breaking change** (#465)
+  - Bury dead code **Breaking change** (#466) 
+    patches and code for very old OTP releases have been removed - if you need this, please use 3.1.0 or earlier.
+  - Fix kerl remote command (#469)
+  - Fix csh (de)activate (#470)
+  - Fix no whitespace before ps output (#474)
+  - Completely overhaul build pre-requisite package tests **Breaking change** (#471)
+    If your Linux isn't supported, please submit a PR
+
 9 September 2023 - 3.1.0
 
   - Respect markdownlint (#446)

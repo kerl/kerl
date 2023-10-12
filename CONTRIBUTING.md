@@ -43,6 +43,23 @@ We may discuss details with you regarding the implementation, and its inclusion 
 We try to have as many of `kerl`'s features tested as possible. Everything that a user can do,
 and is repeatable in any way, should be tested, to guarantee backwards compatible.
 
+## Adding support for your Linux distribution to scan for build pre-requisites 
+
+Erlang needs several packages to build correctly - many of which may or may not be present on a fresh
+OS install or docker image, so as a convenience, kerl tests for these packages before it attempts to
+build.
+
+We currently have tests for many popular Linux distributions but the sheer number of them means we
+may not have support for yours. If you want to add it, here is what we are looking for:
+
+* starting around line 700 are a series of `_KPP_<distro>_` parameters.
+* Inspect the `/etc/os-release` file and find out what your distribution is called there
+* Use that name to name your variables.
+* Add a new function in the style of `_rpm()` `_dpkg()` etc to probe your distribution's package manager
+* Add the list of packages corresponding to names used by the package manager in another variable
+* Add the package probe function name to a new variable so kerl knows how to drive its testing
+* Test locally and submit the output from that test as a comment in your PR
+
 ## Submitting your changes
 
 ### Code Style
