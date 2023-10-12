@@ -61,6 +61,8 @@ stderr() {
             echo "${left}$*${right}" 1>&2
             unset -v l
         fi
+    elif [ -n "$KERL_DEBUG" ] && [ -n "$CI" ]; then
+        echo "$*"
     fi
 }
 
