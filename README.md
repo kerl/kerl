@@ -60,12 +60,12 @@ Run:
 
 ```console
 $ kerl upgrade
-local kerl found (/usr/local/bin/kerl) at version 2.6.0.
-remote kerl found at version 3.0.0.
-Versions are different. Upgrading to 3.0.0.
+Local kerl found (/usr/local/bin/kerl) at version 2.6.0.
+Remote kerl found at version 3.0.0.
+Versions are different. Upgrading to 3.0.0...
 kerl 2.6.0 is now available at /usr/local/bin/kerl.
 Updating list of available releases...
-Done!
+... done!
 ```
 
 ## How `kerl` works
@@ -89,7 +89,6 @@ List the available releases:
 <!-- markdownlint-disable MD007 # line-length -->
 ```console
 $ kerl list releases
-
 17.5.6.10
 18.3.4.11
 19.3.6.13
@@ -100,9 +99,9 @@ $ kerl list releases
 24.3.4.13 *
 25.3.2.6 *
 26.1 *
-Run './kerl update releases' to update this list
-Run './kerl list releases all' to view all available releases
-Note: * means "currently supported"
+Run './kerl update releases' to update this list.
+Run './kerl list releases all' to view all available releases.
+Note: * means "currently supported".
 ```
 <!-- markdownlint-enable MD007 # line-length -->
 
@@ -110,12 +109,12 @@ Pick your choice and build it:
 
 ```console
 $ kerl build 25.3 25.3
-Downloading 25.3 to /home/user/.kerl/archives...
+Downloading (from GitHub) Erlang/OTP 25.3 to /home/user/.kerl/archives...
 ...
-Extracting source code
-Building Erlang/OTP 25.3 (25.3), please wait...
+Extracting source code for normal build...
+Building (normal) Erlang/OTP 25.3 (25.3); please wait...
 ...
-Erlang/OTP 25.3 (25.3) has been successfully built
+Erlang/OTP 25.3 (25.3) has been successfully built.
 ```
 
 Note that named builds allow you to have different builds for the same Erlang/OTP release with
@@ -123,11 +122,11 @@ different configure options:
 
 ```console
 $ KERL_BUILD_DOCS=yes kerl build 25.3 25.3-builtdocs
-Extracting source code
-Building Erlang/OTP 25.3 (25.3-builtdocs), please wait...
+Extracting source code for normal build...
+Building Erlang/OTP 25.3 (25.3-builtdocs); please wait...
 ...
 Building docs...
-Erlang/OTP 25.3 (25.3-builtdocs) has been successfully built
+Erlang/OTP 25.3 (25.3-builtdocs) has been successfully built.
 ```
 
 You can verify your build has been registered:
@@ -144,7 +143,7 @@ Now install a build to some location:
 $ kerl install 25.3 /usr/local/lib/erlang/25.3
 Installing Erlang/OTP 25.3 (25.3) in /usr/local/lib/erlang/25.3...
 Building Dialyzer PLT...
-Done building /usr/local/lib/erlang/25.3/dialyzer/plt
+Done building /usr/local/lib/erlang/25.3/dialyzer/plt.
 You can activate this installation running the following command:
 . /usr/local/lib/erlang/25.3/activate
 Later on, you can leave the installation typing:
@@ -215,7 +214,7 @@ Available installations:
 ----------
 The current active installation is:
 /usr/local/lib/erlang/25.3
-Dialyzer PLT for the active installation is:
+The Dialyzer PLT for the active installation is:
 /usr/local/lib/erlang/25.3/dialyzer/plt
 The build options for the active installation are:
 ...
@@ -225,12 +224,12 @@ You can delete builds and installations with the following commands:
 
 ```console
 $ kerl delete build 25.3-builtdocs
-The 25.3-builtdocs build has been deleted
+Build '25.3-builtdocs' has been deleted.
 ```
 
 ```console
 $ kerl delete installation 25.3
-The installation "25.3" has been deleted
+Installation '25.3' has been deleted.
 ```
 
 You can easily deploy an installation to another host having `ssh` and `rsync` access with the
@@ -238,7 +237,7 @@ following command:
 
 ```console
 $ kerl deploy anotherhost /usr/local/lib/erlang/25.3
-Cloning Erlang/OTP 25.3 (/usr/local/lib/erlang/25.3) to anotherhost (/usr/local/lib/erlang/25.3) ...
+Cloning Erlang/OTP 25.3 (/usr/local/lib/erlang/25.3) to anotherhost (/usr/local/lib/erlang/25.3)...
 ```
 
 On anotherhost, you can activate this installation running the following command:
@@ -295,8 +294,8 @@ be either a branch, a tag or a commit id that will be passed to `git checkout`:
 ```console
 $ kerl build git https://github.com/erlang/otp.git OTP-24.3.4.13 24.3.4.13
 Checking out Erlang/OTP git repository from https://github.com/erlang/otp.git...
-Building Erlang/OTP OTP-24.3.4.13 from git, please wait...
-Erlang/OTP 25.3 from git has been successfully built
+Building (git) Erlang/OTP OTP-24.3.4.13; please wait...
+Erlang/OTP '25.3' (from git) has been successfully built.
 ```
 
 ### Debugging `kerl` usage
@@ -516,7 +515,7 @@ You can also get information on the following by executing `kerl` (no parameters
 ### `build`
 
 ```console
-$ kerl build <release> <build_name>
+$ kerl build <release> [build_name]
 $ # or
 $ kerl build git <git_url> <git_version> <build_name>
 ```
