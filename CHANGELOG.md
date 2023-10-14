@@ -8,8 +8,9 @@
   - Shellcheck and shfmt completion scripts (#463)
   - Shellcheck and shfmt generated files (#464)
   - Trim kerl releases output **Breaking change** (#465)
-  - Bury dead code **Breaking change** (#466) 
-    patches and code for very old OTP releases have been removed - if you need this, please use 3.1.0 or earlier.
+  - Bury dead code **Breaking change** (#466)
+    patches and code for very old OTP releases have been removed - if you need this,
+    please use 3.1.0 or earlier.
   - Fix kerl remote command (#469)
   - Fix csh (de)activate (#470)
   - Fix no whitespace before ps output (#474)
