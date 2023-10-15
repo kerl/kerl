@@ -68,7 +68,7 @@ jobs:
           fi
         # yamllint disable rule:line-length
       - name: Install chosen version
-        run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+        run: KERL_DEBUG=true ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - name: Check installation status
         run: ./kerl status
       - name: Validate installation
