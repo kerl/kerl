@@ -393,8 +393,8 @@ k_usage() {
 if [ $# -eq 0 ]; then k_usage; fi
 
 get_releases() {
-    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
-        get_git_releases
+    if [ "$KERL_BUILD_BACKEND" = 'git' ] && ! get_git_releases; then
+        return 1
     elif ! get_tarball_releases; then
         return 1
     fi
@@ -682,19 +682,20 @@ do_git_build() {
         exit_build
     fi
 
-    mkdir -p "$KERL_GIT_DIR" || exit_build
-    cd "$KERL_GIT_DIR" || exit_build
-
     GIT=$(printf '%s' "$git_url" | $MD5SUM | cut -d ' ' -f "$MD5SUM_FIELD")
+
     _KERL_BUILD_DIR="$KERL_GIT_DIR/$GIT"
 
-    lock_close_build
-
+    mkdir -p "$KERL_GIT_DIR" || exit_build
+    cd "$KERL_GIT_DIR" || exit_build
     notice "Checking out Erlang/OTP git repository from $git_url..."
     if [ ! -d "$GIT" ] &&
         ! git clone -q --mirror "$git_url" "$GIT" >/dev/null 2>&1; then
-        error_build "mirroring remote git repository."
+        exit_build "mirroring remote git repository ($_KERL_BUILD_DIR exists?)."
     fi
+
+    lock_close_build
+
     cd "$GIT" || exit_build
     if ! git remote update --prune >/dev/null 2>&1; then
         exit_build "updating remote git repository."
@@ -703,7 +704,7 @@ do_git_build() {
 
     mkdir -p "$KERL_BUILD_DIR/$build_name" || exit_build
     cd "$KERL_BUILD_DIR/$build_name" || exit_build "" "$build_name"
-    if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
+    if ! git clone -l "$_KERL_BUILD_DIR" otp_src_git >/dev/null 2>&1; then
         exit_build "cloning local git repository." "$build_name"
     fi
 
@@ -801,9 +802,7 @@ do_normal_build() {
         exit_build
     fi
 
-    mkdir -p "$KERL_BUILD_DIR/$2" || exit_build
     _KERL_BUILD_DIR="$KERL_BUILD_DIR/$2"
-
     lock_close_build
 
     FILENAME=""
@@ -811,16 +810,16 @@ do_normal_build() {
         exit_build
     fi
 
-    if [ ! -d "$KERL_BUILD_DIR/$2/$FILENAME" ]; then
+    if [ ! -d "$_KERL_BUILD_DIR/$FILENAME" ]; then
         notice "Extracting source code for normal build..."
-        UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
+        UNTARDIRNAME="$_KERL_BUILD_DIR/$FILENAME-kerluntar-$$"
         rm -rf "$UNTARDIRNAME"
         mkdir -p "$UNTARDIRNAME" || exit_build
         # github tarballs have a directory in the form of "otp[_-]TAGNAME"
         # Ericsson tarballs have the classic otp_src_RELEASE pattern
         # Standardize on Ericsson format because that's what the rest of the script expects
         (cd "$UNTARDIRNAME" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME".tar.gz &&
-            cp -rfp ./* "$KERL_BUILD_DIR/$2/otp_src_$1")
+            cp -rfp ./* "$_KERL_BUILD_DIR/otp_src_$1")
         rm -rf "$UNTARDIRNAME"
     fi
 
@@ -1605,8 +1604,7 @@ do_install() {
         exit_install "no build named '$build_name'."
     fi
 
-    mkdir -p "$2" || exit_install
-    absdir=$(cd "$2" && pwd)
+    absdir=$(cd "$_KERL_INSTALL_DIR" && pwd)
 
     notice "Installing Erlang/OTP $rel ($build_name) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
