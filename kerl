@@ -773,16 +773,27 @@ maybe_patch() {
 }
 
 do_normal_build() {
+    # $1: release
+    # $2: build name
+
     assert_valid_release "$1"
     assert_build_name_unused "$2"
+
+    mkdir -p "$KERL_BUILD_DIR/$2" || exit_build
+    _KERL_BUILD_DIR="$KERL_BUILD_DIR/$2"
+
+    lock_close_build
+
     FILENAME=""
-    download "$1"
-    mkdir -p "$KERL_BUILD_DIR/$2" || exit 1
+    if ! download "$1"; then
+        exit_build
+    fi
+
     if [ ! -d "$KERL_BUILD_DIR/$2/$FILENAME" ]; then
         notice "Extracting source code for normal build..."
         UNTARDIRNAME="$KERL_BUILD_DIR/$2/$FILENAME-kerluntar-$$"
         rm -rf "$UNTARDIRNAME"
-        mkdir -p "$UNTARDIRNAME" || exit 1
+        mkdir -p "$UNTARDIRNAME" || exit_build
         # github tarballs have a directory in the form of "otp[_-]TAGNAME"
         # Ericsson tarballs have the classic otp_src_RELEASE pattern
         # Standardize on Ericsson format because that's what the rest of the script expects
@@ -792,9 +803,13 @@ do_normal_build() {
     fi
 
     notice "Building (normal) Erlang/OTP $1 ($2); please wait..."
-    _do_build "$1" "$2"
+    if ! _do_build "$1" "$2"; then
+        exit_build
+    fi
     success "Erlang/OTP $1 ($2) has been successfully built."
     list_add builds "$1,$2"
+
+    lock_open_build
 }
 
 _flags() {
@@ -1666,14 +1681,18 @@ do_install() {
 
 download_manpages() {
     FILENAME=otp_doc_man_$1.tar.gz
-    tarball_download "$FILENAME"
+    if ! tarball_download "$FILENAME"; then
+        exit 1
+    fi
     notice "Extracting man pages..."
     cd "$absdir" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME"
 }
 
 download_htmldocs() {
     FILENAME=otp_doc_html_"$1".tar.gz
-    tarball_download "$FILENAME"
+    if ! tarball_download "$FILENAME"; then
+        exit 1
+    fi
     notice "Extracting HTML docs..."
     (cd "$absdir" && mkdir -p html && tar -C "$absdir"/html -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
 }
@@ -2034,13 +2053,17 @@ make_filename() {
 }
 
 download() {
-    mkdir -p "$KERL_DOWNLOAD_DIR" || exit 1
+    mkdir -p "$KERL_DOWNLOAD_DIR" || return 1
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         FILENAME=$(make_filename "$1")
-        github_download "$1" "$FILENAME".tar.gz
+        if ! github_download "$1" "$FILENAME".tar.gz; then
+            return 1
+        fi
     else
         FILENAME="otp_src_$1"
-        tarball_download "$FILENAME".tar.gz
+        if ! tarball_download "$FILENAME".tar.gz; then
+            return 1
+        fi
     fi
 }
 
@@ -2055,14 +2078,14 @@ github_download() {
     # if the file doesn't exist or the file has no size
     if [ ! -s "$tarball_file" ]; then
         notice "Downloading (from GitHub) Erlang/OTP $1 to $KERL_DOWNLOAD_DIR..."
-        curl -s -f -L -o "$tarball_file" "$tarball_url" || exit 1
+        curl -s -f -L -o "$tarball_file" "$tarball_url" || return 1
     else
         # If the downloaded tarball was corrupted due to interruption while
         # downloading.
         if ! gunzip -t "$tarball_file" 2>/dev/null; then
             notice "$tarball_file (from GitHub) corrupted; re-downloading..."
             rm -rf "$tarball_file"
-            curl -s -f -L -o "$tarball_file" "$tarball_url" || exit 1
+            curl -s -f -L -o "$tarball_file" "$tarball_url" || return 1
         fi
     fi
 }
@@ -2070,7 +2093,7 @@ github_download() {
 tarball_download() {
     if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
         notice "Downloading tarball $1 to $KERL_DOWNLOAD_DIR..."
-        curl -s -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || exit 1
+        curl -s -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || return 1
         update_checksum_file
     fi
     ensure_checksum_file
@@ -2079,7 +2102,7 @@ tarball_download() {
     ORIG_SUM="$(\grep -F "$1" "$KERL_DOWNLOAD_DIR"/MD5 | cut -d' ' -f2)"
     if [ "$SUM" != "$ORIG_SUM" ]; then
         error "checksum error; check the files in $KERL_DOWNLOAD_DIR."
-        exit 1
+        return 1
     fi
     success "Checksum verified: $SUM."
 }
