@@ -612,6 +612,51 @@ assert_build_name_unused() {
     fi
 }
 
+lock() {
+    # $1: action - open | close
+    # $2: lock type - build | install
+    # $3: folder to act on
+
+    if [ "$1" = "close" ]; then
+        if [ -f "$3/$2.lock" ]; then
+            error "trying to $2 in $3, but lock file ($3/$2.lock) exists!"
+            exit 1
+        else
+            mkdir -p "$3"
+            touch "$3/$2.lock"
+        fi
+    elif [ "$1" = "open" ]; then
+        rm -f "$3/$2.lock"
+    fi
+}
+
+lock_close_build() {
+    # $_KERL_BUILD_DIR is global
+    lock "close" "build" "$_KERL_BUILD_DIR"
+}
+
+lock_open_build() {
+    # $_KERL_BUILD_DIR is global
+    lock "open" "build" "$_KERL_BUILD_DIR"
+}
+
+exit_build() {
+    # $1: error message
+    # $2: build name
+
+    if [ -n "$1" ]; then
+        error "$1"
+    fi
+
+    if [ -n "$2" ]; then
+        rm -Rf "${KERL_BUILD_DIR:?}/$2"
+    fi
+
+    lock_open_build
+
+    exit 1
+}
+
 do_git_build() {
     git_url=$1
     git_version=$2
@@ -619,49 +664,55 @@ do_git_build() {
 
     assert_build_name_unused "$build_name"
 
+    mkdir -p "$KERL_GIT_DIR" || exit_build
+    cd "$KERL_GIT_DIR" || exit_build
+
     GIT=$(printf '%s' "$git_url" | $MD5SUM | cut -d ' ' -f "$MD5SUM_FIELD")
-    mkdir -p "$KERL_GIT_DIR" || exit 1
-    cd "$KERL_GIT_DIR" || exit 1
+    _KERL_BUILD_DIR="$KERL_GIT_DIR/$GIT"
+
+    lock_close_build
+
     notice "Checking out Erlang/OTP git repository from $git_url..."
-    if [ ! -d "$GIT" ]; then
-        if ! git clone -q --mirror "$git_url" "$GIT" >/dev/null 2>&1; then
-            error "mirroring remote git repository."
-            exit 1
-        fi
+    if [ ! -d "$GIT" ] &&
+        ! git clone -q --mirror "$git_url" "$GIT" >/dev/null 2>&1; then
+        error_build "mirroring remote git repository."
     fi
-    cd "$GIT" || exit 1
+    cd "$GIT" || exit_build
     if ! git remote update --prune >/dev/null 2>&1; then
-        error "updating remote git repository."
-        exit 1
+        exit_build "updating remote git repository."
+    fi
+    rm -Rf "${KERL_BUILD_DIR:?}/$build_name"
+
+    mkdir -p "$KERL_BUILD_DIR/$build_name" || exit_build
+    cd "$KERL_BUILD_DIR/$build_name" || exit_build "" "$build_name"
+    if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
+        exit_build "cloning local git repository." "$build_name"
     fi
 
-    rm -Rf "${KERL_BUILD_DIR:?}/$build_name"
-    mkdir -p "$KERL_BUILD_DIR/$build_name" || exit 1
-    cd "$KERL_BUILD_DIR/$build_name" || exit 1
-    if ! git clone -l "$KERL_GIT_DIR/$GIT" otp_src_git >/dev/null 2>&1; then
-        error "cloning local git repository."
-        exit 1
+    cd otp_src_git || exit_build "" "$build_name"
+    if ! git checkout "$git_version" >/dev/null 2>&1 &&
+        ! git checkout -b "$git_version" "$git_version" >/dev/null 2>&1; then
+        exit_build "could not checkout specified version." "$build_name"
     fi
-    cd otp_src_git || exit 1
-    if ! git checkout "$git_version" >/dev/null 2>&1; then
-        if ! git checkout -b "$git_version" "$git_version" >/dev/null 2>&1; then
-            error "could not checkout specified version."
-            rm -Rf "${KERL_BUILD_DIR:?}/$build_name"
-            exit 1
-        fi
-    fi
+
     if [ ! -x otp_build ]; then
-        error "not a valid Erlang/OTP repository."
-        rm -Rf "${KERL_BUILD_DIR:?}/$build_name"
-        exit 1
+        exit_build "not a valid Erlang/OTP repository." "$build_name"
     fi
+
     notice "Building (git) Erlang/OTP $git_version; please wait..."
+
     if [ -z "$KERL_BUILD_AUTOCONF" ]; then
         KERL_USE_AUTOCONF=1
     fi
-    _do_build 'git' "$build_name"
+
+    if ! _do_build 'git' "$build_name"; then
+        exit_build
+    fi
+
     success "Erlang/OTP '$build_name' (from git) has been successfully built."
     list_add builds git,"$build_name"
+
+    lock_open_build
 }
 
 get_otp_version() {
@@ -928,7 +979,7 @@ _do_build() {
     esac
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
-    cd "$ERL_TOP" || exit 1
+    cd "$ERL_TOP" || return 1
 
     # Set configuration flags given applications white/black lists
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
@@ -991,14 +1042,14 @@ _do_build() {
         if ! log_build_cmd "./otp_build autoconf && _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS"; then
             show_build_logfile "configure failed."
             list_remove builds "$1 $2"
-            exit 1
+            return 1
         fi
     else
         # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! log_build_cmd "_flags ./otp_build configure $KERL_CONFIGURE_OPTIONS"; then
             show_build_logfile "configure failed."
             list_remove builds "$1 $2"
-            exit 1
+            return 1
         fi
 
     fi
@@ -1009,7 +1060,7 @@ _do_build() {
             show_build_logfile "configure failed."
             autoclean "$2"
             list_remove builds "$1 $2"
-            exit 1
+            return 1
         fi
     fi
 
@@ -1026,7 +1077,7 @@ _do_build() {
                 error "couldn't prepare '$app' application for building."
                 list_remove builds "$1 $2"
                 autoclean "$2"
-                exit 1
+                return 1
             fi
         done
     fi
@@ -1034,7 +1085,7 @@ _do_build() {
         for app in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
             if ! touch -f ./lib/"$app"/SKIP; then
                 error "couldn't disable '$app' application for building."
-                exit 1
+                return 1
             fi
         done
     fi
@@ -1044,7 +1095,7 @@ _do_build() {
         show_build_logfile "build failed."
         autoclean "$2"
         list_remove builds "$1 $2"
-        exit 1
+        return 1
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
         notice "Building docs..."
@@ -1053,13 +1104,13 @@ _do_build() {
             show_build_logfile "building docs failed."
             autoclean "$2"
             list_remove builds "$1 $2"
-            exit 1
+            return 1
         fi
         if ! log_build_cmd "make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1"; then
             show_build_logfile "release of docs failed."
             autoclean "$2"
             list_remove builds "$1 $2"
-            exit 1
+            return 1
         fi
     fi
 
@@ -1069,20 +1120,20 @@ _do_build() {
             case $r_type in
             opt | debug)
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                cd "$ERL_TOP" || exit 1
+                cd "$ERL_TOP" || return 1
                 if ! log_build_cmd "make TYPE=$r_type ERL_TOP=$ERL_TOP"; then
                     show_build_logfile "build of '$r_type' VM failed."
                     list_remove builds "$1 $2"
-                    exit 1
+                    return 1
                 fi
                 ;;
             gcov | gprof | valgrind | asan | lcnt)
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                cd "$ERL_TOP/erts/emulator" || exit 1
+                cd "$ERL_TOP/erts/emulator" || return 1
                 if ! log_build_cmd "make $r_type ERL_TOP=$ERL_TOP"; then
                     show_build_logfile "build of '$r_type' VM failed."
                     list_remove builds "$1 $2"
-                    exit 1
+                    return 1
                 fi
                 ;;
             *)
@@ -1548,7 +1599,9 @@ do_install() {
 
     [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
 
-    list_add installations "$build_name $absdir"
+    if ! list_add installations "$build_name $absdir"; then
+        exit 1
+    fi
 
     emit_activate "$rel" "$build_name" "$absdir" >"$absdir"/activate
     emit_activate_fish "$rel" "$build_name" "$absdir" >"$absdir"/activate.fish
@@ -1920,12 +1973,12 @@ list_add() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
         while read -r l; do
             if [ "$l" = "$2" ]; then
-                return 1
+                return 0
             fi
         done <"$KERL_BASE_DIR/otp_$1"
-        echo "$2" >>"$KERL_BASE_DIR/otp_$1" || exit 1
+        echo "$2" >>"$KERL_BASE_DIR/otp_$1" || return 1
     else
-        echo "$2" >"$KERL_BASE_DIR/otp_$1" || exit 1
+        echo "$2" >"$KERL_BASE_DIR/otp_$1" || return 1
     fi
 }
 
