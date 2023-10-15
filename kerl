@@ -196,7 +196,7 @@ autoclean() {
         tmplf="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
         test -f "$BUILD_LOGFILE" && cp -f "$BUILD_LOGFILE" "$tmplf"
         # Cleaning current build
-        cd - 1>/dev/null 2>&1 || exit
+        cd - 1>/dev/null 2>&1 || return 1
         test -n "$1" && ${_KERL_SCRIPT} cleanup "$1"
         # Copy BUILD_LOGFILE back to keep track of all attempts until success
         mkdir -p "$(dirname "$BUILD_LOGFILE")"
@@ -395,8 +395,8 @@ if [ $# -eq 0 ]; then k_usage; fi
 get_releases() {
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         get_git_releases
-    else
-        get_tarball_releases
+    elif ! get_tarball_releases; then
+        return 1
     fi
 }
 
@@ -508,32 +508,33 @@ get_tarball_releases() {
         return 0
     fi
     rm "$tmp"
-    exit 1
+    return 1
 }
 
 update_checksum_file() {
-    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
-        return 0
-    else
+    if [ "$KERL_BUILD_BACKEND" != 'git' ]; then
         notice "Getting checksum file from erlang.org..."
-        curl -s -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5 || exit 1
+        curl -s -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5 || return 1
     fi
 }
 
 ensure_checksum_file() {
-    if [ ! -s "$KERL_DOWNLOAD_DIR"/MD5 ]; then
-        update_checksum_file
+    if [ ! -s "$KERL_DOWNLOAD_DIR"/MD5 ] && ! update_checksum_file; then
+        return 1
     fi
 }
 
 check_releases() {
-    if [ ! -f "$KERL_BASE_DIR"/otp_releases ]; then
-        get_releases >"$KERL_BASE_DIR"/otp_releases
+    if [ ! -f "$KERL_BASE_DIR"/otp_releases ] &&
+        ! get_releases >"$KERL_BASE_DIR"/otp_releases; then
+        return 1
     fi
 }
 
 is_valid_release() {
-    check_releases
+    if ! check_releases; then
+        return 1
+    fi
     while read -r rel; do
         if [ "$1" = "$rel" ]; then
             return 0
@@ -545,9 +546,16 @@ is_valid_release() {
 assert_valid_release() {
     if ! is_valid_release "$1"; then
         error "'$1' is not a valid Erlang/OTP release."
-        exit 1
+        return 1
     fi
-    return 0
+}
+
+assert_valid_install_path() {
+    # $1: directory
+
+    if ! is_valid_install_path "$1"; then
+        return 1
+    fi
 }
 
 get_release_from_name() {
@@ -561,19 +569,6 @@ get_release_from_name() {
             fi
         done <"$KERL_BASE_DIR"/otp_builds
     fi
-    return 1
-}
-
-get_newest_valid_release() {
-    check_releases
-
-    rel=$(tail -1 "$KERL_BASE_DIR"/otp_releases)
-
-    if [ -n "$rel" ]; then
-        echo "$rel"
-        return 0
-    fi
-
     return 1
 }
 
@@ -597,7 +592,6 @@ assert_valid_installation() {
         error "'$1' is not a kerl-managed Erlang/OTP installation."
         exit 1
     fi
-    return 0
 }
 
 assert_build_name_unused() {
@@ -606,7 +600,7 @@ assert_build_name_unused() {
             name=$(echo "$l" | cut -d, -f2)
             if [ "$name" = "$1" ]; then
                 error "there's already a build named '$1'."
-                exit 1
+                return 1
             fi
         done <"$KERL_BASE_DIR"/otp_builds
     fi
@@ -640,6 +634,16 @@ lock_open_build() {
     lock "open" "build" "$_KERL_BUILD_DIR"
 }
 
+lock_close_install() {
+    # $_KERL_INSTALL_DIR is global
+    lock "close" "install" "$_KERL_INSTALL_DIR"
+}
+
+lock_open_install() {
+    # $_KERL_INSTALL_DIR is global
+    lock "open" "install" "$_KERL_INSTALL_DIR"
+}
+
 exit_build() {
     # $1: error message
     # $2: build name
@@ -657,12 +661,26 @@ exit_build() {
     exit 1
 }
 
+exit_install() {
+    # $1: error message
+
+    if [ -n "$1" ]; then
+        error "$1"
+    fi
+
+    lock_open_install
+
+    exit 1
+}
+
 do_git_build() {
     git_url=$1
     git_version=$2
     build_name=$3
 
-    assert_build_name_unused "$build_name"
+    if ! assert_build_name_unused "$build_name"; then
+        exit_build
+    fi
 
     mkdir -p "$KERL_GIT_DIR" || exit_build
     cd "$KERL_GIT_DIR" || exit_build
@@ -776,8 +794,12 @@ do_normal_build() {
     # $1: release
     # $2: build name
 
-    assert_valid_release "$1"
-    assert_build_name_unused "$2"
+    if ! assert_valid_release "$1"; then
+        exit_build
+    fi
+    if ! assert_build_name_unused "$2"; then
+        exit_build
+    fi
 
     mkdir -p "$KERL_BUILD_DIR/$2" || exit_build
     _KERL_BUILD_DIR="$KERL_BUILD_DIR/$2"
@@ -921,12 +943,12 @@ probe_pkgs() {
         msg="[packages] Unable to determine Linux distro (no release files); not checking build packages."
         log_build_entry "${msg}"
         warn "${msg}"
-        return
+        return 0
     elif [ "${os_release_id}" = "2" ]; then
         msg="[packages] Unable to determine Linux distro (no ID); not checking build packages."
         log_build_entry "${msg}"
         warn "${msg}"
-        return
+        return 0
     fi
 
     kpp=$(eval echo \$_KPP_"${os_release_id}"_pkgs)
@@ -1073,8 +1095,8 @@ _do_build() {
         # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! log_build_cmd "_flags ./otp_build configure $KERL_CONFIGURE_OPTIONS"; then
             show_build_logfile "configure failed."
-            autoclean "$2"
             list_remove builds "$1 $2"
+            autoclean "$2"
             return 1
         fi
     fi
@@ -1108,8 +1130,8 @@ _do_build() {
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
     if ! log_build_cmd "_flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS"; then
         show_build_logfile "build failed."
-        autoclean "$2"
         list_remove builds "$1 $2"
+        autoclean "$2"
         return 1
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
@@ -1117,14 +1139,14 @@ _do_build() {
         release=$(get_otp_version "$2")
         if ! log_build_cmd "make docs DOC_TARGETS=$KERL_DOC_TARGETS"; then
             show_build_logfile "building docs failed."
-            autoclean "$2"
             list_remove builds "$1 $2"
+            autoclean "$2"
             return 1
         fi
         if ! log_build_cmd "make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1"; then
             show_build_logfile "release of docs failed."
-            autoclean "$2"
             list_remove builds "$1 $2"
+            autoclean "$2"
             return 1
         fi
     fi
@@ -1572,32 +1594,37 @@ unset _KERL_CLEANUP
 do_install() {
     build_name=$1
 
+    if ! assert_valid_install_path "$2"; then
+        exit_install
+    fi
+
+    _KERL_INSTALL_DIR="$2"
+    lock_close_install
+
     if ! rel=$(get_release_from_name "$build_name"); then
-        error "no build named '$build_name'."
-        exit 1
+        exit_install "no build named '$build_name'."
     fi
-    if ! is_valid_install_path "$2"; then
-        exit 1
-    fi
-    mkdir -p "$2" || exit 1
+
+    mkdir -p "$2" || exit_install
     absdir=$(cd "$2" && pwd)
+
     notice "Installing Erlang/OTP $rel ($build_name) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
-    cd "$ERL_TOP" || exit 1
+    cd "$ERL_TOP" || exit_install
     init_install_logfile "$rel" "$build_name"
     if ! log_install_cmd "ERL_TOP=$ERL_TOP ./otp_build release -a $absdir && cd $absdir && ./Install $INSTALL_OPT $absdir"; then
         show_install_logfile "install of Erlang/OTP $rel ($build_name), in $absdir, failed!"
-        exit 1
+        exit_install
     fi
 
     for r_type in $KERL_RELEASE_TARGET; do
         case "$r_type" in
         opt | debug)
             notice "Installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
-            cd "$ERL_TOP" || exit 1
+            cd "$ERL_TOP" || exit_install
             if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir"; then
                 show_install_logfile "install Erlang/OTP $rel ($build_name) of type '$r_type', in $absdir, failed"
-                exit 1
+                exit_install
             fi
             ;;
         *)
@@ -1615,7 +1642,7 @@ do_install() {
     [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
 
     if ! list_add installations "$build_name $absdir"; then
-        exit 1
+        exit_install
     fi
 
     emit_activate "$rel" "$build_name" "$absdir" >"$absdir"/activate
@@ -1625,19 +1652,23 @@ do_install() {
     if [ -n "$KERL_BUILD_DOCS" ]; then
         if ! log_install_cmd "ERL_TOP=$ERL_TOP make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$absdir"; then
             show_install_logfile "couldn't install docs for Erlang/OTP $rel ($build_name) in $absdir"
-            exit 1
+            exit_install
         fi
     else
         if [ "$KERL_BUILD_BACKEND" = 'tarball' ]; then
             if [ "$rel" != 'git' ]; then
                 if [ -n "$KERL_INSTALL_MANPAGES" ]; then
                     notice "Fetching and installing man pages..."
-                    download_manpages "$rel"
+                    if ! download_manpages "$rel"; then
+                        exit_install
+                    fi
                 fi
 
                 if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
                     notice "Fetching and installing HTML docs..."
-                    download_htmldocs "$rel"
+                    if ! download_htmldocs "$rel"; then
+                        exit_install
+                    fi
                 fi
             fi
         fi
@@ -1648,7 +1679,9 @@ do_install() {
 
     if [ -n "$KERL_BUILD_PLT" ]; then
         notice "Building Dialyzer PLT..."
-        build_plt "$absdir"
+        if ! build_plt "$absdir"; then
+            exit_install
+        fi
     fi
 
     PID=$$
@@ -1658,7 +1691,7 @@ do_install() {
     elif [ "$(\ps -p "$PID" -o ppid=)" -eq 0 ]; then
         SHELL_SUFFIX=''
     else
-        PARENT_PID=$(\ps -p "$PID" -o ppid=) || exit 1
+        PARENT_PID=$(\ps -p "$PID" -o ppid=) || exit_install
         PARENT_CMD=$(\ps -p "$PARENT_PID" -o ucomm | tail -n 1)
         case "$PARENT_CMD" in
         fish)
@@ -1677,12 +1710,14 @@ do_install() {
     tip ". $absdir/activate$SHELL_SUFFIX"
     tip "Later on, you can leave the installation typing:"
     tip "kerl_deactivate"
+
+    lock_open_install
 }
 
 download_manpages() {
     FILENAME=otp_doc_man_$1.tar.gz
     if ! tarball_download "$FILENAME"; then
-        exit 1
+        return 1
     fi
     notice "Extracting man pages..."
     cd "$absdir" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME"
@@ -1691,7 +1726,7 @@ download_manpages() {
 download_htmldocs() {
     FILENAME=otp_doc_html_"$1".tar.gz
     if ! tarball_download "$FILENAME"; then
-        exit 1
+        return 1
     fi
     notice "Extracting HTML docs..."
     (cd "$absdir" && mkdir -p html && tar -C "$absdir"/html -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
@@ -1699,7 +1734,7 @@ download_htmldocs() {
 
 build_plt() {
     dialyzerd="$1"/dialyzer
-    mkdir -p "$dialyzerd" || exit 1
+    mkdir -p "$dialyzerd" || return 1
     plt="$dialyzerd"/plt
     build_log="$dialyzerd"/build.log
     dirs=$(\find "$1"/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
@@ -1808,7 +1843,7 @@ resolve_symlinks() {
 }
 
 _resolve_symlinks() {
-    _assert_no_path_cycles "$@" || return
+    _assert_no_path_cycles "$@" || return 0
 
     if path=$(readlink -- "$1"); then
         dir_context=$(dirname -- "$1")
@@ -2003,7 +2038,7 @@ list_add() {
 
 list_remove() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        sed "$SED_OPT" -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1" || exit 1
+        sed "$SED_OPT" -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
     fi
 }
 
@@ -2094,9 +2129,13 @@ tarball_download() {
     if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
         notice "Downloading tarball $1 to $KERL_DOWNLOAD_DIR..."
         curl -s -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || return 1
-        update_checksum_file
+        if ! update_checksum_file; then
+            return 1
+        fi
     fi
-    ensure_checksum_file
+    if ! ensure_checksum_file; then
+        return 1
+    fi
     notice "Tarball archive checksum being verified..."
     SUM="$($MD5SUM "$KERL_DOWNLOAD_DIR/$1" | cut -d' ' -f "$MD5SUM_FIELD")"
     ORIG_SUM="$(\grep -F "$1" "$KERL_DOWNLOAD_DIR"/MD5 | cut -d' ' -f2)"
@@ -2262,7 +2301,9 @@ list)
             usage_exit "list releases [all]"
         fi
 
-        check_releases
+        if ! check_releases; then
+            exit 1
+        fi
         list_print "$2" "$3"
         tip "Run '$0 update releases' to update this list."
         if [ $# -eq 2 ]; then
