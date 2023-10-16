@@ -1648,6 +1648,7 @@ do_install() {
     emit_activate_csh "$rel" "$build_name" "$absdir" >"$absdir"/activate.csh
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
+        cd "$ERL_TOP" || return 1
         if ! log_install_cmd "ERL_TOP=$ERL_TOP make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$absdir"; then
             show_install_logfile "couldn't install docs for Erlang/OTP $rel ($build_name) in $absdir"
             exit_install
