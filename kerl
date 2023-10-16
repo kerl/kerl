@@ -511,9 +511,10 @@ get_tarball_releases() {
             sort | cut -d: -f2
         rm "$tmp"
         return 0
+    else
+        rm "$tmp"
+        return 1
     fi
-    rm "$tmp"
-    return 1
 }
 
 update_checksum_file() {
@@ -1947,8 +1948,6 @@ is_valid_install_path() {
             fi
         fi
     fi
-
-    return 0
 }
 
 maybe_remove() {
@@ -2057,21 +2056,18 @@ get_active_path() {
     if [ -n "$_KERL_ACTIVE_DIR" ]; then
         echo "$_KERL_ACTIVE_DIR"
     fi
-    return 0
 }
 
 get_name_from_install_path() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
         \grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
     fi
-    return 0
 }
 
 get_install_path_from_name() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
         \grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f2
     fi
-    return 0
 }
 
 do_active() {
