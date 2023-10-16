@@ -1686,11 +1686,11 @@ do_install() {
     if command -v apk >/dev/null 2>&1; then
         # Running on Alpine Linux, assuming non-exotic shell
         SHELL_SUFFIX=''
-    elif [ "$(\ps -p "$PID" -o ppid=)" -eq 0 ]; then
+    elif [ "$(\ps -p "$PID" -o ppid= | tr -d ' ')" -eq 0 ]; then
         SHELL_SUFFIX=''
     else
-        PARENT_PID=$(\ps -p "$PID" -o ppid=) || exit_install
-        PARENT_CMD=$(\ps -p "$PARENT_PID" -o ucomm | tail -n 1)
+        PARENT_PID=$(\ps -p "$PID" -o ppid= | tr -d ' ') || exit 1
+        PARENT_CMD=$(\ps -p "$PARENT_PID" -o ucomm | tail -n 1 | tr -d ' ')
         case "$PARENT_CMD" in
         fish)
             SHELL_SUFFIX='.fish'
