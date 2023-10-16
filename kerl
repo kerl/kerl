@@ -725,7 +725,7 @@ do_git_build() {
     fi
 
     if ! _do_build 'git' "$build_name"; then
-        exit_build
+        exit_build "" "$build_name"
     fi
 
     success "Erlang/OTP '$build_name' (from git) has been successfully built."
