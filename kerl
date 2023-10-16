@@ -696,7 +696,7 @@ do_git_build() {
 
     lock_close_build
 
-    cd "$GIT" || exit_build
+    cd "$_KERL_BUILD_DIR" || exit_build
     if ! git remote update --prune >/dev/null 2>&1; then
         exit_build "updating remote git repository."
     fi
@@ -708,7 +708,7 @@ do_git_build() {
         exit_build "cloning local git repository." "$build_name"
     fi
 
-    cd otp_src_git || exit_build "" "$build_name"
+    cd "$KERL_BUILD_DIR/$build_name/otp_src_git" || exit_build "" "$build_name"
     if ! git checkout "$git_version" >/dev/null 2>&1 &&
         ! git checkout -b "$git_version" "$git_version" >/dev/null 2>&1; then
         exit_build "could not checkout specified version." "$build_name"
@@ -1718,7 +1718,7 @@ download_manpages() {
         return 1
     fi
     notice "Extracting man pages..."
-    cd "$absdir" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME"
+    (cd "$absdir" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
 }
 
 download_htmldocs() {
