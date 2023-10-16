@@ -496,6 +496,7 @@ get_git_releases() {
             cut -d':' -f2-
     fi
     rm -f "$tmp"
+    # shellcheck disable=SC2248  # Prefer double quoting even when variables don't contain special characters.
     return $ret
 }
 
