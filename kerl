@@ -393,10 +393,14 @@ k_usage() {
 if [ $# -eq 0 ]; then k_usage; fi
 
 get_releases() {
-    if [ "$KERL_BUILD_BACKEND" = 'git' ] && ! get_git_releases; then
-        return 1
-    elif ! get_tarball_releases; then
-        return 1
+    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+        if ! get_git_releases; then
+            return 1
+        fi
+    else
+        if ! get_tarball_releases; then
+            return 1
+        fi
     fi
 }
 
@@ -492,7 +496,7 @@ get_git_releases() {
             cut -d':' -f2-
     fi
     rm -f "$tmp"
-    return "$ret"
+    return $ret
 }
 
 get_tarball_releases() {
