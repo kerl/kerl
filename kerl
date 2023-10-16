@@ -2045,13 +2045,6 @@ list_remove() {
     fi
 }
 
-list_has() {
-    if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        \grep "$2" "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1 && return 0
-    fi
-    return 1
-}
-
 get_active_path() {
     if [ -n "$_KERL_ACTIVE_DIR" ]; then
         echo "$_KERL_ACTIVE_DIR"
