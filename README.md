@@ -364,7 +364,7 @@ Directory in which `kerl` will clone Git repositories for building.
 Default: yes (Enabled)
 Kerl will try to probe your Linux distro for build-required packages logging
 where the probes fail. You can turn off this behaviour by setting the
-environment variable to something other than 1.
+environment variable to something other than "yes".
 
 #### `KERL_AUTOCLEAN`
 
@@ -848,20 +848,6 @@ Prints current version.
 
 ## Important notes
 
-### Compiling crypto on older macOS
-
-Apple stopped shipping OpenSSL in OS X 10.11 (El Capitan) in favor of Apple's
-own SSL library. That makes using homebrew the most convenient way to install
-openssl on macOS 10.11 or later. Additionally, homebrew [stopped creating](https://github.com/Homebrew/brew/pull/612)
-symlinks from the homebrew installation directory to `/usr/local`, so in
-response to this, *if* you're running El Capitan, Sierra, or High Sierra
-*and* you have homebrew installed, *and* you used it to install openssl,
-`kerl` will ask homebrew for the openssl installation prefix and configure Erlang/OTP
-to build with that location automatically.
-
-**Important**: if you already have `--with-ssl` in your `.kerlrc`, `kerl`
-will honor that instead, and will not do any automatic configuration.
-
 ### Note on .kerlrc
 
 Since `.kerlrc` is a dot file for `/bin/sh`, running shell commands inside the
@@ -929,7 +915,7 @@ Here are the abstractions `kerl` is handling:
 
 ### Erlang/OTP support policy
 
-As of 2021 September 17, we are supporting the current Erlang/OTP release version
+As of September 2021, we are supporting the current Erlang/OTP release version
 and 2 prior release versions (same as upstream Erlang/OTP). Older Erlang/OTP releases
 may or may not work. We will advance release support as new releases of Erlang/OTP
 become available.
