@@ -612,6 +612,19 @@ assert_build_name_unused() {
     fi
 }
 
+is_older_than_x_days() {
+    # $1: file to check
+    # $2: age in days
+
+    eval "$(\stat -s "$1")"
+    # shellcheck disable=SC2154  # .. is referenced but not assigned.
+    if [ $(($(date +%s) - st_mtime)) -gt $(($2 * 24 * 3600)) ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 lock() {
     # $1: action - open | close
     # $2: lock type - build | install
@@ -619,8 +632,12 @@ lock() {
 
     if [ "$1" = "close" ]; then
         if [ -f "$3/$2.lock" ]; then
-            error "trying to $2 in $3, but lock file ($3/$2.lock) exists!"
-            exit 1
+            if is_older_than_x_days "$3/$2.lock" 14; then
+                rm -f "$3/$2.lock"
+            else
+                error "trying to $2 in $3, but lock file ($3/$2.lock) exists!"
+                exit 1
+            fi
         else
             mkdir -p "$3"
             touch "$3/$2.lock"
