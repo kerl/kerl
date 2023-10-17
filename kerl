@@ -626,45 +626,47 @@ is_older_than_x_days() {
 }
 
 lock() {
-    # $1: action - open | close
-    # $2: lock type - build | install
-    # $3: folder to act on
+    # $1: build | install
+    # $2: folder to act on
 
-    if [ "$1" = "close" ]; then
-        if [ -f "$3/$2.lock" ]; then
-            if is_older_than_x_days "$3/$2.lock" 14; then
-                rm -f "$3/$2.lock"
-            else
-                error "trying to $2 in $3, but lock file ($3/$2.lock) exists!"
-                exit 1
-            fi
+    if [ -f "$2/$1.lock" ]; then
+        if is_older_than_x_days "$2/$1.lock" 14; then
+            unlock "$1" "$2"
         else
-            mkdir -p "$3"
-            touch "$3/$2.lock"
+            error "trying to $1 in $2, but lock file ($2/$1.lock) exists!"
+            exit 1
         fi
-    elif [ "$1" = "open" ]; then
-        rm -f "$3/$2.lock"
+    else
+        mkdir -p "$2"
+        touch "$2/$1.lock"
     fi
 }
 
-lock_close_build() {
+unlock() {
+    # $1: build | install
+    # $2: folder to act on
+
+    rm -f "$2/$1.lock"
+}
+
+lock_build() {
     # $_KERL_BUILD_DIR is global
-    lock "close" "build" "$_KERL_BUILD_DIR"
+    lock "build" "$_KERL_BUILD_DIR"
 }
 
-lock_open_build() {
+unlock_build() {
     # $_KERL_BUILD_DIR is global
-    lock "open" "build" "$_KERL_BUILD_DIR"
+    unlock "build" "$_KERL_BUILD_DIR"
 }
 
-lock_close_install() {
+lock_install() {
     # $_KERL_INSTALL_DIR is global
-    lock "close" "install" "$_KERL_INSTALL_DIR"
+    lock "install" "$_KERL_INSTALL_DIR"
 }
 
-lock_open_install() {
+unlock_install() {
     # $_KERL_INSTALL_DIR is global
-    lock "open" "install" "$_KERL_INSTALL_DIR"
+    unlock "install" "$_KERL_INSTALL_DIR"
 }
 
 exit_build() {
@@ -679,7 +681,7 @@ exit_build() {
         rm -Rf "${KERL_BUILD_DIR:?}/$2"
     fi
 
-    lock_open_build
+    unlock_build
 
     exit 1
 }
@@ -691,7 +693,7 @@ exit_install() {
         error "$1"
     fi
 
-    lock_open_install
+    unlock_install
 
     exit 1
 }
@@ -717,7 +719,7 @@ do_git_build() {
         exit_build "mirroring remote git repository ($_KERL_BUILD_DIR exists?)."
     fi
 
-    lock_close_build
+    lock_build
 
     cd "$_KERL_BUILD_DIR" || exit_build
     if ! git remote update --prune >/dev/null 2>&1; then
@@ -754,7 +756,7 @@ do_git_build() {
     success "Erlang/OTP '$build_name' (from git) has been successfully built."
     list_add builds git,"$build_name"
 
-    lock_open_build
+    unlock_build
 }
 
 get_otp_version() {
@@ -826,7 +828,7 @@ do_normal_build() {
     fi
 
     _KERL_BUILD_DIR="$KERL_BUILD_DIR/$2"
-    lock_close_build
+    lock_build
 
     FILENAME=""
     if ! download "$1"; then
@@ -853,7 +855,7 @@ do_normal_build() {
     success "Erlang/OTP $1 ($2) has been successfully built."
     list_add builds "$1,$2"
 
-    lock_open_build
+    unlock_build
 }
 
 _flags() {
@@ -1621,7 +1623,7 @@ do_install() {
     fi
 
     _KERL_INSTALL_DIR="$2"
-    lock_close_install
+    lock_install
 
     if ! rel=$(get_release_from_name "$build_name"); then
         exit_install "no build named '$build_name'."
@@ -1733,7 +1735,7 @@ do_install() {
     tip "Later on, you can leave the installation typing:"
     tip "kerl_deactivate"
 
-    lock_open_install
+    unlock_install
 }
 
 download_manpages() {
