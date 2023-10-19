@@ -225,7 +225,7 @@ KERL_INCLUDE_RELEASE_CANDIDATES=${KERL_INCLUDE_RELEASE_CANDIDATES:=no}
 KERL_CHECK_BUILD_PACKAGES=${KERL_CHECK_BUILD_PACKAGES:="yes"}
 
 act_on_kerl_cfgs() {
-    # $1: kerl config. flags
+    # $1: kerl config. flags (we're only interested in the keys)
     # $2: action - cache | restore (default)
 
     for _KERL_CFG in $1; do
