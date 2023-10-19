@@ -239,6 +239,7 @@ act_on_kerl_cfgs() {
             eval "_KERL_TARGET_VAR=${k}"
         fi
         if [ -n "${_KERL_CFG_VAR}" ]; then
+            # shellcheck disable=SC2154  # _KERL_TARGET_VAR is referenced but not assigned
             eval "$_KERL_TARGET_VAR=\"$_KERL_CFG_VAR\""
         fi
     done
@@ -347,6 +348,7 @@ get_releases() {
 
 get_git_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
+    # shellcheck disable=SC2154  # OTP_GITHUB_URL is referenced but not assigned
     git ls-remote --tags --refs "$OTP_GITHUB_URL" >"$tmp"
     ret=$?
     if [ "$ret" -eq 0 ]; then
@@ -1102,6 +1104,7 @@ _do_build() {
     if [ -n "$KERL_BUILD_DOCS" ]; then
         notice "Building docs..."
         release=$(get_otp_version "$2")
+        # shellcheck disable=SC2154  # KERL_DOC_TARGETS is referenced but not assigned
         if ! log_build_cmd "make docs DOC_TARGETS=$KERL_DOC_TARGETS"; then
             show_build_logfile "building docs failed."
             list_remove builds "$1 $2"
@@ -1763,6 +1766,7 @@ do_deploy() {
     fi
 
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    # shellcheck disable=SC2154  # KERL_DEPLOY_SSH_OPTIONS is referenced but not assigned
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true >/dev/null 2>&1; then
         error "couldn't ssh to $host."
         exit 1
@@ -1771,6 +1775,7 @@ do_deploy() {
     notice "Cloning Erlang/OTP $rel ($path) to $host ($remotepath)..."
 
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    # shellcheck disable=SC2154  # KERL_DEPLOY_RSYNC_OPTIONS is referenced but not assigned
     if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"; then
         error "couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)."
         exit 1
