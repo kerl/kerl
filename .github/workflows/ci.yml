@@ -18,7 +18,7 @@ jobs:
           if [[ ${{matrix.os}} == macos* ]]; then
             /bin/bash -c "$(curl -fsSL \
               https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            brew install automake fop wxwidgets fish shellcheck shfmt
+            brew install automake fop wxwidgets fish shellcheck shfmt coreutils
           else
             sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
             sudo apt-get update -y
@@ -45,7 +45,7 @@ jobs:
             master)
               echo '_KERL_PREFIX_GIT=git' >> $GITHUB_ENV
               echo '_KERL_PREFIX_GIT_TARGET=https://github.com/erlang/otp.git' >> $GITHUB_ENV
-              echo 'KERL_BUILD_DOCS=true' >> $GITHUB_ENV
+              echo 'KERL_BUILD_DOCS=yes' >> $GITHUB_ENV
               _KERL_REL=git
               ;;
             *)
@@ -60,15 +60,17 @@ jobs:
         run: |
           echo "OpenSSL is $(openssl version)"
           export MAKEFLAGS=-j$(($(nproc) + 2))
-          if ! KERL_DEBUG=true ./kerl build ${_KERL_PREFIX_GIT} ${_KERL_PREFIX_GIT_TARGET} \
-                                            "${_KERL_VSN}" "${_KERL_VSN}"; then
+          if ! KERL_DEBUG=yes ./kerl build ${_KERL_PREFIX_GIT} \
+                                           ${_KERL_PREFIX_GIT_TARGET} \
+                                          "${_KERL_VSN}" \
+                                          "${_KERL_VSN}"; then
             ## Print build log if it fails
             cat ~/.kerl/builds/*/*.log
             exit 1
           fi
         # yamllint disable rule:line-length
       - name: Install chosen version
-        run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+        run: KERL_DEBUG=yes ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
       - name: Check installation status
         run: ./kerl status
       - name: Validate installation
@@ -120,11 +122,11 @@ jobs:
       - name: Test build+install chosen version
         run: |
           export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
-          if ! KERL_DEBUG=true ./kerl build-install ${_KERL_PREFIX_GIT} \
-                                                    ${_KERL_PREFIX_GIT_TARGET} \
-                                                   "${_KERL_VSN}" \
-                                                   "${_KERL_VSN}" \
-                                                   "$PWD/build-install_${_KERL_VSN}"; then
+          if ! KERL_DEBUG=yes ./kerl build-install ${_KERL_PREFIX_GIT} \
+                                                   ${_KERL_PREFIX_GIT_TARGET} \
+                                                  "${_KERL_VSN}" \
+                                                  "${_KERL_VSN}" \
+                                                  "$PWD/build-install_${_KERL_VSN}"; then
             ## Print build log if it fails
             cat ~/.kerl/builds/*/*.log
             exit 1
