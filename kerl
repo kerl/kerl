@@ -239,7 +239,7 @@ act_on_kerl_cfgs() {
             eval "_KERL_TARGET_VAR=${k}"
         fi
         if [ -n "${_KERL_CFG_VAR}" ]; then
-            eval "$_KERL_TARGET_VAR=$_KERL_CFG_VAR"
+            eval "$_KERL_TARGET_VAR=\"$_KERL_CFG_VAR\""
         fi
     done
 }
