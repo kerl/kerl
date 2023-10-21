@@ -616,9 +616,8 @@ is_older_than_x_days() {
     # $1: file to check
     # $2: age in days
 
-    eval "$(\stat -s "$1")"
-    # shellcheck disable=SC2154  # .. is referenced but not assigned.
-    if [ $(($(date +%s) - st_mtime)) -gt $(($2 * 24 * 3600)) ]; then
+    old_file=$(find "$1" -type f -mtime "$2")
+    if [ -n "$old_file" ]; then
         return 0
     else
         return 1
@@ -630,7 +629,7 @@ lock() {
     # $2: folder to act on
 
     if [ -f "$2/$1.lock" ]; then
-        if is_older_than_x_days "$2/$1.lock" 14; then
+        if is_older_than_x_days "$2/$1.lock" "+14"; then
             unlock "$1" "$2"
         else
             error "trying to $1 in $2, but lock file ($2/$1.lock) exists!"
