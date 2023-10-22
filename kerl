@@ -1996,7 +1996,7 @@ maybe_remove() {
     ACTIVE_PATH="$(get_active_path)"
     if [ "$candidate" = "$ACTIVE_PATH" ]; then
         error "you cannot delete the active installation. Deactivate it first."
-        exit 1
+        return 1
     fi
 
     rm -Rf "$1"
@@ -2426,7 +2426,9 @@ delete)
 
         rel="$(get_release_from_name "$3")"
         if [ -d "${KERL_BUILD_DIR:?}/$3" ]; then
-            maybe_remove "${KERL_BUILD_DIR:?}/$3"
+            if ! maybe_remove "${KERL_BUILD_DIR:?}/$3"; then
+                exit 1
+            fi
         else
             if [ -z "$rel" ]; then
                 error "no build named '$3'!"
@@ -2445,9 +2447,13 @@ delete)
             exit 1
         fi
         if [ -d "$3" ]; then
-            maybe_remove "$3"
+            if ! maybe_remove "$3"; then
+                exit 1
+            fi
         else
-            maybe_remove "$(get_install_path_from_name "$3")"
+            if ! maybe_remove "$(get_install_path_from_name "$3")"; then
+                exit 1
+            fi
         fi
         escaped="$(echo "$3" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
         list_remove "$2"s "$escaped"
