@@ -566,6 +566,7 @@ is_valid_release() {
             return 0
         fi
     done <"$KERL_BASE_DIR"/otp_releases
+    error "'$1' is not a valid Erlang/OTP release."
     return 1
 }
 
@@ -723,7 +724,8 @@ do_git_build() {
     git_version=$2
     build_name=$3
 
-    if ! assert_build_name_unused "$build_name"; then
+    if is_build_name_used "$build_name"; then
+        error "there's already a build named '$build_name'."
         exit_build
     fi
 
