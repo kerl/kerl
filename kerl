@@ -507,11 +507,23 @@ get_git_releases() {
     fi
 }
 
+_curl() {
+    # $1: <file> to write output to, instead of stdout (if body_only function only returns body)
+    # $2: URL to consider
+    # $3: extra options
+
+    if [ "$1" != body_only ]; then
+        _curl_extra="--output $1 --write-out %{http_code}"
+    fi
+    # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    \curl -q --silent --location --fail $2 $3 $_curl_extra
+}
+
 get_tarball_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
-    curl_ret=$(\curl -qsL --output "$tmp" --write-out '%{http_code}' "$ERLANG_DOWNLOAD_URL")
-    if [ 200 = "$curl_ret" ]; then
     notice "Getting releases from erlang.org..."
+    http_code=$(_curl "$tmp" "$ERLANG_DOWNLOAD_URL")
+    if [ 200 = "$http_code" ]; then
         sed "$SED_OPT" \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
             -e '/^R1|^[0-9]/!d' "$tmp" |
@@ -524,7 +536,7 @@ get_tarball_releases() {
         return 0
     else
         rm -f "$tmp"
-        error "failed to get releases from erlang.org; curl -qsL --output $tmp --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL returned $curl_ret!"
+        error "failed: _curl $ERLANG_DOWNLOAD_URL returned $http_code!"
         return 1
     fi
 }
@@ -532,10 +544,9 @@ get_tarball_releases() {
 update_checksum_file() {
     if [ "$KERL_BUILD_BACKEND" != 'git' ]; then
         notice "Getting checksum file from erlang.org..."
-        curl -s -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5
-        ret=$?
-        if [ "$ret" -ne 0 ]; then
-            error "failed: curl -s -f -L -o $KERL_DOWNLOAD_DIR/MD5 $ERLANG_DOWNLOAD_URL/MD5 returned $ret"
+        http_code=$(_curl "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5)
+        if [ 200 != "$http_code" ]; then
+            error "failed: _curl $ERLANG_DOWNLOAD_URL/MD5 returned $http_code"
             return 1
         fi
     fi
@@ -2138,17 +2149,17 @@ github_download() {
     tarball_file="$KERL_DOWNLOAD_DIR/$2"
     tarball_url="$OTP_GITHUB_URL/archive/$2"
     prebuilt_url="$OTP_GITHUB_URL/releases/download/OTP-$1/otp_src_$1.tar.gz"
-    if curl --silent --location --fail -I "$prebuilt_url" >/dev/null; then
+    http_code=$(_curl /dev/null "$prebuilt_url" "-I")
+    if [ 200 = "$http_code" ]; then
         tarball_url=$prebuilt_url
         unset KERL_USE_AUTOCONF
     fi
     # if the file doesn't exist or the file has no size
     if [ ! -s "$tarball_file" ]; then
         notice "Downloading (from GitHub) Erlang/OTP $1 to $KERL_DOWNLOAD_DIR..."
-        curl -s -f -L -o "$tarball_file" "$tarball_url"
-        ret=$?
-        if [ "$ret" -ne 0 ]; then
-            error "failed: curl -s -f -L -o $tarball_file $tarball_url returned $ret"
+        http_code=$(_curl "$tarball_file" "$tarball_url")
+        if [ 200 != "$http_code" ]; then
+            error "failed: _curl $tarball_url returned $http_code"
             return 1
         fi
     else
@@ -2157,10 +2168,9 @@ github_download() {
         if ! gunzip -t "$tarball_file" 2>/dev/null; then
             notice "$tarball_file (from GitHub) corrupted; re-downloading..."
             rm -rf "$tarball_file"
-            curl -s -f -L -o "$tarball_file" "$tarball_url"
-            ret=$?
-            if [ "$ret" -ne 0 ]; then
-                error "failed: curl -s -f -L -o $tarball_file $tarball_url returned $ret"
+            http_code=$(_curl "$tarball_file" "$tarball_url")
+            if [ 200 != "$http_code" ]; then
+                error "failed: _curl $tarball_url returned $http_code"
                 return 1
             fi
         fi
@@ -2170,10 +2180,9 @@ github_download() {
 tarball_download() {
     if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
         notice "Downloading tarball $1 to $KERL_DOWNLOAD_DIR..."
-        curl -s -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1"
-        ret=$?
-        if [ "$ret" -ne 0 ]; then
-            error "failed: curl -s -f -L -o $KERL_DOWNLOAD_DIR/$1 $ERLANG_DOWNLOAD_URL/$1 returned $ret"
+        http_code=$(_curl "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1")
+        if [ 200 != "$http_code" ]; then
+            error "failed: _curl $ERLANG_DOWNLOAD_URL/$1 returned $http_code"
             return 1
         fi
         if ! update_checksum_file; then
@@ -2195,7 +2204,11 @@ tarball_download() {
 
 upgrade_kerl() {
     install_folder=$1
-    curl -s -o "$install_folder/kerl" "$KERL_GIT_BASE"/kerl
+    http_code=$(_curl "$install_folder/kerl" "$KERL_GIT_BASE"/kerl)
+    if [ 200 != "$http_code" ]; then
+        echo "failed: _curl $KERL_GIT_BASE/kerl returned $http_code"
+        return 1
+    fi
     chmod +x "$install_folder/kerl"
     version=$(kerl version)
     current_kerl_path="$(command -v kerl)"
@@ -2325,12 +2338,14 @@ upgrade)
     else
         version=$(kerl version)
         notice "Local kerl found ($current_kerl_path) at version $version."
-        latest=$(curl -s "$KERL_GIT_BASE"/LATEST)
+        latest=$(_curl body_only "$KERL_GIT_BASE"/LATEST)
         notice "Remote kerl found at version $latest."
         if [ "$version" != "$latest" ]; then
             notice "Versions are different. Upgrading to $latest..."
             current_kerl_path=$(dirname "$current_kerl_path")
-            upgrade_kerl "$current_kerl_path"
+            if ! upgrade_kerl "$current_kerl_path"; then
+                exit 1
+            fi
         else
             success "No upgrade required."
         fi
