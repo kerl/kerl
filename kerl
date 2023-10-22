@@ -1025,6 +1025,22 @@ probe_pkgs() {
     fi
 }
 
+fail_do_build() {
+    # $1: error message
+    # $2: build name
+    # $3: release
+
+    show_build_logfile "$1"
+
+    if [ -n "$2" ]; then
+        autoclean "$2"
+    fi
+
+    if [ -n "$3" ]; then
+        list_remove builds "$3 $2"
+    fi
+}
+
 _do_build() {
     init_build_logfile "$1" "$2"
     log_build_entry "*** $(date) - kerl build $1 ***"
@@ -1068,7 +1084,7 @@ _do_build() {
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     if ! cd "$ERL_TOP"; then
-        error "couldn't cd into $ERL_TOP"
+        fail_do_build "couldn't cd into $ERL_TOP"
         return 1
     fi
 
@@ -1131,15 +1147,13 @@ _do_build() {
     if [ -n "$KERL_USE_AUTOCONF" ]; then
         # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! log_build_cmd "./otp_build autoconf && _flags ./otp_build configure $KERL_CONFIGURE_OPTIONS"; then
-            show_build_logfile "configure failed."
-            list_remove builds "$1 $2"
+            fail_do_build "configure failed." "$2" "$1"
             return 1
         fi
     else
         # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! log_build_cmd "_flags ./otp_build configure $KERL_CONFIGURE_OPTIONS"; then
-            show_build_logfile "configure failed."
-            list_remove builds "$1 $2"
+            fail_do_build "configure failed." "$2" "$1"
             return 1
         fi
 
@@ -1148,9 +1162,7 @@ _do_build() {
         log_build_cmd "make clean"
         # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
         if ! log_build_cmd "_flags ./otp_build configure $KERL_CONFIGURE_OPTIONS"; then
-            show_build_logfile "configure failed."
-            list_remove builds "$1 $2"
-            autoclean "$2"
+            fail_do_build "configure failed." "$2" "$1"
             return 1
         fi
     fi
@@ -1165,9 +1177,7 @@ _do_build() {
         \find ./lib -maxdepth 1 -type d -exec touch -f {}/SKIP \;
         for app in $KERL_CONFIGURE_APPLICATIONS; do
             if ! rm ./lib/"$app"/SKIP; then
-                error "couldn't prepare '$app' application for building."
-                list_remove builds "$1 $2"
-                autoclean "$2"
+                fail_do_build "couldn't prepare '$app' application for building." "$2" "$1"
                 return 1
             fi
         done
@@ -1175,7 +1185,7 @@ _do_build() {
     if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
         for app in $KERL_CONFIGURE_DISABLE_APPLICATIONS; do
             if ! touch -f ./lib/"$app"/SKIP; then
-                error "couldn't disable '$app' application for building."
+                fail_do_build "couldn't disable '$app' application for building." "$2" "$1"
                 return 1
             fi
         done
@@ -1183,24 +1193,18 @@ _do_build() {
 
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
     if ! log_build_cmd "_flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS"; then
-        show_build_logfile "build failed."
-        list_remove builds "$1 $2"
-        autoclean "$2"
+        fail_do_build "build failed." "$2" "$1"
         return 1
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
         notice "Building docs..."
         release=$(get_otp_version "$2")
         if ! log_build_cmd "make docs DOC_TARGETS=$KERL_DOC_TARGETS"; then
-            show_build_logfile "building docs failed."
-            list_remove builds "$1 $2"
-            autoclean "$2"
+            fail_do_build "building docs failed." "$2" "$1"
             return 1
         fi
         if ! log_build_cmd "make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1"; then
-            show_build_logfile "release of docs failed."
-            list_remove builds "$1 $2"
-            autoclean "$2"
+            fail_do_build "release of docs failed." "$2" "$1"
             return 1
         fi
     fi
@@ -1212,24 +1216,22 @@ _do_build() {
             opt | debug)
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
                 if ! cd "$ERL_TOP"; then
-                    error "couldn't cd into $ERL_TOP"
+                    fail_do_build "couldn't cd into $ERL_TOP" "$2" "$1"
                     return 1
                 fi
                 if ! log_build_cmd "make TYPE=$r_type ERL_TOP=$ERL_TOP"; then
-                    show_build_logfile "build of '$r_type' VM failed."
-                    list_remove builds "$1 $2"
+                    fail_do_build "build of '$r_type' VM failed." "$2" "$1"
                     return 1
                 fi
                 ;;
             gcov | gprof | valgrind | asan | lcnt)
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
                 if ! cd "$ERL_TOP/erts/emulator"; then
-                    error "couldn't cd into $ERL_TOP/erts/emulator"
+                    fail_do_build "couldn't cd into $ERL_TOP/erts/emulator" "$2" "$1"
                     return 1
                 fi
                 if ! log_build_cmd "make $r_type ERL_TOP=$ERL_TOP"; then
-                    show_build_logfile "build of '$r_type' VM failed."
-                    list_remove builds "$1 $2"
+                    fail_do_build "build of '$r_type' VM failed." "$2" "$1"
                     return 1
                 fi
                 ;;
