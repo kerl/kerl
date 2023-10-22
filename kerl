@@ -410,6 +410,7 @@ get_git_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
     git ls-remote --tags --refs "$OTP_GITHUB_URL" >"$tmp"
     ret=$?
+    notice "Getting releases from GitHub..."
     if [ "$ret" -eq 0 ]; then
         cut <"$tmp" -f2 |
             cut -d'/' -f3- |
@@ -501,7 +502,7 @@ get_git_releases() {
         return 0
     else
         rm -f "$tmp"
-        error "failed to get releases from GitHub; git ls-remote --tags --refs $OTP_GITHUB_URL returned $ret!"
+        error "failed: git ls-remote --tags --refs $OTP_GITHUB_URL returned $ret!"
         return 1
     fi
 }
@@ -510,6 +511,7 @@ get_tarball_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
     curl_ret=$(\curl -qsL --output "$tmp" --write-out '%{http_code}' "$ERLANG_DOWNLOAD_URL")
     if [ 200 = "$curl_ret" ]; then
+    notice "Getting releases from erlang.org..."
         sed "$SED_OPT" \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
             -e '/^R1|^[0-9]/!d' "$tmp" |
