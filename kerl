@@ -559,9 +559,9 @@ ensure_checksum_file() {
 }
 
 check_releases() {
-    # $1: force? (if true, the list is always recreated)
+    # $1: force?: if force, the list is always recreated
 
-    if [ "$1" = true ]; then
+    if [ "$1" = force ]; then
         rm -f "${KERL_BASE_DIR:?}"/otp_releases
     fi
     if [ ! -f "$KERL_BASE_DIR"/otp_releases ] &&
@@ -2313,7 +2313,7 @@ update)
         usage_exit "update releases"
     fi
 
-    if ! check_releases true; then
+    if ! check_releases force; then
         exit 1
     else
         notice "The available releases are:"
