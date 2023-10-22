@@ -570,21 +570,6 @@ is_valid_release() {
     return 1
 }
 
-assert_valid_release() {
-    if ! is_valid_release "$1"; then
-        error "'$1' is not a valid Erlang/OTP release."
-        return 1
-    fi
-}
-
-assert_valid_install_path() {
-    # $1: directory
-
-    if ! is_valid_install_path "$1"; then
-        return 1
-    fi
-}
-
 get_release_from_name() {
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
         while read -r l; do
@@ -614,23 +599,16 @@ is_valid_installation() {
     return 1
 }
 
-assert_valid_installation() {
-    if ! is_valid_installation "$1"; then
-        error "'$1' is not a kerl-managed Erlang/OTP installation."
-        exit 1
-    fi
-}
-
-assert_build_name_unused() {
+is_build_name_used() {
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
         while read -r l; do
             name=$(echo "$l" | cut -d, -f2)
             if [ "$name" = "$1" ]; then
-                error "there's already a build named '$1'."
-                return 1
+                return 0
             fi
         done <"$KERL_BASE_DIR"/otp_builds
     fi
+    return 1
 }
 
 is_older_than_x_days() {
@@ -842,10 +820,11 @@ do_normal_build() {
     # $1: release
     # $2: build name
 
-    if ! assert_valid_release "$1"; then
+    if ! is_valid_release "$1"; then
         exit_build
     fi
-    if ! assert_build_name_unused "$2"; then
+    if is_build_name_used "$2"; then
+        error "there's already a build named '$2'."
         exit_build
     fi
 
@@ -1649,7 +1628,7 @@ unset _KERL_CLEANUP
 do_install() {
     build_name=$1
 
-    if ! assert_valid_install_path "$2"; then
+    if ! is_valid_install_path "$2"; then
         exit_install
     fi
 
@@ -1845,7 +1824,10 @@ do_deploy() {
     fi
     host="$1"
 
-    assert_valid_installation "$2"
+    if ! is_valid_installation "$2"; then
+        error "'$2' is not a kerl-managed Erlang/OTP installation."
+        exit 1
+    fi
     rel="$(get_name_from_install_path "$2")"
     path="$2"
     remotepath="$path"
@@ -2459,7 +2441,9 @@ delete)
             usage_exit "delete installation <directory>"
         fi
 
-        assert_valid_installation "$3"
+        if ! is_valid_install_path "$1"; then
+            exit 1
+        fi
         if [ -d "$3" ]; then
             maybe_remove "$3"
         else
