@@ -505,7 +505,7 @@ get_git_releases() {
         return 0
     else
         rm -f "$tmp"
-        error "failed: git ls-remote --tags --refs $OTP_GITHUB_URL returned $ret!"
+        error "git ls-remote --tags --refs $OTP_GITHUB_URL returned $ret!"
         return 1
     fi
 }
@@ -542,7 +542,7 @@ get_tarball_releases() {
         return 0
     else
         rm -f "$tmp"
-        error "failed: _curl $ERLANG_DOWNLOAD_URL returned $http_code!"
+        error "_curl $ERLANG_DOWNLOAD_URL returned $http_code!"
         return 1
     fi
 }
@@ -552,7 +552,7 @@ update_checksum_file() {
         notice "Getting checksum file from erlang.org..."
         http_code=$(_curl "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5)
         if [ 200 != "$http_code" ]; then
-            error "failed: _curl $ERLANG_DOWNLOAD_URL/MD5 returned $http_code!"
+            error "_curl $ERLANG_DOWNLOAD_URL/MD5 returned $http_code!"
             return 1
         fi
     fi
@@ -2185,7 +2185,7 @@ github_download() {
         notice "Downloading (from GitHub) Erlang/OTP $1 to $KERL_DOWNLOAD_DIR..."
         http_code=$(_curl "$tarball_file" "$tarball_url")
         if [ 200 != "$http_code" ]; then
-            error "failed: _curl $tarball_url returned $http_code!"
+            error "_curl $tarball_url returned $http_code!"
             return 1
         fi
     else
@@ -2196,7 +2196,7 @@ github_download() {
             rm -rf "$tarball_file"
             http_code=$(_curl "$tarball_file" "$tarball_url")
             if [ 200 != "$http_code" ]; then
-                error "failed: _curl $tarball_url returned $http_code!"
+                error "_curl $tarball_url returned $http_code!"
                 return 1
             fi
         fi
@@ -2208,7 +2208,7 @@ tarball_download() {
         notice "Downloading tarball $1 to $KERL_DOWNLOAD_DIR..."
         http_code=$(_curl "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1")
         if [ 200 != "$http_code" ]; then
-            error "failed: _curl $ERLANG_DOWNLOAD_URL/$1 returned $http_code!"
+            error "_curl $ERLANG_DOWNLOAD_URL/$1 returned $http_code!"
             return 1
         fi
         if ! update_checksum_file; then
@@ -2232,7 +2232,7 @@ upgrade_kerl() {
     install_folder=$1
     http_code=$(_curl "$install_folder/kerl" "$KERL_GIT_BASE"/kerl)
     if [ 200 != "$http_code" ]; then
-        error "failed: _curl $KERL_GIT_BASE/kerl returned $http_code!"
+        error "_curl $KERL_GIT_BASE/kerl returned $http_code!"
         return 1
     fi
     chmod +x "$install_folder/kerl"
@@ -2624,7 +2624,7 @@ emit-activate)
     esac
     ;;
 *)
-    error "unknown command: '$1'."
+    error "unknown command '$1'."
     k_usage
     ;;
 esac
