@@ -393,12 +393,14 @@ k_usage() {
 if [ $# -eq 0 ]; then k_usage; fi
 
 get_releases() {
+    # $1: path to file otp_releases
+
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
-        if ! get_git_releases; then
+        if ! get_git_releases "$1"; then
             return 1
         fi
     else
-        if ! get_tarball_releases; then
+        if ! get_tarball_releases "$1"; then
             return 1
         fi
     fi
@@ -493,26 +495,34 @@ get_git_releases() {
                 -e '#  -    "19 00 00 02 :OTP-19.0-rc.2"   =>  "19 00 00 02 00 :OTP-19.0-rc.2"' \
                 -e 's/^([^:]+) :/\1 00 :/' |
             LC_ALL=C sort -n |
-            cut -d':' -f2-
+            cut -d':' -f2- |
+            tee "$1" >/dev/null
+        rm -f "$tmp"
+        return 0
+    else
+        rm -f "$tmp"
+        error "failed to get releases from GitHub; git ls-remote --tags --refs $OTP_GITHUB_URL returned $ret!"
+        return 1
     fi
-    rm -f "$tmp"
-    # shellcheck disable=SC2248  # Prefer double quoting even when variables don't contain special characters.
-    return $ret
 }
 
 get_tarball_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
-    if [ 200 = "$(\curl -qsL --output "$tmp" --write-out '%{http_code}' "$ERLANG_DOWNLOAD_URL"/)" ]; then
+    curl_ret=$(\curl -qsL --output "$tmp" --write-out '%{http_code}' "$ERLANG_DOWNLOAD_URL")
+    if [ 200 = "$curl_ret" ]; then
         sed "$SED_OPT" \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
             -e '/^R1|^[0-9]/!d' "$tmp" |
             sed -e 's/^R\(.*\)/\1:R\1/' |
             sed -e 's/^\([^\:]*\)$/\1-z:\1/' |
-            sort | cut -d: -f2
-        rm "$tmp"
+            sort |
+            cut -d: -f2 |
+            tee "$1" >/dev/null
+        rm -f "$tmp"
         return 0
     else
-        rm "$tmp"
+        rm -f "$tmp"
+        error "failed to get releases from erlang.org; curl -qsL --output $tmp --write-out '%{http_code}' $ERLANG_DOWNLOAD_URL returned $curl_ret!"
         return 1
     fi
 }
@@ -531,8 +541,13 @@ ensure_checksum_file() {
 }
 
 check_releases() {
+    # $1: force? (if true, the list is always recreated)
+
+    if [ "$1" = true ]; then
+        rm -f "${KERL_BASE_DIR:?}"/otp_releases
+    fi
     if [ ! -f "$KERL_BASE_DIR"/otp_releases ] &&
-        ! get_releases >"$KERL_BASE_DIR"/otp_releases; then
+        ! get_releases "$KERL_BASE_DIR"/otp_releases; then
         return 1
     fi
 }
@@ -2261,13 +2276,11 @@ update)
         usage_exit "update releases"
     fi
 
-    rm -f "${KERL_BASE_DIR:?}"/otp_releases
-    if check_releases; then
+    if ! check_releases true; then
+        exit 1
+    else
         notice "The available releases are:"
         list_print releases
-    else
-        error "check releases failed!"
-        exit 1
     fi
     ;;
 upgrade)
