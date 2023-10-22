@@ -530,7 +530,12 @@ get_tarball_releases() {
 update_checksum_file() {
     if [ "$KERL_BUILD_BACKEND" != 'git' ]; then
         notice "Getting checksum file from erlang.org..."
-        curl -s -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5 || return 1
+        curl -s -f -L -o "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5
+        ret=$?
+        if [ "$ret" -ne 0 ]; then
+            error "failed: curl -s -f -L -o $KERL_DOWNLOAD_DIR/MD5 $ERLANG_DOWNLOAD_URL/MD5 returned $ret"
+            return 1
+        fi
     fi
 }
 
@@ -1055,7 +1060,10 @@ _do_build() {
     esac
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
-    cd "$ERL_TOP" || return 1
+    if ! cd "$ERL_TOP"; then
+        error "couldn't cd into $ERL_TOP"
+        return 1
+    fi
 
     # Set configuration flags given applications white/black lists
     if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
@@ -1196,7 +1204,10 @@ _do_build() {
             case $r_type in
             opt | debug)
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                cd "$ERL_TOP" || return 1
+                if ! cd "$ERL_TOP"; then
+                    error "couldn't cd into $ERL_TOP"
+                    return 1
+                fi
                 if ! log_build_cmd "make TYPE=$r_type ERL_TOP=$ERL_TOP"; then
                     show_build_logfile "build of '$r_type' VM failed."
                     list_remove builds "$1 $2"
@@ -1205,7 +1216,10 @@ _do_build() {
                 ;;
             gcov | gprof | valgrind | asan | lcnt)
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                cd "$ERL_TOP/erts/emulator" || return 1
+                if ! cd "$ERL_TOP/erts/emulator"; then
+                    error "couldn't cd into $ERL_TOP/erts/emulator"
+                    return 1
+                fi
                 if ! log_build_cmd "make $r_type ERL_TOP=$ERL_TOP"; then
                     show_build_logfile "build of '$r_type' VM failed."
                     list_remove builds "$1 $2"
@@ -1686,7 +1700,10 @@ do_install() {
     emit_activate_csh "$rel" "$build_name" "$absdir" >"$absdir"/activate.csh
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
-        cd "$ERL_TOP" || return 1
+        if ! cd "$ERL_TOP"; then
+            error "couldn't cd into $ERL_TOP"
+            exit_install
+        fi
         if ! log_install_cmd "ERL_TOP=$ERL_TOP make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$absdir"; then
             show_install_logfile "couldn't install docs for Erlang/OTP $rel ($build_name) in $absdir"
             exit_install
@@ -1771,7 +1788,10 @@ download_htmldocs() {
 
 build_plt() {
     dialyzerd="$1"/dialyzer
-    mkdir -p "$dialyzerd" || return 1
+    if ! mkdir -p "$dialyzerd"; then
+        error "couldn't create folder $dialyzerd"
+        return 1
+    fi
     plt="$dialyzerd"/plt
     build_log="$dialyzerd"/build.log
     dirs=$(\find "$1"/lib -maxdepth 2 -name ebin -type d -exec dirname {} \;)
@@ -2111,7 +2131,10 @@ make_filename() {
 }
 
 download() {
-    mkdir -p "$KERL_DOWNLOAD_DIR" || return 1
+    if ! mkdir -p "$KERL_DOWNLOAD_DIR"; then
+        error "couldn't create folder $KERL_DOWNLOAD_DIR"
+        return 1
+    fi
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
         FILENAME=$(make_filename "$1")
         if ! github_download "$1" "$FILENAME".tar.gz; then
@@ -2136,14 +2159,24 @@ github_download() {
     # if the file doesn't exist or the file has no size
     if [ ! -s "$tarball_file" ]; then
         notice "Downloading (from GitHub) Erlang/OTP $1 to $KERL_DOWNLOAD_DIR..."
-        curl -s -f -L -o "$tarball_file" "$tarball_url" || return 1
+        curl -s -f -L -o "$tarball_file" "$tarball_url"
+        ret=$?
+        if [ "$ret" -ne 0 ]; then
+            error "failed: curl -s -f -L -o $tarball_file $tarball_url returned $ret"
+            return 1
+        fi
     else
         # If the downloaded tarball was corrupted due to interruption while
         # downloading.
         if ! gunzip -t "$tarball_file" 2>/dev/null; then
             notice "$tarball_file (from GitHub) corrupted; re-downloading..."
             rm -rf "$tarball_file"
-            curl -s -f -L -o "$tarball_file" "$tarball_url" || return 1
+            curl -s -f -L -o "$tarball_file" "$tarball_url"
+            ret=$?
+            if [ "$ret" -ne 0 ]; then
+                error "failed: curl -s -f -L -o $tarball_file $tarball_url returned $ret"
+                return 1
+            fi
         fi
     fi
 }
@@ -2151,7 +2184,12 @@ github_download() {
 tarball_download() {
     if [ ! -s "$KERL_DOWNLOAD_DIR/$1" ]; then
         notice "Downloading tarball $1 to $KERL_DOWNLOAD_DIR..."
-        curl -s -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1" || return 1
+        curl -s -f -L -o "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1"
+        ret=$?
+        if [ "$ret" -ne 0 ]; then
+            error "failed: curl -s -f -L -o $KERL_DOWNLOAD_DIR/$1 $ERLANG_DOWNLOAD_URL/$1 returned $ret"
+            return 1
+        fi
         if ! update_checksum_file; then
             return 1
         fi
