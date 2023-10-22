@@ -497,7 +497,7 @@ get_git_releases() {
                 -e 's/^([^:]+) :/\1 00 :/' |
             LC_ALL=C sort -n |
             cut -d':' -f2- |
-            tee "$1" 2>/dev/null; then
+            tee "$1" >/dev/null 2>&1; then
             error "file $1 does not appear to be writable"
             return 1
         fi
@@ -534,7 +534,7 @@ get_tarball_releases() {
             sed -e 's/^\([^\:]*\)$/\1-z:\1/' |
             sort |
             cut -d: -f2 |
-            tee "$1" 2>/dev/null; then
+            tee "$1" >/dev/null 2>&1; then
             error "file $1 does not appear to be writable"
             return 1
         fi
@@ -2097,12 +2097,12 @@ list_add() {
                 return 0
             fi
         done <"$KERL_BASE_DIR/otp_$1"
-        if ! echo "$2" | tee -a "$KERL_BASE_DIR/otp_$1" 2>/dev/null; then
+        if ! echo "$2" | tee -a "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1; then
             error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable"
             return 1
         fi
     else
-        if ! echo "$2" | tee "$KERL_BASE_DIR/otp_$1" 2>/dev/null; then
+        if ! echo "$2" | tee "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1; then
             error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable"
             return 1
         fi
