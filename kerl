@@ -498,7 +498,7 @@ get_git_releases() {
             LC_ALL=C sort -n |
             cut -d':' -f2- |
             tee "$1" >/dev/null 2>&1; then
-            error "file $1 does not appear to be writable"
+            error "file $1 does not appear to be writable."
             return 1
         fi
         rm -f "$tmp"
@@ -535,7 +535,7 @@ get_tarball_releases() {
             sort |
             cut -d: -f2 |
             tee "$1" >/dev/null 2>&1; then
-            error "file $1 does not appear to be writable"
+            error "file $1 does not appear to be writable."
             return 1
         fi
         rm -f "$tmp"
@@ -552,7 +552,7 @@ update_checksum_file() {
         notice "Getting checksum file from erlang.org..."
         http_code=$(_curl "$KERL_DOWNLOAD_DIR"/MD5 "$ERLANG_DOWNLOAD_URL"/MD5)
         if [ 200 != "$http_code" ]; then
-            error "failed: _curl $ERLANG_DOWNLOAD_URL/MD5 returned $http_code"
+            error "failed: _curl $ERLANG_DOWNLOAD_URL/MD5 returned $http_code!"
             return 1
         fi
     fi
@@ -569,7 +569,7 @@ check_releases() {
 
     if [ "$1" = force ]; then
         if ! rm -f "${KERL_BASE_DIR:?}"/otp_releases 2>/dev/null; then
-            error "${KERL_BASE_DIR:?}/otp_releases cannot be removed"
+            error "${KERL_BASE_DIR:?}/otp_releases cannot be removed."
             return 1
         fi
     fi
@@ -1712,7 +1712,7 @@ do_install() {
 
     if [ -n "$KERL_BUILD_DOCS" ]; then
         if ! cd "$ERL_TOP"; then
-            error "couldn't cd into $ERL_TOP"
+            error "couldn't cd into $ERL_TOP."
             exit_install
         fi
         if ! log_install_cmd "ERL_TOP=$ERL_TOP make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$absdir"; then
@@ -1800,7 +1800,7 @@ download_htmldocs() {
 build_plt() {
     dialyzerd="$1"/dialyzer
     if ! mkdir -p "$dialyzerd"; then
-        error "couldn't create folder $dialyzerd"
+        error "couldn't create folder $dialyzerd."
         return 1
     fi
     plt="$dialyzerd"/plt
@@ -1832,7 +1832,7 @@ do_plt() {
             return 1
         fi
     else
-        error "no Erlang/OTP installation is currently active"
+        error "no Erlang/OTP installation is currently active."
         return 1
     fi
 }
@@ -2098,12 +2098,12 @@ list_add() {
             fi
         done <"$KERL_BASE_DIR/otp_$1"
         if ! echo "$2" | tee -a "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1; then
-            error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable"
+            error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable."
             return 1
         fi
     else
         if ! echo "$2" | tee "$KERL_BASE_DIR/otp_$1" >/dev/null 2>&1; then
-            error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable"
+            error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable."
             return 1
         fi
     fi
@@ -2112,7 +2112,7 @@ list_add() {
 list_remove() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
         if ! sed "$SED_OPT" -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1" 2>/dev/null; then
-            error "file $KERL_BASE_DIR/otp_$1 does not appear writable"
+            error "file $KERL_BASE_DIR/otp_$1 does not appear writable."
             return 1
         fi
     fi
@@ -2143,7 +2143,7 @@ do_active() {
         echo "$ACTIVE_PATH"
         return 0
     else
-        error "no Erlang/OTP installation is currently active"
+        error "no Erlang/OTP installation is currently active."
         return 1
     fi
 }
@@ -2155,7 +2155,7 @@ make_filename() {
 
 download() {
     if ! mkdir -p "$KERL_DOWNLOAD_DIR"; then
-        error "couldn't create folder $KERL_DOWNLOAD_DIR"
+        error "couldn't create folder $KERL_DOWNLOAD_DIR."
         return 1
     fi
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
@@ -2185,7 +2185,7 @@ github_download() {
         notice "Downloading (from GitHub) Erlang/OTP $1 to $KERL_DOWNLOAD_DIR..."
         http_code=$(_curl "$tarball_file" "$tarball_url")
         if [ 200 != "$http_code" ]; then
-            error "failed: _curl $tarball_url returned $http_code"
+            error "failed: _curl $tarball_url returned $http_code!"
             return 1
         fi
     else
@@ -2196,7 +2196,7 @@ github_download() {
             rm -rf "$tarball_file"
             http_code=$(_curl "$tarball_file" "$tarball_url")
             if [ 200 != "$http_code" ]; then
-                error "failed: _curl $tarball_url returned $http_code"
+                error "failed: _curl $tarball_url returned $http_code!"
                 return 1
             fi
         fi
@@ -2208,7 +2208,7 @@ tarball_download() {
         notice "Downloading tarball $1 to $KERL_DOWNLOAD_DIR..."
         http_code=$(_curl "$KERL_DOWNLOAD_DIR/$1" "$ERLANG_DOWNLOAD_URL/$1")
         if [ 200 != "$http_code" ]; then
-            error "failed: _curl $ERLANG_DOWNLOAD_URL/$1 returned $http_code"
+            error "failed: _curl $ERLANG_DOWNLOAD_URL/$1 returned $http_code!"
             return 1
         fi
         if ! update_checksum_file; then
@@ -2222,7 +2222,7 @@ tarball_download() {
     SUM="$($MD5SUM "$KERL_DOWNLOAD_DIR/$1" | cut -d' ' -f "$MD5SUM_FIELD")"
     ORIG_SUM="$(\grep -F "$1" "$KERL_DOWNLOAD_DIR"/MD5 | cut -d' ' -f2)"
     if [ "$SUM" != "$ORIG_SUM" ]; then
-        error "checksum error; check the files in $KERL_DOWNLOAD_DIR."
+        error "checksum error; check file $1 in $KERL_DOWNLOAD_DIR."
         return 1
     fi
     success "Checksum verified: $SUM."
@@ -2232,7 +2232,7 @@ upgrade_kerl() {
     install_folder=$1
     http_code=$(_curl "$install_folder/kerl" "$KERL_GIT_BASE"/kerl)
     if [ 200 != "$http_code" ]; then
-        echo "failed: _curl $KERL_GIT_BASE/kerl returned $http_code"
+        error "failed: _curl $KERL_GIT_BASE/kerl returned $http_code!"
         return 1
     fi
     chmod +x "$install_folder/kerl"
