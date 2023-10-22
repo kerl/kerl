@@ -412,7 +412,7 @@ get_git_releases() {
     ret=$?
     notice "Getting releases from GitHub..."
     if [ "$ret" -eq 0 ]; then
-        cut <"$tmp" -f2 |
+        if ! cut <"$tmp" -f2 |
             cut -d'/' -f3- |
             sed "$SED_OPT" \
                 -e '# Delete all tags starting with ":" as to not mix' \
@@ -497,7 +497,10 @@ get_git_releases() {
                 -e 's/^([^:]+) :/\1 00 :/' |
             LC_ALL=C sort -n |
             cut -d':' -f2- |
-            tee "$1" >/dev/null
+            tee "$1" 2>/dev/null; then
+            error "file $1 does not appear to be writable"
+            return 1
+        fi
         rm -f "$tmp"
         return 0
     else
@@ -524,14 +527,17 @@ get_tarball_releases() {
     notice "Getting releases from erlang.org..."
     http_code=$(_curl "$tmp" "$ERLANG_DOWNLOAD_URL")
     if [ 200 = "$http_code" ]; then
-        sed "$SED_OPT" \
+        if ! sed "$SED_OPT" \
             -e 's/^.*<[aA] [hH][rR][eE][fF]=\"otp_src_([-0-9A-Za-z_.]+)\.tar\.gz\">.*$/\1/' \
             -e '/^R1|^[0-9]/!d' "$tmp" |
             sed -e 's/^R\(.*\)/\1:R\1/' |
             sed -e 's/^\([^\:]*\)$/\1-z:\1/' |
             sort |
             cut -d: -f2 |
-            tee "$1" >/dev/null
+            tee "$1" 2>/dev/null; then
+            error "file $1 does not appear to be writable"
+            return 1
+        fi
         rm -f "$tmp"
         return 0
     else
@@ -562,7 +568,10 @@ check_releases() {
     # $1: force?: if force, the list is always recreated
 
     if [ "$1" = force ]; then
-        rm -f "${KERL_BASE_DIR:?}"/otp_releases
+        if ! rm -f "${KERL_BASE_DIR:?}"/otp_releases 2>/dev/null; then
+            error "${KERL_BASE_DIR:?}/otp_releases cannot be removed"
+            return 1
+        fi
     fi
     if [ ! -f "$KERL_BASE_DIR"/otp_releases ] &&
         ! get_releases "$KERL_BASE_DIR"/otp_releases; then
@@ -767,7 +776,9 @@ do_git_build() {
     fi
 
     success "Erlang/OTP '$build_name' (from git) has been successfully built."
-    list_add builds git,"$build_name"
+    if ! list_add builds git,"$build_name"; then
+        exit_build "" "$build_name"
+    fi
 
     unlock_build
 }
@@ -867,7 +878,9 @@ do_normal_build() {
         exit_build
     fi
     success "Erlang/OTP $1 ($2) has been successfully built."
-    list_add builds "$1,$2"
+    if ! list_add builds "$1,$2"; then
+        exit_build
+    fi
 
     unlock_build
 }
@@ -1687,7 +1700,9 @@ do_install() {
 
     [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
 
-    list_add installations "$build_name $absdir"
+    if ! list_add installations "$build_name $absdir"; then
+        exit_install
+    fi
 
     emit_activate "$rel" "$build_name" "$absdir" >"$absdir"/activate
     emit_activate_fish "$rel" "$build_name" "$absdir" >"$absdir"/activate.fish
@@ -2080,15 +2095,24 @@ list_add() {
                 return 0
             fi
         done <"$KERL_BASE_DIR/otp_$1"
-        echo "$2" >>"$KERL_BASE_DIR/otp_$1"
+        if ! echo "$2" | tee -a "$KERL_BASE_DIR/otp_$1" 2>/dev/null; then
+            error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable"
+            return 1
+        fi
     else
-        echo "$2" >"$KERL_BASE_DIR/otp_$1"
+        if ! echo "$2" | tee "$KERL_BASE_DIR/otp_$1" 2>/dev/null; then
+            error "file $KERL_BASE_DIR/otp_$1 does not appear to be writable"
+            return 1
+        fi
     fi
 }
 
 list_remove() {
     if [ -f "$KERL_BASE_DIR/otp_$1" ]; then
-        sed "$SED_OPT" -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1"
+        if ! sed "$SED_OPT" -i -e "/^.*$2$/d" "$KERL_BASE_DIR/otp_$1" 2>/dev/null; then
+            error "file $KERL_BASE_DIR/otp_$1 does not appear writable"
+            return 1
+        fi
     fi
 }
 
@@ -2452,7 +2476,9 @@ delete)
                 exit 1
             fi
         fi
-        list_remove "$2"s "$rel,$3"
+        if ! list_remove "$2"s "$rel,$3"; then
+            exit 1
+        fi
         notice "Build '$3' has been deleted."
         ;;
     installation)
@@ -2473,7 +2499,9 @@ delete)
             fi
         fi
         escaped="$(echo "$3" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
-        list_remove "$2"s "$escaped"
+        if ! list_remove "$2"s "$escaped"; then
+            exit 1
+        fi
         notice "Installation '$3' has been deleted."
         ;;
     *)
