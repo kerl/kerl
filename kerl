@@ -2497,16 +2497,13 @@ status)
     notice "Available installations:"
     list_print installations
     nocolor '----------'
-    if do_active; then
-        ACTIVE_PATH=$(get_active_path)
-        if [ -n "$ACTIVE_PATH" ]; then
-            do_plt "$ACTIVE_PATH"
-            print_buildopts "$ACTIVE_PATH"
-        else
-            error "no Erlang/OTP installation is currently active."
-            exit 1
-        fi
+    if ! do_active; then
+        exit 1
     fi
+
+    ACTIVE_PATH=$(get_active_path)
+    do_plt "$ACTIVE_PATH"
+    print_buildopts "$ACTIVE_PATH"
     ;;
 prompt)
     if [ $# -ne 1 ]; then
