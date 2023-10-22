@@ -72,13 +72,15 @@ jobs:
         # yamllint disable rule:line-length
       - name: Install chosen version
         run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
-      - name: Check installation status
-        run: ./kerl status
+      - name: Check installation status (pre- activation)
+        run: ./kerl status || exit 0
       - name: Validate installation
         run: |
           source $(./kerl path install_"$_KERL_VSN")/activate
           erl -s crypto -s init stop
           erl_call
+      - name: Check installation status (post- activation)
+        run: ./kerl status
       - name: Test KERL_RELEASE_TARGET
         # yamllint disable rule:line-length
         run: |
@@ -132,10 +134,12 @@ jobs:
             cat ~/.kerl/builds/*/*.log
             exit 1
           fi
-      - name: Check installation status (build+install)
-        run: ./kerl status
+      - name: Check installation status (pre- activation)
+        run: ./kerl status || exit 0
       - name: Validate installation (build+install)
         run: |
           source $(./kerl path build-install_"${_KERL_VSN}")/activate
           erl -s crypto -s init stop
           erl_call
+      - name: Check installation status (post- activation)
+        run: ./kerl status
