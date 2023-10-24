@@ -80,7 +80,9 @@ jobs:
           erl -s crypto -s init stop
           erl_call
       - name: Check installation status (post- activation)
-        run: ./kerl status
+        run: |
+          source $(./kerl path install_"$_KERL_VSN")/activate
+          ./kerl status
       - name: Test KERL_RELEASE_TARGET
         # yamllint disable rule:line-length
         run: |
@@ -142,4 +144,6 @@ jobs:
           erl -s crypto -s init stop
           erl_call
       - name: Check installation status (post- activation)
-        run: ./kerl status
+        run: |
+          source $(./kerl path build-install_"${_KERL_VSN}")/activate
+          ./kerl status
