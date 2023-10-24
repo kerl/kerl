@@ -1830,11 +1830,11 @@ do_plt() {
             success "$plt"
             return 0
         else
-            error "there is no Dialyzer PLT for the active installation."
+            warn "there is no Dialyzer PLT for the active installation."
             return 1
         fi
     else
-        error "no Erlang/OTP installation is currently active."
+        warn "no Erlang/OTP installation is currently active."
         return 1
     fi
 }
@@ -2415,7 +2415,7 @@ list)
         ;;
     *)
         if [ -n "$2" ]; then
-            error "cannot list $2."
+            error "cannot list (unknown) $2."
         fi
         usage_exit "list <releases|builds|installations> [all]"
         ;;
@@ -2434,7 +2434,7 @@ path)
     if [ -z "$2" ]; then
         activepath=$(get_active_path)
         if [ -z "$activepath" ]; then
-            error "no active kerl-managed Erlang/OTP installation."
+            warn "no active kerl-managed Erlang/OTP installation."
             exit 1
         fi
         tip "$activepath"
