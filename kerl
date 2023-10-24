@@ -152,7 +152,9 @@ log_install_cmd() {
 # Check if tput is available for colorize
 tp=$(tput sgr0 1>/dev/null 2>&1 && printf "OK" || printf "")
 if [ -z "$tp" ]; then
-    nocolor "Colorization disabled as 'tput' (via 'ncurses') seems to be unavailable."
+    if [ -z "$CI" ]; then
+        nocolor "Colorization disabled as 'tput' (via 'ncurses') seems to be unavailable."
+    fi
     KERL_COLOR_AVAILABLE=0
     KERL_COLORIZE=0 # Force disabling colorization
 else
