@@ -275,7 +275,7 @@ The available releases are:
 26.0.2 *
 ```
 
-**Note**: this list, kept in a file managed by Kerl, is different depending on the build backend
+**Note**: this list, kept in a file managed by `kerl`, is different depending on the build backend
 you use.
 
 From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is
@@ -362,7 +362,7 @@ Directory in which `kerl` will clone Git repositories for building.
 #### `KERL_CHECK_BUILD_PACKAGES`
 
 Default: yes (Enabled)
-Kerl will try to probe your Linux distro for build-required packages logging
+`kerl` will try to probe your Linux distro for build-required packages logging
 where the probes fail. You can turn off this behaviour by setting the
 environment variable to something other than "yes".
 
