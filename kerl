@@ -224,49 +224,29 @@ KERL_COLORIZE=${KERL_COLORIZE:=$KERL_COLOR_AVAILABLE}
 KERL_INCLUDE_RELEASE_CANDIDATES=${KERL_INCLUDE_RELEASE_CANDIDATES:=no}
 KERL_CHECK_BUILD_PACKAGES=${KERL_CHECK_BUILD_PACKAGES:="yes"}
 
-if [ -n "$OTP_GITHUB_URL" ]; then
-    _OGU="$OTP_GITHUB_URL"
-fi
-if [ -n "$KERL_CONFIGURE_OPTIONS" ]; then
-    _KCO="$KERL_CONFIGURE_OPTIONS"
-fi
-if [ -n "$KERL_CONFIGURE_APPLICATIONS" ]; then
-    _KCA="$KERL_CONFIGURE_APPLICATIONS"
-fi
-if [ -n "$KERL_CONFIGURE_DISABLE_APPLICATIONS" ]; then
-    _KCDA="$KERL_CONFIGURE_DISABLE_APPLICATIONS"
-fi
-if [ -n "$KERL_SASL_STARTUP" ]; then
-    _KSS="$KERL_SASL_STARTUP"
-fi
-if [ -n "$KERL_DEPLOY_SSH_OPTIONS" ]; then
-    _KDSSH="$KERL_DEPLOY_SSH_OPTIONS"
-fi
-if [ -n "$KERL_DEPLOY_RSYNC_OPTIONS" ]; then
-    _KDRSYNC="$KERL_DEPLOY_RSYNC_OPTIONS"
-fi
-if [ -n "$KERL_INSTALL_MANPAGES" ]; then
-    _KIM="$KERL_INSTALL_MANPAGES"
-fi
-if [ -n "$KERL_INSTALL_HTMLDOCS" ]; then
-    _KIHD="$KERL_INSTALL_HTMLDOCS"
-fi
-if [ -n "$KERL_BUILD_PLT" ]; then
-    _KBPLT="$KERL_BUILD_PLT"
-fi
-if [ -n "$KERL_BUILD_DOCS" ]; then
-    _KBD="$KERL_BUILD_DOCS"
-fi
-if [ -n "$KERL_DOC_TARGETS" ]; then
-    _KDT="$KERL_DOC_TARGETS"
-fi
-if [ -n "$KERL_BUILD_BACKEND" ]; then
-    _KBB="$KERL_BUILD_BACKEND"
-fi
-if [ -n "$KERL_RELEASE_TARGET" ]; then
-    _KRT="$KERL_RELEASE_TARGET"
-fi
+act_on_kerl_cfgs() {
+    # $1: kerl config. flags (we're only interested in the keys)
+    # $2: action - cache | restore (default)
 
+    for _KERL_CFG in $1; do
+        k=$(echo "$_KERL_CFG" | \sed 's|\(.*\)=.*|\1|')
+
+        if [ "$2" = cache ]; then
+            eval "_KERL_CFG_VAR=\$${k}"
+            eval "_KERL_TARGET_VAR=__${k}"
+        elif [ "$2" = restore ]; then
+            eval "_KERL_CFG_VAR=\$__${k}"
+            eval "_KERL_TARGET_VAR=${k}"
+        fi
+        if [ -n "${_KERL_CFG_VAR}" ]; then
+            # shellcheck disable=SC2154  # _KERL_TARGET_VAR is referenced but not assigned
+            eval "$_KERL_TARGET_VAR=\"$_KERL_CFG_VAR\""
+        fi
+    done
+}
+
+# List is [<config_key>=<def_value>, ...]
+_KERL_CFGS="
 OTP_GITHUB_URL=https://github.com/erlang/otp
 KERL_CONFIGURE_OPTIONS=
 KERL_CONFIGURE_APPLICATIONS=
@@ -281,6 +261,9 @@ KERL_BUILD_DOCS=
 KERL_DOC_TARGETS=chunks
 KERL_BUILD_BACKEND=
 KERL_RELEASE_TARGET=
+"
+act_on_kerl_cfgs "$_KERL_CFGS" "cache"
+eval "$_KERL_CFGS"
 
 # ensure the base dir exists
 mkdir -p "$KERL_BASE_DIR" || exit 1
@@ -291,48 +274,7 @@ if [ -f "$KERL_CONFIG" ]; then
     . "$KERL_CONFIG"
 fi
 
-if [ -n "$_OGU" ]; then
-    OTP_GITHUB_URL="$_OGU"
-fi
-if [ -n "$_KCO" ]; then
-    KERL_CONFIGURE_OPTIONS="$_KCO"
-fi
-if [ -n "$_KCA" ]; then
-    KERL_CONFIGURE_APPLICATIONS="$_KCA"
-fi
-if [ -n "$_KCDA" ]; then
-    KERL_CONFIGURE_DISABLE_APPLICATIONS="$_KCDA"
-fi
-if [ -n "$_KSS" ]; then
-    KERL_SASL_STARTUP="$_KSS"
-fi
-if [ -n "$_KDSSH" ]; then
-    KERL_DEPLOY_SSH_OPTIONS="$_KDSSH"
-fi
-if [ -n "$_KDRSYNC" ]; then
-    KERL_DEPLOY_RSYNC_OPTIONS="$_KDRSYNC"
-fi
-if [ -n "$_KIM" ]; then
-    KERL_INSTALL_MANPAGES="$_KIM"
-fi
-if [ -n "$_KIHD" ]; then
-    KERL_INSTALL_HTMLDOCS="$_KIHD"
-fi
-if [ -n "$_KBPLT" ]; then
-    KERL_BUILD_PLT="$_KBPLT"
-fi
-if [ -n "$_KBD" ]; then
-    KERL_BUILD_DOCS="$_KBD"
-fi
-if [ -n "$_KDT" ]; then
-    KERL_DOC_TARGETS="$_KDT"
-fi
-if [ -n "$_KBB" ]; then
-    KERL_BUILD_BACKEND="$_KBB"
-fi
-if [ -n "$_KRT" ]; then
-    KERL_RELEASE_TARGET="$_KRT"
-fi
+act_on_kerl_cfgs "$_KERL_CFGS" "restore"
 
 if [ -z "$KERL_SASL_STARTUP" ]; then
     INSTALL_OPT='-minimal'
@@ -406,6 +348,7 @@ get_releases() {
 
 get_git_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
+    # shellcheck disable=SC2154  # OTP_GITHUB_URL is referenced but not assigned
     git ls-remote --tags --refs "$OTP_GITHUB_URL" >"$tmp"
     ret=$?
     if [ "$ret" -eq 0 ]; then
@@ -1160,6 +1103,7 @@ _do_build() {
     if [ -n "$KERL_BUILD_DOCS" ]; then
         notice "Building docs..."
         release=$(get_otp_version "$2")
+        # shellcheck disable=SC2154  # KERL_DOC_TARGETS is referenced but not assigned
         if ! log_build_cmd "make docs DOC_TARGETS=$KERL_DOC_TARGETS"; then
             show_build_logfile "building docs failed."
             list_remove builds "$1 $2"
@@ -1821,6 +1765,7 @@ do_deploy() {
     fi
 
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    # shellcheck disable=SC2154  # KERL_DEPLOY_SSH_OPTIONS is referenced but not assigned
     if ! ssh $KERL_DEPLOY_SSH_OPTIONS "$host" true >/dev/null 2>&1; then
         error "couldn't ssh to $host."
         exit 1
@@ -1829,6 +1774,7 @@ do_deploy() {
     notice "Cloning Erlang/OTP $rel ($path) to $host ($remotepath)..."
 
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
+    # shellcheck disable=SC2154  # KERL_DEPLOY_RSYNC_OPTIONS is referenced but not assigned
     if ! rsync -aqz -e "ssh $KERL_DEPLOY_SSH_OPTIONS" $KERL_DEPLOY_RSYNC_OPTIONS "$path/" "$host:$remotepath/"; then
         error "couldn't rsync Erlang/OTP $rel ($path) to $host ($remotepath)."
         exit 1
