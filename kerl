@@ -1078,8 +1078,8 @@ _do_build() {
         fi
     else
         # no file exists, so write one
-        mv "$TMPOPT" .kerl_config
-        echo "$SUM" >.kerl_config.md5
+        mv "$TMPOPT" "$KERL_CONFIG_STORAGE_FILENAME"
+        echo "$SUM" >"$KERL_CONFIG_STORAGE_FILENAME".md5
     fi
 
     # Don't apply patches to "custom" git builds. We have no idea if they will apply
