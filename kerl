@@ -744,7 +744,7 @@ show_configuration_warnings() {
         tail -n +$((INDEX + 3)) "$1" |
             sed -n '1,/\*/p' |
             awk -F: -v logfile="$1" -v section="$2" \
-                'BEGIN { printf "%s (See: %s)\n", section, log file }
+                'BEGIN { printf "%s (See: %s)\n", section, logfile }
                  /^[^\*]/ { print " *", $0 }
                  END { print "" } '
     fi
