@@ -87,8 +87,13 @@ error() {
 
 warn() {
     # $1: log entry
+    # $2: use 'noprefix' if you want to omit WARNING:
 
-    l=warn stderr "WARNING: $1"
+    if [ "$2" != "noprefix" ]; then
+        l=warn stderr "WARNING: $1"
+    else
+        l=warn stderr "$1"
+    fi
 }
 
 notice() {
