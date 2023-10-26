@@ -1627,6 +1627,16 @@ do_install() {
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
     cd "$ERL_TOP" || exit_install
     init_install_logfile "$rel" "$build_name"
+
+    prev_build_kernel_release=$(grep <"$ERL_TOP"/"$KERL_CONFIG_STORAGE_FILENAME" -o '^uname -r: \(.*\)$' | sed -n 's|^uname -r: \(.*\)$|\1|p')
+    if [ "$(uname -r)" != "$prev_build_kernel_release" ]; then
+        warn "this Erlang/OTP build appears to be stale. It was created with kernel release"
+        warn "         '$prev_build_kernel_release' while currently your system's kernel release is" "noprefix"
+        warn "         '$(uname -r)'." "noprefix"
+        warn "         You should consider removing the build with 'kerl delete build ...' and" "noprefix"
+        warn "         re-installing it with 'kerl build-install ...'" "noprefix"
+    fi
+
     if ! log_install_cmd "ERL_TOP=$ERL_TOP ./otp_build release -a $absdir && cd $absdir && ./Install $INSTALL_OPT $absdir"; then
         show_install_logfile "install of Erlang/OTP $rel ($build_name), in $absdir, failed!"
         exit_install
