@@ -3,6 +3,7 @@ name: CI
 'on': [push, pull_request]
 env:
   ERLC_USE_SERVER: true
+  KERL_DEBUG: 'yes'
 jobs:
   ci:
     name: CI OTP ${{matrix.otp_vsn}}, on ${{matrix.os}}
@@ -60,24 +61,28 @@ jobs:
         run: |
           echo "OpenSSL is $(openssl version)"
           export MAKEFLAGS=-j$(($(nproc) + 2))
-          if ! KERL_DEBUG=yes ./kerl build ${_KERL_PREFIX_GIT} \
-                                           ${_KERL_PREFIX_GIT_TARGET} \
-                                          "${_KERL_VSN}" \
-                                          "${_KERL_VSN}"; then
+          if ! ./kerl build ${_KERL_PREFIX_GIT} \
+                            ${_KERL_PREFIX_GIT_TARGET} \
+                           "${_KERL_VSN}" \
+                           "${_KERL_VSN}"; then
             ## Print build log if it fails
             cat ~/.kerl/builds/*/*.log
             exit 1
           fi
         # yamllint disable rule:line-length
       - name: Install chosen version
-        run: KERL_DEBUG=yes ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
-      - name: Check installation status
-        run: ./kerl status
+        run: ./kerl install "$_KERL_VSN" "install_$_KERL_VSN"
+      - name: Check installation status (pre- activation)
+        run: ./kerl status || exit 0
       - name: Validate installation
         run: |
           source $(./kerl path install_"$_KERL_VSN")/activate
           erl -s crypto -s init stop
           erl_call
+      - name: Check installation status (post- activation)
+        run: |
+          source $(./kerl path install_"$_KERL_VSN")/activate
+          ./kerl status
       - name: Test KERL_RELEASE_TARGET
         # yamllint disable rule:line-length
         run: |
@@ -122,19 +127,23 @@ jobs:
       - name: Test build+install chosen version
         run: |
           export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
-          if ! KERL_DEBUG=yes ./kerl build-install ${_KERL_PREFIX_GIT} \
-                                                   ${_KERL_PREFIX_GIT_TARGET} \
-                                                  "${_KERL_VSN}" \
-                                                  "${_KERL_VSN}" \
-                                                  "$PWD/build-install_${_KERL_VSN}"; then
+          if ! ./kerl build-install ${_KERL_PREFIX_GIT} \
+                                    ${_KERL_PREFIX_GIT_TARGET} \
+                                   "${_KERL_VSN}" \
+                                   "${_KERL_VSN}" \
+                                   "$PWD/build-install_${_KERL_VSN}"; then
             ## Print build log if it fails
             cat ~/.kerl/builds/*/*.log
             exit 1
           fi
-      - name: Check installation status (build+install)
-        run: ./kerl status
+      - name: Check installation status (pre- activation)
+        run: ./kerl status || exit 0
       - name: Validate installation (build+install)
         run: |
           source $(./kerl path build-install_"${_KERL_VSN}")/activate
           erl -s crypto -s init stop
           erl_call
+      - name: Check installation status (post- activation)
+        run: |
+          source $(./kerl path build-install_"${_KERL_VSN}")/activate
+          ./kerl status

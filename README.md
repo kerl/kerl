@@ -86,7 +86,6 @@ You can also install directly from a raw Git repository by using the
 
 List the available releases:
 
-<!-- markdownlint-disable MD007 # line-length -->
 ```console
 $ kerl list releases
 17.5.6.10
@@ -103,7 +102,6 @@ Run './kerl update releases' to update this list.
 Run './kerl list releases all' to view all available releases.
 Note: * means "currently supported".
 ```
-<!-- markdownlint-enable MD007 # line-length -->
 
 Pick your choice and build it:
 
@@ -257,11 +255,11 @@ $ kerl_deactivate
 It is possible to build Erlang/OTP from a GitHub fork, by using the `KERL_BUILD_BACKEND=git` and
 setting `OTP_GITHUB_URL` to the URL of the fork. For example, to build `<orgname>'s` Erlang/OTP fork:
 
-<!-- markdownlint-disable MD007 # line-length -->
 ```console
 $ export KERL_BUILD_BACKEND=git
 $ export OTP_GITHUB_URL='https://github.com/<orgname>/otp'
 $ KERL_INCLUDE_RELEASE_CANDIDATES=yes kerl update releases
+Getting releases from GitHub...
 The available releases are:
 24.0-rc1 *
 24.0-rc1.1-orgname *
@@ -276,7 +274,9 @@ The available releases are:
 ...
 26.0.2 *
 ```
-<!-- markdownlint-enable MD007 # line-length -->
+
+**Note**: this list, kept in a file managed by `kerl`, is different depending on the build backend
+you use.
 
 From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables remain in place), it is
 possible to use `kerl` as before:
@@ -362,7 +362,7 @@ Directory in which `kerl` will clone Git repositories for building.
 #### `KERL_CHECK_BUILD_PACKAGES`
 
 Default: yes (Enabled)
-Kerl will try to probe your Linux distro for build-required packages logging
+`kerl` will try to probe your Linux distro for build-required packages logging
 where the probes fail. You can turn off this behaviour by setting the
 environment variable to something other than "yes".
 
