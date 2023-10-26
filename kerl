@@ -1065,8 +1065,12 @@ _do_build() {
 
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="${TMP_DIR}/kerloptions.$$"
-    echo "${CFLAGS:-}" >"$TMPOPT"
-    echo "$KERL_CONFIGURE_OPTIONS" >>"$TMPOPT"
+    {
+        echo "This is kerl's control file for build configuration."
+        echo "CFLAGS: ${CFLAGS:-}"
+        echo "KERL_CONFIGURE_OPTIONS: $KERL_CONFIGURE_OPTIONS"
+        echo "uname -r: $(uname -r)"
+    } >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f "$MD5SUM_FIELD")
     # Check for a .kerl_config.md5 file
     if [ -e ./"$KERL_CONFIG_STORAGE_FILENAME".md5 ]; then
