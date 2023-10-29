@@ -9,7 +9,7 @@ Find below updated information on our security policy.
 We take the security of this software seriously.
 
 We don't implement a bug bounty program or bounty rewards, but will work with
-you closed to ensure that your findings gets the appropriate handling.
+you to ensure that your findings get the appropriate handling.
 
 ## Reporting Security Issues
 
