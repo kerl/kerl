@@ -990,6 +990,14 @@ fail_do_build() {
     fi
 }
 
+uname_r_label() {
+    echo "uname -r"
+}
+
+uname_r() {
+    eval "$(uname_r_label)"
+}
+
 _do_build() {
     init_build_logfile "$1" "$2"
     log_build_entry "*** $(date) - kerl build $1 ***"
@@ -1069,7 +1077,7 @@ _do_build() {
         echo "This is kerl's control file for build configuration."
         echo "CFLAGS: ${CFLAGS:-}"
         echo "KERL_CONFIGURE_OPTIONS: $KERL_CONFIGURE_OPTIONS"
-        echo "uname -r: $(uname -r)"
+        echo "$(uname_r_label): $(uname_r)"
     } >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f "$MD5SUM_FIELD")
     # Check for a .kerl_config.md5 file
@@ -1628,11 +1636,11 @@ do_install() {
     cd "$ERL_TOP" || exit_install
     init_install_logfile "$rel" "$build_name"
 
-    prev_build_kernel_release=$(grep <"$ERL_TOP"/"$KERL_CONFIG_STORAGE_FILENAME" -o '^uname -r: \(.*\)$' | sed -n 's|^uname -r: \(.*\)$|\1|p')
-    if [ "$(uname -r)" != "$prev_build_kernel_release" ]; then
+    prev_build_kernel_release=$(grep <"$ERL_TOP"/"$KERL_CONFIG_STORAGE_FILENAME" -o "^$(uname_r_label): \(.*\)\$" | sed -n "s|^$(uname_r_label): \(.*\)\$|\1|p")
+    if [ "$(uname_r)" != "$prev_build_kernel_release" ]; then
         warn "this Erlang/OTP build appears to be stale. It was created with kernel release"
         warn "         '$prev_build_kernel_release' while currently your system's kernel release is" "noprefix"
-        warn "         '$(uname -r)'." "noprefix"
+        warn "         '$(uname_r)'." "noprefix"
         warn "         You should consider removing the build with 'kerl delete build ...' and" "noprefix"
         warn "         re-installing it with 'kerl build-install ...'" "noprefix"
     fi
