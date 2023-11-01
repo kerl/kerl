@@ -87,8 +87,13 @@ error() {
 
 warn() {
     # $1: log entry
+    # $2: use 'noprefix' if you want to omit WARNING:
 
-    l=warn stderr "WARNING: $1"
+    if [ "$2" != "noprefix" ]; then
+        l=warn stderr "WARNING: $1"
+    else
+        l=warn stderr "$1"
+    fi
 }
 
 notice() {
@@ -985,6 +990,14 @@ fail_do_build() {
     fi
 }
 
+uname_r_label() {
+    echo "uname -r"
+}
+
+uname_r() {
+    eval "$(uname_r_label)"
+}
+
 _do_build() {
     init_build_logfile "$1" "$2"
     log_build_entry "*** $(date) - kerl build $1 ***"
@@ -1060,8 +1073,13 @@ _do_build() {
 
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="${TMP_DIR}/kerloptions.$$"
-    echo "${CFLAGS:-}" >"$TMPOPT"
-    echo "$KERL_CONFIGURE_OPTIONS" >>"$TMPOPT"
+    {
+        echo "This is kerl's control file for build configuration."
+        echo "Please don't edit it manually!"
+        echo "CFLAGS: ${CFLAGS:-}"
+        echo "KERL_CONFIGURE_OPTIONS: $KERL_CONFIGURE_OPTIONS"
+        echo "$(uname_r_label): $(uname_r)"
+    } >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f "$MD5SUM_FIELD")
     # Check for a .kerl_config.md5 file
     if [ -e ./"$KERL_CONFIG_STORAGE_FILENAME".md5 ]; then
@@ -1078,8 +1096,8 @@ _do_build() {
         fi
     else
         # no file exists, so write one
-        mv "$TMPOPT" .kerl_config
-        echo "$SUM" >.kerl_config.md5
+        mv "$TMPOPT" "$KERL_CONFIG_STORAGE_FILENAME"
+        echo "$SUM" >"$KERL_CONFIG_STORAGE_FILENAME".md5
     fi
 
     # Don't apply patches to "custom" git builds. We have no idea if they will apply
@@ -1618,6 +1636,16 @@ do_install() {
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
     cd "$ERL_TOP" || exit_install
     init_install_logfile "$rel" "$build_name"
+
+    prev_build_kernel_release=$(grep <"$ERL_TOP"/"$KERL_CONFIG_STORAGE_FILENAME" -o "^$(uname_r_label): \(.*\)\$" | sed -n "s|^$(uname_r_label): \(.*\)\$|\1|p")
+    if [ "$(uname_r)" != "$prev_build_kernel_release" ]; then
+        warn "this Erlang/OTP build appears to be stale. It was created with kernel release"
+        warn "         '$prev_build_kernel_release' while currently your system's kernel release is" "noprefix"
+        warn "         '$(uname_r)'." "noprefix"
+        warn "         You should consider removing the build with 'kerl delete build ...' and" "noprefix"
+        warn "         re-installing it with 'kerl build-install ...'" "noprefix"
+    fi
+
     if ! log_install_cmd "ERL_TOP=$ERL_TOP ./otp_build release -a $absdir && cd $absdir && ./Install $INSTALL_OPT $absdir"; then
         show_install_logfile "install of Erlang/OTP $rel ($build_name), in $absdir, failed!"
         exit_install
