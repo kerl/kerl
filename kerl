@@ -1075,6 +1075,7 @@ _do_build() {
     TMPOPT="${TMP_DIR}/kerloptions.$$"
     {
         echo "This is kerl's control file for build configuration."
+        echo "Please don't edit it manually!"
         echo "CFLAGS: ${CFLAGS:-}"
         echo "KERL_CONFIGURE_OPTIONS: $KERL_CONFIGURE_OPTIONS"
         echo "$(uname_r_label): $(uname_r)"
