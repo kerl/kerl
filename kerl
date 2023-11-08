@@ -2460,7 +2460,7 @@ delete)
         ;;
     installation)
         if [ $# -ne 3 ]; then
-            usage_exit "delete installation <directory>"
+            usage_exit "delete installation <build_name|directory>"
         fi
 
         if ! is_valid_install_path "$1"; then
