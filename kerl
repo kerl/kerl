@@ -2553,14 +2553,18 @@ cleanup)
 
     case "$2" in
     all)
-        notice "Cleaning up compilation products for ALL builds under $KERL_BUILD_DIR..."
+        notice "Cleaning up compilation products for ALL builds under:"
+        notice "  - $KERL_BUILD_DIR..."
         rm -rf "${KERL_BUILD_DIR:?}"/*
+        notice "  - $KERL_DOWNLOAD_DIR..."
         rm -rf "${KERL_DOWNLOAD_DIR:?}"/*
+        notice "  - $KERL_GIT_DIR..."
         rm -rf "${KERL_GIT_DIR:?}"/*
         notice "... done."
         ;;
     *)
-        notice "Cleaning up compilation products for '$2' under $KERL_BUILD_DIR..."
+        notice "Cleaning up compilation products for '$2' under:"
+        notice "  - $KERL_BUILD_DIR..."
         rm -rf "${KERL_BUILD_DIR:?}/$2"
         notice "... done."
         ;;
