@@ -543,6 +543,8 @@ is_valid_release() {
 }
 
 get_release_from_name() {
+    # $1: build_name
+
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
         while read -r l; do
             rel=$(echo "$l" | cut -d, -f1)
@@ -1160,7 +1162,6 @@ _do_build() {
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
         notice "Building docs..."
-        release=$(get_otp_version "$2")
         # shellcheck disable=SC2154  # KERL_DOC_TARGETS is referenced but not assigned
         if ! log_build_cmd "make docs DOC_TARGETS=$KERL_DOC_TARGETS"; then
             fail_do_build "building docs failed." "$2" "$1"
@@ -2123,18 +2124,15 @@ do_active() {
     fi
 }
 
-make_filename() {
-    release=$(get_otp_version "$1")
-    echo "OTP-$1"
-}
-
 download() {
+    # $1: release
+
     if ! mkdir -p "$KERL_DOWNLOAD_DIR"; then
         error "couldn't create folder $KERL_DOWNLOAD_DIR."
         return 1
     fi
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
-        FILENAME=$(make_filename "$1")
+        FILENAME="OTP-$1"
         if ! github_download "$1" "$FILENAME".tar.gz; then
             return 1
         fi
@@ -2556,15 +2554,27 @@ cleanup)
 
     case "$2" in
     all)
-        notice "Cleaning up compilation products for ALL builds under $KERL_BUILD_DIR..."
+        notice "Cleaning up compilation products for ALL builds under:"
+        notice "  - $KERL_BUILD_DIR..."
         rm -rf "${KERL_BUILD_DIR:?}"/*
+        notice "  - $KERL_DOWNLOAD_DIR..."
         rm -rf "${KERL_DOWNLOAD_DIR:?}"/*
+        notice "  - $KERL_GIT_DIR..."
         rm -rf "${KERL_GIT_DIR:?}"/*
         notice "... done."
         ;;
     *)
-        notice "Cleaning up compilation products for '$2' under $KERL_BUILD_DIR..."
+        notice "Cleaning up compilation products for '$2' under:"
+        notice "  - $KERL_BUILD_DIR..."
         rm -rf "${KERL_BUILD_DIR:?}/$2"
+        rel=$(get_release_from_name "$2")
+        if [ "${rel}" != "git" ]; then
+            notice "  - $KERL_DOWNLOAD_DIR..."
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/OTP-"$2".tar.gz
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/otp_src_"$2".tar.gz
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/otp_doc_man_"$2".tar.gz
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/otp_doc_html_"$2".tar.gz
+        fi
         notice "... done."
         ;;
     esac
