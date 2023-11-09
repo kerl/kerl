@@ -2566,6 +2566,14 @@ cleanup)
         notice "Cleaning up compilation products for '$2' under:"
         notice "  - $KERL_BUILD_DIR..."
         rm -rf "${KERL_BUILD_DIR:?}/$2"
+        rel=$(get_release_from_name "$2")
+        if [ "${rel}" != "git" ]; then
+            notice "  - $KERL_DOWNLOAD_DIR..."
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/OTP-"$2".tar.gz
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/otp_src_"$2".tar.gz
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/otp_doc_man_"$2".tar.gz
+            rm -f "${KERL_DOWNLOAD_DIR:?}"/otp_doc_html_"$2".tar.gz
+        fi
         notice "... done."
         ;;
     esac
