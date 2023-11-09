@@ -879,22 +879,40 @@ _apk() {
 # command, in variable _KPP_<distro>_probe to check from the package manager.
 # It should return 0 if package installation is Ok, non-0 otherwise.
 
-_KPP_alpine_pkgs="openssl-dev make automake autoconf ncurses-dev gcc g++"
+_KPP_alpine_pkgs="openssl-dev make ncurses-dev gcc g++"
+if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+    _KPP_alpine_pkgs="${_KPP_alpine_pkgs} automake autoconf"
+fi
 _KPP_alpine_probe="_apk"
 
-_KPP_debian_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_debian_pkgs="libssl-dev make libncurses5-dev gcc g++"
+if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+    _KPP_debian_pkgs="${_KPP_debian_pkgs} automake autoconf"
+fi
 _KPP_debian_probe="_dpkg"
 
-_KPP_fedora_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_fedora_pkgs="openssl-devel make ncurses-devel gcc g++"
+if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+    _KPP_fedora_pkgs="${_KPP_fedora_pkgs} automake autoconf"
+fi
 _KPP_fedora_probe="_rpm"
 
-_KPP_linuxmint_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_linuxmint_pkgs="libssl-dev make libncurses5-dev gcc g++"
+if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+    _KPP_linuxmint_pkgs="${_KPP_linuxmint_pkgs} automake autoconf"
+fi
 _KPP_linuxmint_probe="_dpkg"
 
-_KPP_rhel_pkgs="openssl-devel make automake autoconf ncurses-devel gcc gcc-c++"
+_KPP_rhel_pkgs="openssl-devel make ncurses-devel gcc gcc-c++"
+if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+    _KPP_rhel_pkgs="${_KPP_rhel_pkgs} automake autoconf"
+fi
 _KPP_rhel_probe="_rpm"
 
-_KPP_ubuntu_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_ubuntu_pkgs="libssl-dev make libncurses5-dev gcc g++"
+if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+    _KPP_ubuntu_pkgs="${_KPP_ubuntu_pkgs} automake autoconf"
+fi
 _KPP_ubuntu_probe="_dpkg"
 
 parse_os_release() {
