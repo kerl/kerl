@@ -2460,10 +2460,11 @@ delete)
         ;;
     installation)
         if [ $# -ne 3 ]; then
-            usage_exit "delete installation <directory>"
+            usage_exit "delete installation <build_name|directory>"
         fi
 
-        if ! is_valid_install_path "$1"; then
+        if ! is_valid_installation "$3"; then
+            error "'$3' is not a kerl-managed Erlang/OTP installation."
             exit 1
         fi
         if [ -d "$3" ]; then

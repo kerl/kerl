@@ -731,7 +731,7 @@ When listing releases (without option `all`), the following applies:
 ```console
 $ kerl delete build <build_name>
 $ # or
-$ kerl delete installation <directory>
+$ kerl delete installation <build_name|directory>
 ```
 
 Deletes the specified build or installation.
