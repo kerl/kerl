@@ -2122,17 +2122,13 @@ do_active() {
     fi
 }
 
-make_filename() {
-    echo "OTP-$1"
-}
-
 download() {
     if ! mkdir -p "$KERL_DOWNLOAD_DIR"; then
         error "couldn't create folder $KERL_DOWNLOAD_DIR."
         return 1
     fi
     if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
-        FILENAME=$(make_filename "$1")
+        FILENAME="OTP-$1"
         if ! github_download "$1" "$FILENAME".tar.gz; then
             return 1
         fi
