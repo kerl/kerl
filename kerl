@@ -2438,7 +2438,7 @@ path)
 delete)
     case "$2" in
     build)
-        if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+        if [ $# -ne 3 ]; then
             usage_exit "delete build [build_name]"
         fi
 
