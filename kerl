@@ -2108,6 +2108,39 @@ get_active_path() {
     fi
 }
 
+fix_otp_installations() {
+    if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
+        inexisting_names=""
+        while read -r l; do
+            names=$(echo "$l" | cut -d' ' -f1)
+            path=$(echo "$l" | cut -d' ' -f2)
+            if [ ! -e "$path" ]; then
+                inexisting_names="$path $inexisting_names"
+            fi
+        done <"$KERL_BASE_DIR"/otp_installations
+        for inexisting_name in ${inexisting_names}; do
+            escaped="$(echo "$inexisting_name" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
+            list_remove installations "$escaped"
+        done
+    fi
+}
+
+fix_otp_builds() {
+    if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
+        inexisting_rels=""
+        while read -r l; do
+            rel=$(echo "$l" | cut -d, -f1)
+            name=$(echo "$l" | cut -d, -f2)
+            if [ ! -e "${KERL_BUILD_DIR}/${name}" ]; then
+                inexisting_rels="${rel},${name} $inexisting_rels"
+            fi
+        done <"$KERL_BASE_DIR"/otp_builds
+        for inexisting_rel in ${inexisting_rels}; do
+            list_remove "${inexisting_rel}"
+        done
+    fi
+}
+
 get_name_from_install_path() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
         \grep -m1 -E "$1$" "$KERL_BASE_DIR"/otp_installations | cut -d' ' -f1
@@ -2221,6 +2254,9 @@ upgrade_kerl() {
     current_kerl_path="$(command -v kerl)"
     notice "kerl $version is now available at $current_kerl_path."
 }
+
+fix_otp_builds
+fix_otp_installations
 
 case "$1" in
 version)
