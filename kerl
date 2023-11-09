@@ -543,6 +543,8 @@ is_valid_release() {
 }
 
 get_release_from_name() {
+    # $1: build_name
+
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
         while read -r l; do
             rel=$(echo "$l" | cut -d, -f1)
@@ -2123,6 +2125,8 @@ do_active() {
 }
 
 download() {
+    # $1: release
+
     if ! mkdir -p "$KERL_DOWNLOAD_DIR"; then
         error "couldn't create folder $KERL_DOWNLOAD_DIR."
         return 1
