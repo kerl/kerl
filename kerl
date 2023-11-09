@@ -2112,7 +2112,6 @@ fix_otp_installations() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
         inexisting_names=""
         while read -r l; do
-            names=$(echo "$l" | cut -d' ' -f1)
             path=$(echo "$l" | cut -d' ' -f2)
             if [ ! -e "$path" ]; then
                 inexisting_names="$path $inexisting_names"
