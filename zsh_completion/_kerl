@@ -38,17 +38,20 @@ local -a _1st_arguments
 _1st_arguments=(
   'build:Build specified release or git repository'
   'install:Install the specified release at the given location'
-  'build-install:Build+install specified release or git repository'
+  'build-install:Builds and installs the specified release or git repository at the given location'
   'deploy:Deploy the specified installation to the given host and location'
-  'update:Update the list of available releases from erlang.org'
-  'upgrade:Upgrade kerl to the latest available version'
+  'update:Update the list of available releases from your source provider'
   'list:List releases, builds and installations'
   'delete:Delete builds and installations'
+  'path:Print the path of a given installation'
   'active:Print the path of the active installation'
-  'path:Print the path of any installation'
+  'plt:Print Dialyzer PLT path for the active installation'
   'status:Print available builds and installations'
   'prompt:Print a string suitable for insertion in prompt'
   'cleanup:Remove compilation artifacts (use after installation)'
+  'emit-activate:Print the activate script'
+  'upgrade:Fetch and install the most recent kerl release'
+  'version:Print current version'
 )
 
 local -a _list_options
