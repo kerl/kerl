@@ -16,7 +16,7 @@ _kerl() {
 
     case $prev in
     kerl)
-        COMPREPLY=($(compgen -W 'build install build-install update upgrade list delete active path status' -- "$cur"))
+        COMPREPLY=($(compgen -W 'build install build-install deploy update list delete path active plt status prompt cleanup emit-activate upgrade version' -- "$cur"))
         ;;
     list)
         COMPREPLY=($(compgen -W 'releases builds installations' -- "$cur"))
