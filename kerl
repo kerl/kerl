@@ -335,6 +335,7 @@ k_usage() {
     nocolor "  prompt          Print a string suitable for insertion in prompt"
     nocolor "  cleanup         Remove compilation artifacts (use after installation)"
     nocolor "  emit-activate   Print the activate script"
+    nocolor "  upgrade         Fetch and install the most recent kerl release"
     nocolor "  version         Print current version (current: $KERL_VERSION)"
     exit 1
 }
