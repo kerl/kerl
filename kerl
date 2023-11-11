@@ -2110,15 +2110,15 @@ get_active_path() {
 
 fix_otp_installations() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
-        nonexisting_names=""
+        missing_names=""
         while read -r l; do
             path=$(echo "$l" | cut -d' ' -f2)
             if [ ! -e "$path" ]; then
-                nonexisting_names="$path $nonexisting_names"
+                missing_names="$path $missing_names"
             fi
         done <"$KERL_BASE_DIR"/otp_installations
-        for nonexisting_name in ${nonexisting_names}; do
-            escaped="$(echo "$nonexisting_name" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
+        for missing_name in ${missing_names}; do
+            escaped="$(echo "$missing_name" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
             list_remove installations "$escaped"
         done
     fi
@@ -2126,16 +2126,16 @@ fix_otp_installations() {
 
 fix_otp_builds() {
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
-        nonexisting_rels=""
+        missing_rels=""
         while read -r l; do
             rel=$(echo "$l" | cut -d, -f1)
             name=$(echo "$l" | cut -d, -f2)
             if [ ! -e "${KERL_BUILD_DIR}/${name}" ]; then
-                nonexisting_rels="${rel},${name} $nonexisting_rels"
+                missing_rels="${rel},${name} $missing_rels"
             fi
         done <"$KERL_BASE_DIR"/otp_builds
-        for nonexisting_rel in ${nonexisting_rels}; do
-            list_remove "${nonexisting_rel}"
+        for missing_rel in ${missing_rels}; do
+            list_remove "${missing_rel}"
         done
     fi
 }
