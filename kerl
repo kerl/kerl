@@ -875,28 +875,32 @@ _apk() {
     echo "apk -e info \"$1\""
 }
 
+common_ALL_pkgs="gcc make"
+common_ALL_BUILD_BACKEND_git_pkgs="automake autoconf"
+common_debian_pkgs="${common_ALL_pkgs} libssl-dev libncurses5-dev g++"
+
 # To add package guessing magic for your Linux distro/package,
 # create a variable named _KPP_<distro>_pkgs where the content
 # is an array with packages, and then create a unique probe
 # command, in variable _KPP_<distro>_probe to check from the package manager.
 # It should return 0 if package installation is Ok, non-0 otherwise.
 
-_KPP_alpine_pkgs="openssl-dev make automake autoconf ncurses-dev gcc g++"
+_KPP_alpine_pkgs="${common_ALL_pkgs} openssl-dev ncurses-dev g++"
 _KPP_alpine_probe="_apk"
 
-_KPP_debian_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_debian_pkgs=${common_debian_pkgs}
 _KPP_debian_probe="_dpkg"
 
-_KPP_fedora_pkgs="openssl-devel make automake autoconf ncurses-devel gcc g++"
+_KPP_fedora_pkgs="${common_ALL_pkgs} openssl-devel ncurses-devel g++"
 _KPP_fedora_probe="_rpm"
 
-_KPP_linuxmint_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_linuxmint_pkgs=${common_debian_pkgs}
 _KPP_linuxmint_probe="_dpkg"
 
-_KPP_rhel_pkgs="openssl-devel make automake autoconf ncurses-devel gcc gcc-c++"
+_KPP_rhel_pkgs="${common_ALL_pkgs} openssl-devel ncurses-devel gcc-c++"
 _KPP_rhel_probe="_rpm"
 
-_KPP_ubuntu_pkgs="libssl-dev make automake autoconf libncurses5-dev gcc g++"
+_KPP_ubuntu_pkgs=${common_debian_pkgs}
 _KPP_ubuntu_probe="_dpkg"
 
 parse_os_release() {
@@ -954,6 +958,10 @@ probe_pkgs() {
     fi
 
     kpp=$(eval echo \$_KPP_"${os_release_id}"_pkgs)
+    if [ "$KERL_BUILD_BACKEND" = 'git' ]; then
+        kpp="${common_ALL_BUILD_BACKEND_git_pkgs} ${kpp}"
+    fi
+
     if [ -n "${kpp}" ]; then
         log_build_entry "[packages] Found package declarations for your Linux distro: ${os_release_id}"
         for pkg in ${kpp}; do
