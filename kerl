@@ -2110,15 +2110,15 @@ get_active_path() {
 
 fix_otp_installations() {
     if [ -f "$KERL_BASE_DIR"/otp_installations ]; then
-        missing_names=""
+        missing_paths=""
         while read -r l; do
             path=$(echo "$l" | cut -d' ' -f2)
             if [ ! -e "$path" ]; then
-                missing_names="$path $missing_names"
+                missing_paths="$path $missing_paths"
             fi
         done <"$KERL_BASE_DIR"/otp_installations
-        for missing_name in ${missing_names}; do
-            escaped="$(echo "$missing_name" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
+        for missing_path in ${missing_paths}; do
+            escaped="$(echo "$missing_path" | \sed "$SED_OPT" -e 's#/$##' -e 's#\/#\\\/#g')"
             list_remove installations "$escaped"
         done
     fi
