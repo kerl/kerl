@@ -2135,7 +2135,7 @@ fix_otp_builds() {
             fi
         done <"$KERL_BASE_DIR"/otp_builds
         for missing_rel in ${missing_rels}; do
-            list_remove "${missing_rel}"
+            list_remove builds "${missing_rel}"
         done
     fi
 }
