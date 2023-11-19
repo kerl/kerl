@@ -2126,16 +2126,16 @@ fix_otp_installations() {
 
 fix_otp_builds() {
     if [ -f "$KERL_BASE_DIR"/otp_builds ]; then
-        missing_rels=""
+        missing_keys=""
         while read -r l; do
             rel=$(echo "$l" | cut -d, -f1)
             name=$(echo "$l" | cut -d, -f2)
             if [ ! -e "${KERL_BUILD_DIR}/${name}" ]; then
-                missing_rels="${rel},${name} $missing_rels"
+                missing_keys="${rel},${name} $missing_keys"
             fi
         done <"$KERL_BASE_DIR"/otp_builds
-        for missing_rel in ${missing_rels}; do
-            list_remove builds "${missing_rel}"
+        for missing_key in ${missing_keys}; do
+            list_remove builds "${missing_key}"
         done
     fi
 }
