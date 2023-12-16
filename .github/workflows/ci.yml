@@ -19,7 +19,8 @@ jobs:
           if [[ ${{matrix.os}} == macos* ]]; then
             /bin/bash -c "$(curl -fsSL \
               https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            brew install automake fop wxwidgets fish shellcheck shfmt coreutils
+            HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=yes \
+              brew install automake fop wxwidgets fish shellcheck shfmt coreutils
           else
             sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
             sudo apt-get update -y
