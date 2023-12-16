@@ -110,6 +110,8 @@ case "$words[1]" in
         if [[ "$state" == rels ]]; then
             _kerl_available_releases
             _wanted releases expl 'all releases' compadd -a releases
+        fi
+        ;;
   path)
       _arguments \
           '1: :->installnames' && return 0
