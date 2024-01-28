@@ -300,6 +300,21 @@ NB: This setting has no effect when using `kerl build git...`, which invokes ker
 Allows building, alongside the regular VM, a debug VM (available via `cerl -debug`).
 NB: Enable this build using `KERL_BUILD_DEBUG_VM=true`
 
+### KERL_RELEASE_TARGET
+
+Allows building, alongside the regular VM, a list of various runtime types for debugging
+(such as `cerl -debug` or `cerl -asan`)
+
+NB: Enable this build using `KERL_RELEASE_TARGET="debug asan"`
+
+NB: available types: opt, gcov, gprof, debug, valgrind, asan or lcnt
+
+For more information: 
+
+see  "How to Build a Debug Enabled Erlang RunTime System" in
+
+https://www.erlang.org/doc/installation_guide/install
+
 
 ### OTP_GITHUB_URL
 
@@ -741,6 +756,10 @@ will eventually deal with this issue.
 
 Changelog
 ---------
+31 May 2022 - 2.5.0
+
+  - Add a way to specify a debug/release target build (#411)
+
 27 April 2022 - 2.4.0
 
   - Handle a failed github retrieval better (#408)

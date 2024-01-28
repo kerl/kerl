@@ -27,7 +27,7 @@ unset ERL_TOP
 # Make sure CDPATH doesn't affect cd in case path is relative.
 unset CDPATH
 
-KERL_VERSION='2.4.0'
+KERL_VERSION='2.5.0'
 
 DOCSH_GITHUB_URL='https://github.com/erszcz/docsh.git'
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
@@ -137,6 +137,9 @@ fi
 if [ -n "$KERL_BUILD_BACKEND" ]; then
     _KBB="$KERL_BUILD_BACKEND"
 fi
+if [ -n "$KERL_RELEASE_TARGET" ]; then
+    _KRT="$KERL_RELEASE_TARGET"
+fi
 
 OTP_GITHUB_URL=https://github.com/erlang/otp
 KERL_CONFIGURE_OPTIONS=
@@ -151,6 +154,7 @@ KERL_BUILD_PLT=
 KERL_BUILD_DOCS=
 KERL_DOC_TARGETS=chunks
 KERL_BUILD_BACKEND=
+KERL_RELEASE_TARGET=
 
 # ensure the base dir exists
 mkdir -p "$KERL_BASE_DIR" || exit 1
@@ -199,6 +203,9 @@ if [ -n "$_KDT" ]; then
 fi
 if [ -n "$_KBB" ]; then
     KERL_BUILD_BACKEND="$_KBB"
+fi
+if [ -n "$_KRT" ]; then
+    KERL_RELEASE_TARGET="$_KRT"
 fi
 
 if [ -z "$KERL_SASL_STARTUP" ]; then
@@ -1052,10 +1059,31 @@ _do_build() {
     ERL_TOP="$ERL_TOP" ./otp_build release -a "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
     cd "$KERL_BUILD_DIR/$2/release_$1" || exit 1
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" >/dev/null 2>&1
+
+    # keep for backward compatibility
+    # preferably use "$KERL_RELEASE_TARGET"
     if [ -n "$KERL_BUILD_DEBUG_VM" ]; then
         l=n stderr "Also building Erlang/OTP $1 ($2) debug VM, please wait..."
         cd $ERL_TOP/erts/emulator || exit 1
         make debug ERL_TOP=$ERL_TOP >>"$LOGFILE" 2>&1
+    fi
+
+    if [ -n "$KERL_RELEASE_TARGET" ]; then
+        # where `$TYPE` is `opt`, `gcov`, `gprof`, `debug`, `valgrind`, `asan` or `lcnt`.
+        for r_type in $KERL_RELEASE_TARGET;
+        do
+            case $r_type in
+                opt|gcov|gprof|debug|valgrind|asan|lcnt)
+                    l=n stderr "Also building Erlang/OTP $1 ($2) $r_type VM, please wait..."
+                    cd $ERL_TOP/erts/emulator || exit 1
+                    make "$r_type" ERL_TOP=$ERL_TOP >>"$LOGFILE" 2>&1;
+                    [ $? ] || l=w stderr "Build with runtime type: ${r_type} failed, maybe this OTP $1 is not supported"
+                    ;;
+                *)
+                    l=w stderr "Invalid '$r_type' runtime type"
+                    ;;
+            esac
+        done
     fi
 }
 
@@ -1077,14 +1105,18 @@ do_install() {
         l=e stderr "Couldn't install Erlang/OTP $rel ($1) in $absdir"
         exit 1
     fi
-    BEAM_DEBUG_SMP=$(\find . -name beam.debug.smp)
-    if [ "$BEAM_DEBUG_SMP" != "" ]; then
-        ERL_CHILD_SETUP_DEBUG=$(\find . -name erl_child_setup.debug)
-        l=n stderr "Also installing Erlang/OTP $rel ($1) debug VM in $absdir..."
-        cp $BEAM_DEBUG_SMP $absdir/erts-*/bin/
-        cp $ERL_CHILD_SETUP_DEBUG $absdir/erts-*/bin/
-        cp bin/cerl $absdir/bin
-    fi
+
+    for r_type in $KERL_RELEASE_TARGET;
+    do
+        BEAM_DEBUG_SMP=$(\find . -name "beam.${r_type}.smp")
+        if [ "$BEAM_DEBUG_SMP" != "" ]; then
+            ERL_CHILD_SETUP_DEBUG=$(\find . -name "erl_child_setup.${r_type}")
+            l=n stderr "Also installing Erlang/OTP $rel ($1) ${r_type} VM in $absdir..."
+            cp $BEAM_DEBUG_SMP $absdir/erts-*/bin/
+            cp $ERL_CHILD_SETUP_DEBUG $absdir/erts-*/bin/
+        fi
+    done
+    [ -f bin/cerl ] && cp bin/cerl $absdir/bin
     list_add installations "$1 $absdir";
     cat <<ACTIVATE >"$absdir"/activate
 #!/bin/sh

@@ -94,6 +94,7 @@ jobs:
               ;;
           esac
           echo "export _KERL_VSN=${_VERSION}" >> $BASH_ENV
+          echo 'export KERL_RELEASE_TARGET="debug opt gcov gprof valgrind lcnt" ' >> $BASH_ENV
       - run:
           no_output_timeout: 45m
           command: |
@@ -111,6 +112,16 @@ jobs:
             source $(./kerl path install_"$_KERL_VSN")/activate
             erl -s crypto -s init stop
             erl_call
+      - run:
+          name: Test KERL_RELEASE_TARGET
+          command: |
+            . $BASH_ENV
+            source $(./kerl path install_"$_KERL_VSN")/activate
+            for r_type in debug opt gcov gprof valgrind lcnt;
+            do
+            [[ "${r_type}" == $(cerl -"$r_type" -noshell -eval  'io:format(erlang:system_info(build_type)),halt()') ]] \
+            || exit 1;
+            done
             kerl_deactivate
       - run:
           |
