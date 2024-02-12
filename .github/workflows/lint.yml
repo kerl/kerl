@@ -7,15 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run ShellCheck and shfmt
-        uses: luizm/action-sh-checker@v0.7.0
+        uses: luizm/action-sh-checker@v0.8.0
         env:
           SHELLCHECK_OPTS: -o all
           SHFMT_OPTS: -i 4 -d
       # uses .markdownlint.yml for configuration
       - name: Run markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v10
+        uses: DavidAnson/markdownlint-cli2-action@v15
         with:
           globs: |
            *.md
