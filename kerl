@@ -897,6 +897,9 @@ _KPP_fedora_probe="_rpm"
 _KPP_linuxmint_pkgs=${common_debian_pkgs}
 _KPP_linuxmint_probe="_dpkg"
 
+_KPP_pop_pkgs=${common_debian_pkgs}
+_KPP_pop_probe="_dpkg"
+
 _KPP_rhel_pkgs="${common_ALL_pkgs} openssl-devel ncurses-devel gcc-c++"
 _KPP_rhel_probe="_rpm"
 
