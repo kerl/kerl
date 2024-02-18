@@ -286,7 +286,7 @@ From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables rema
 possible to use `kerl` as before:
 
 ```console
-$ kerl build 27.0-orgname 27.0-orgname
+$ kerl build 27.0.1-orgname 27.0.1-orgname
 ```
 
 ### Building Erlang/OTP from a Git source
