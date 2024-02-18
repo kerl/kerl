@@ -42,7 +42,7 @@ fi
 
 KERL_VERSION='4.0.0'
 OLDEST_OTP_LISTED='17'
-OLDEST_OTP_SUPPORTED='24'
+OLDEST_OTP_SUPPORTED='25'
 
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
@@ -841,7 +841,7 @@ _flags() {
     # (macOS 10.15)
     #
     # As of OTP 20.1 that is (apparently) no longer necessary and
-    # in OTP 24 breaks stuff. See thread and comment here:
+    # from OTP 24 breaks stuff. See thread and comment here:
     # https://github.com/erlang/otp/issues/4821#issuecomment-845914942
     case "$KERL_SYSTEM" in
     Darwin)
