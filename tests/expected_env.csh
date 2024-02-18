@@ -11,7 +11,7 @@ if ( $?MANPATH ) then
     if ( $MANPATH != "" ) then
         echo "MANPATH=$DIR/lib/erlang/man:$DIR/man:$MANPATH"
     else
-        echo "MANPATH=$DIR/lib/erlang/man:$DIR/man"
+        echo "MANPATH=$DIR/lib/erlang/man:$DIR/man:`manpath`"
     endif
 else
     echo "MANPATH=$DIR/lib/erlang/man:$DIR/man"

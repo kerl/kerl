@@ -16,7 +16,7 @@ EOT
     if [ -n "$MANPATH" ]; then
         echo "MANPATH=$DIR/lib/erlang/man:$DIR/man:$MANPATH"
     else
-        echo "MANPATH=$DIR/lib/erlang/man:$DIR/man"
+        echo "MANPATH=$DIR/lib/erlang/man:$DIR/man:$(manpath)"
     fi
     ERLCALLDIR=$(find "$DIR" -type d -path "*erl_interface*/bin" 2>/dev/null)
     if [ -n "$ERLCALLDIR" ]; then

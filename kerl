@@ -1456,6 +1456,7 @@ set -x _KERL_MANPATH_REMOVABLE "$directory/lib/erlang/man" "$directory/man"
 set -p _KERL_CLEANUP "set -e _KERL_MANPATH_REMOVABLE;"
 if set -q MANPATH
     if test -n "\$MANPATH"
+        set -xp MANPATH "\$(manpath)"
         set -xp MANPATH \$_KERL_MANPATH_REMOVABLE
     else
         set -x MANPATH \$_KERL_MANPATH_REMOVABLE
@@ -1580,7 +1581,7 @@ unset _KERL_PATH_REMOVABLE
 set _KERL_MANPATH_REMOVABLE = "$directory/lib/erlang/man:$directory/man"
 if ( \$?MANPATH ) then
     if ( "\$MANPATH" == "" ) then
-        setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}"
+        setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\`manpath\`"
     else
         setenv MANPATH "\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
     endif

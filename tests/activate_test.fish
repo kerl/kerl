@@ -13,7 +13,7 @@ REBAR_PLT_DIR=$DIR\
     if test -n "$MANPATH"
         echo "MANPATH=$DIR/lib/erlang/man:$DIR/man:$MANPATH"
     else
-        echo "MANPATH=$DIR/lib/erlang/man:$DIR/man"
+        echo "MANPATH=$DIR/lib/erlang/man:$DIR/man:$(manpath)"
     end
     set ERLCALLDIR (find "$DIR" -type d -path "*erl_interface*/bin" 2>/dev/null)
     if test -n "$ERLCALLDIR"
