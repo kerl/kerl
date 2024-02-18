@@ -1314,7 +1314,7 @@ if [ -n "\${MANPATH+x}" ]; then
     if [ -n "\$MANPATH" ]; then
         MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$MANPATH"
     else
-        MANPATH="\${_KERL_MANPATH_REMOVABLE}"
+        MANPATH="\${_KERL_MANPATH_REMOVABLE}:\$(manpath)"
     fi
 else
     MANPATH="\${_KERL_MANPATH_REMOVABLE}"
