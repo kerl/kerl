@@ -267,16 +267,16 @@ The available releases are:
 24.0-rc3.1-orgname
 24.3.4.16
 24.3.4.16.1.1-orgname
-25.0-rc3
-25.0-rc3.1-orgname
-25.3.2.9
-25.3.2.9.1-orgname
-26.0-rc3
-26.0-rc3.1-orgname
-26.2.2
-26.2.2.1-orgname
-27.0
-27.0.1-orgname
+25.0-rc3 *
+25.0-rc3.1-orgname *
+25.3.2.9 *
+25.3.2.9.1-orgname *
+26.0-rc3 *
+26.0-rc3.1-orgname *
+26.2.2 *
+26.2.2.1-orgname *
+27.0 *
+27.0.1-orgname *
 ```
 
 **Note**: this list, kept in a file managed by `kerl`, is different depending on the build backend
