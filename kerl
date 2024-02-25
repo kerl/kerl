@@ -650,7 +650,9 @@ exit_build() {
     fi
 
     if [ -n "$2" ]; then
-        rm -Rf "${KERL_BUILD_DIR:?}/$2"
+        if [ "${KERL_AUTOCLEAN:=1}" -eq 1 ]; then
+            rm -Rf "${KERL_BUILD_DIR:?}/$2"
+        fi
     fi
 
     unlock_build
