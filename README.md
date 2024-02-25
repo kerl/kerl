@@ -445,12 +445,12 @@ created via `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `K
 Default: `chunks`
 Available targets:
 
-- `man`: install manpage docs.
+- `man` (dropped in OTP 27): install manpage docs.
 - `html`: install HTML docs.
-- `pdf`: install PDF docs.
+- `pdf` (dropped in OTP 27): install PDF docs.
 - `chunks`: install the "chunks" format to get documentation from the `erl` REPL.
 
-You can set multiple type of targets separated by space, example `$KERL_DOC_TARGETS="man html pdf chunks"`
+You can set multiple type of targets separated by space, example `KERL_DOC_TARGETS="html chunks"`
 
 #### `KERL_INSTALL_MANPAGES`
 
