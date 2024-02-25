@@ -199,16 +199,9 @@ autoclean() {
     if [ "${KERL_AUTOCLEAN:=1}" -eq 1 ]; then
         notice "Auto cleaning all artifacts except the log file..."
         tip "(use KERL_AUTOCLEAN=0 to keep build on failure, if desired)"
-        # Save LOGFILE
-        tmplf="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
-        test -f "$BUILD_LOGFILE" && cp -f "$BUILD_LOGFILE" "$tmplf"
         # Cleaning current build
         cd - 1>/dev/null 2>&1 || return 0
         test -n "$1" && ${_KERL_SCRIPT} cleanup "$1"
-        # Copy BUILD_LOGFILE back to keep track of all attempts until success
-        mkdir -p "$(dirname "$BUILD_LOGFILE")"
-        mv -f "$tmplf" "$BUILD_LOGFILE"
-        unset tmplf
     else
         warn "auto cleaning (on failure) disabled!"
     fi
@@ -649,6 +642,8 @@ exit_build() {
         error "$1"
     fi
 
+    tmp=$(save_logfile)
+
     if [ -n "$2" ]; then
         if [ "${KERL_AUTOCLEAN:=1}" -eq 1 ]; then
             rm -Rf "${KERL_BUILD_DIR:?}/$2"
@@ -656,6 +651,7 @@ exit_build() {
     fi
 
     unlock_build
+    restore_logfile "$tmp"
 
     exit 1
 }
@@ -989,12 +985,27 @@ probe_pkgs() {
     fi
 }
 
+save_logfile() {
+    tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
+    test -f "$BUILD_LOGFILE" && cp -f "$BUILD_LOGFILE" "$tmp"
+    echo "$tmp"
+}
+
+restore_logfile() {
+    # $1: logfile to restore
+
+    mkdir -p "$(dirname "$BUILD_LOGFILE")"
+    test -n "$BUILD_LOGFILE" && mv -f "$1" "$BUILD_LOGFILE"
+    rm -f "$1"
+}
+
 fail_do_build() {
     # $1: error message
     # $2: build name
     # $3: release
 
     show_build_logfile "$1"
+    tmp=$(save_logfile)
 
     if [ -n "$2" ]; then
         autoclean "$2"
@@ -1003,6 +1014,8 @@ fail_do_build() {
     if [ -n "$3" ]; then
         list_remove builds "$3 $2"
     fi
+
+    restore_logfile "$tmp"
 }
 
 uname_r_label() {
