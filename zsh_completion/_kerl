@@ -16,151 +16,186 @@
 #
 # ------------------------------------------------------------------------------
 
-# TODO: These are naive and stupid
-_kerl_available_releases() {
-  # we use the file directly as `kerl list releases` dumps extraneous data to stdout
-  releases=(${(f)"$(_call_program releases cat ~/.kerl/otp_releases)"})
+_kerl_otp_releases() {
+    releases=(${(f)"$(_call_program releases cat ~/.kerl/otp_releases 2>/dev/null)"})
 }
 
-_kerl_builds() {
-  builds=(${(f)"$(_call_program builds kerl list builds 2>/dev/null | cut -f 2 -d ",")"})
+_kerl_otp_builds() {
+    builds=(${(f)"$(_call_program builds cat ~/.kerl/otp_builds 2>/dev/null | cut -f 2 -d ",")"})
 }
 
-_kerl_installations() {
-  installations=(${(f)"$(_call_program installations kerl list installations 2>/dev/null | cut -f 2 -d " ")"})
+_kerl_otp_installations_names() {
+    installations=(${(f)"$(_call_program installations cat ~/.kerl/otp_installations 2>/dev/null | cut -f 2 -d " ")"})
 }
 
-_kerl_installnames() {
-    installnames=(${(f)"$(_call_program installations kerl list installations 2>/dev/null | cut -f 2 -d " " | xargs basename)"})
+_kerl_otp_installations_directories() {
+    installations=(${(f)"$(_call_program installations cat ~/.kerl/otp_installations 2>/dev/null | cut -f 2 -d " " | xargs basename)"})
 }
 
 local -a _1st_arguments
 _1st_arguments=(
-  'build:Build specified release or git repository'
-  'install:Install the specified release at the given location'
-  'build-install:Build+install specified release or git repository'
-  'deploy:Deploy the specified installation to the given host and location'
-  'update:Update the list of available releases from erlang.org'
-  'upgrade:Upgrade kerl to the latest available version'
-  'list:List releases, builds and installations'
-  'delete:Delete builds and installations'
-  'active:Print the path of the active installation'
-  'path:Print the path of any installation'
-  'status:Print available builds and installations'
-  'prompt:Print a string suitable for insertion in prompt'
-  'cleanup:Remove compilation artifacts (use after installation)'
+    'build:Build specified release or git repository'
+    'install:Install the specified release at the given location'
+    'build-install:Builds and installs the specified release or git repository at the given location'
+    'deploy:Deploy the specified installation to the given host and location'
+    'update:Update the list of available releases from your source provider'
+    'list:List releases, builds and installations'
+    'delete:Delete builds and installations'
+    'path:Print the path of a given installation'
+    'active:Print the path of the active installation'
+    'plt:Print Dialyzer PLT path for the active installation'
+    'status:Print available builds and installations'
+    'prompt:Print a string suitable for insertion in prompt'
+    'cleanup:Remove compilation artifacts (use after installation)'
+    'emit-activate:Print the activate script'
+    'upgrade:Fetch and install the most recent kerl release'
+    'version:Print current version'
 )
 
 local -a _list_options
 _list_options=(
-    'releases:All available OTP releases'
+    'releases:Available OTP releases'
     'builds:All locally built OTP releases'
     'installations:All locally installed OTP builds'
+)
+local -a _delete_options
+_delete_options=(
+    'build:Delete a specific build'
+    'installation:Delete a specific installation'
+)
+local -a _list_releases_options
+_list_releases_options=(
+    'all:All available OTP releases'
 )
 local -a _update_options
 _update_options=(
     'releases:All available OTP releases'
 )
 
-local expl
-local -a releases builds installations
-
 _arguments \
-  '*:: :->subcmds' && return 0
+    '*:: :->subcmds' && return 0
 
 if (( CURRENT == 1 )); then
-  _describe -t commands "kerl subcommand" _1st_arguments
-  return
+    _describe -t commands 'kerl subcommand' _1st_arguments
+    return
 fi
 
-case "$words[1]" in
-  active) ;;
-  status) ;;
-  prompt) ;;
-  build)
-    _arguments \
-        '1: :->rels' \
-        '2: :->buildnames' && return 0
-
-        if [[ "$state" == rels ]]; then
-            _kerl_available_releases
-            _wanted releases expl 'all releases' compadd -a releases
-        elif [[ "$state" == buildnames ]]; then
-            
-        fi;;
-        # TODO: suggest build name as $(lowercase $release)
-  install)
-      _arguments \
-        '1: :->blds' \
-        '2::location:_path_files -W "(~/kerl)"' && return 0
-        ## TODO: This path should not be hard-coded!
-        
-      if [[ "$state" == blds ]]; then
-        _kerl_builds
-        _wanted builds expl 'all builds' compadd -a builds
-        return
-      fi
-      # TODO: suggest starting location of "$KERLDIR/$(lowercase $build)"
-      _directories
-      ;;
-  build-install)
-    _arguments \
-        '1: :->rels' \
-
-        if [[ "$state" == rels ]]; then
-            _kerl_available_releases
+case "${words[1]}" in
+    build)
+        _arguments \
+            '1: :->release' \
+            && return 0
+        if [[ "$state" == "release" ]]; then
+            _kerl_otp_releases
+            releases=('git' "$releases")
             _wanted releases expl 'all releases' compadd -a releases
         fi
         ;;
-  path)
-      _arguments \
-          '1: :->installnames' && return 0
-      if [[ "$state" == installnames ]]; then
-          _kerl_installnames
-          _wanted installnames expl '' compadd -a installnames
-          return
-      fi
-      ;;
-  deploy) 
-      _arguments \
-          '1: :->hosts' \
-          '2: :->installs' && return 0
-      
-      if [[ "$state" == hosts ]]; then
-          _hosts
-          return
-      elif [[ "$state" == installs ]]; then
-          _kerl_installations
-          _wanted installations expl 'all installations' compadd -a installations
-          return
-      fi
-      ;; # TODO: [remote directory] (or at least prompt)
-  update) 
-      _arguments '1: :->updopts' && return 0
-      if [[ "$state" == updopts ]]; then _describe "kerl update options" _update_options; fi
-      ;;
-  list)
-      _arguments '1: :->listopts' && return 0
-      if [[ "$state" == listopts ]]; then _describe "kerl list options" _list_options; fi
-      ;;
-  delete) 
-      _arguments \
-          '1:<build|installation>:(build installation)'  && return 0
-
-      case "$words[2]" in
-          build)
-              _kerl_builds
+    install)
+        _arguments \
+            '1: :->build_name' \
+            && return 0
+        if [[ "$state" == "build_name" ]]; then
+            _kerl_otp_builds
+            _wanted builds expl 'all builds' compadd -a builds
+            return
+        fi
+        _directories
+        ;;
+    build-install)
+        _arguments \
+            '1: :->release' \
+            && return 0
+        if [[ "$state" == "release" ]]; then
+            _kerl_otp_releases
+            releases=('git' "$releases")
+            _wanted releases expl 'all releases' compadd -a releases
+        fi
+        ;;
+    deploy)
+        _arguments \
+            '1: :->user_host' \
+            '2: :->directory' \
+            && return 0
+        if [[ "$state" == "user_host" ]]; then
+            _hosts
+        elif [[ "$state" == "directory" ]]; then
+            _kerl_otp_installations_names
+            _wanted installations expl 'all installations' compadd -a installations
+        fi
+        ;;
+    update)
+        _arguments \
+            '1: :->releases' \
+            && return 0
+        if [[ "$state" == "releases" ]]; then
+            _describe 'kerl update options' _update_options
+        fi
+        ;;
+    list)
+        _arguments \
+            '1: :->releases_builds_installations' \
+            '2: :->all' \
+            && return 0
+        if [[ "$state" == "releases_builds_installations" ]]; then
+            _describe 'kerl list options' _list_options
+        elif [[ "$state" == all ]] && [[ "${words[2]}" == "releases" ]]; then
+            _describe 'kerl list release options' _list_releases_options
+        fi
+        ;;
+    delete)
+        _arguments \
+            '1: :->build_installation' \
+            '2: :->build_name_or_directory' \
+            && return 0
+        if [[ "$state" == "build_installation" ]]; then
+            _describe 'kerl delete options' _delete_options
+        elif [[ "$state" == "build_name_or_directory" ]]; then
+          if [[ "${words[2]}" == "build" ]]; then
+              _kerl_otp_builds
               _wanted builds expl 'all builds' compadd -a builds
-              return
-              ;;
-          installation)
-              _kerl_installations
+          elif [[ "${words[2]}" == "installation" ]]; then
+              _kerl_otp_installations_names
               _wanted installations expl 'all installations' compadd -a installations
-              return
-      esac
-      ;;
-  cleanup) 
-      _kerl_builds
-      builds=('all' $builds)
-      _wanted builds expl 'all builds' compadd -a builds;;
+          fi
+        fi
+        ;;
+    path)
+        _arguments \
+            '1: :->installation' \
+            && return 0
+        if [[ "$state" == "installation" ]]; then
+            _kerl_otp_installations_directories
+            _wanted installations expl 'all installations' compadd -a installations
+        fi
+        ;;
+    cleanup)
+        if (( "$#words" > 2 )); then
+          return
+        fi
+        _kerl_otp_builds
+        builds=('all' "$builds")
+        _wanted builds expl 'all builds' compadd -a builds
+        ;;
+    emit-activate)
+        _arguments \
+            '1: :->release' \
+            '2: :->build_name' \
+            '3: :->directory' \
+            '4: :->shell' \
+            && return 0
+        if [[ "$state" == "release" ]]; then
+            _kerl_otp_releases
+            _wanted releases expl 'all releases' compadd -a releases
+        elif [[ "$state" == "build_name" ]]; then
+              _kerl_otp_builds
+              _wanted builds expl 'all builds' compadd -a builds
+        elif [[ "$state" == "directory" ]]; then
+            _kerl_otp_installations_names
+            _wanted installations expl 'all installations' compadd -a installations
+        elif [[ "$state" == "shell" ]]; then
+          shells=('sh' 'bash' 'fish' 'csh')
+          _wanted shells expl 'supported shells' compadd -a shells
+        fi
+        ;;
 esac

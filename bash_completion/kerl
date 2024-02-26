@@ -7,89 +7,123 @@
 # shellcheck disable=SC2312  # Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore)
 
 _kerl() {
-    local cur prev
-    if type _get_comp_words_by_ref &>/dev/null; then
-        _get_comp_words_by_ref cur prev
-    else
-        cur=$2 prev=$3
+    local command cur prev releases builds installations file
+
+    command=${COMP_WORDS[1]}
+    cur=${COMP_WORDS[${#COMP_WORDS[@]} - 1]}
+    prev=${COMP_WORDS[${#COMP_WORDS[@]} - 2]}
+
+    if [ "$COMP_CWORD" -eq 1 ]; then
+        COMPREPLY=($(compgen -W 'build install build-install deploy update list delete path active plt status prompt cleanup emit-activate upgrade version' -- "$cur"))
     fi
 
-    case $prev in
-    kerl)
-        COMPREPLY=($(compgen -W 'build install build-install update upgrade list delete active path status' -- "$cur"))
-        ;;
-    list)
-        COMPREPLY=($(compgen -W 'releases builds installations' -- "$cur"))
-        ;;
+    case $command in
     build)
         if [ "$COMP_CWORD" -eq 2 ]; then
-            if [ -f "$HOME"/.kerl/otp_releases ]; then
-                RELEASES=$(cat "$HOME"/.kerl/otp_releases)
+            file="$HOME"/.kerl/otp_releases
+            if [ -f "$file" ]; then
+                releases=$(cat "$file")
             fi
-            COMPREPLY=($(compgen -W "git $RELEASES" -- "$cur"))
-        else
-            if [ -f "$HOME"/.kerl/otp_builds ]; then
-                BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
-            fi
-            COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
+            COMPREPLY=($(compgen -W "git $releases" -- "$cur"))
         fi
-        ;;
-    installation)
-        if [ -f "$HOME"/.kerl/otp_installations ]; then
-            PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
-        fi
-        COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
         ;;
     install)
-        if [ -f "$HOME"/.kerl/otp_builds ]; then
-            BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
+        file="$HOME"/.kerl/otp_builds
+        if [ "$COMP_CWORD" -eq 2 ] && [ -f "$file" ]; then
+            builds=$(cut -d ',' -f 2 "$file")
+            COMPREPLY=($(compgen -W "$builds" -- "$cur"))
         fi
-        COMPREPLY=($(compgen -W "$BUILDS" -- "$cur"))
         ;;
     build-install)
         if [ "$COMP_CWORD" -eq 2 ]; then
-            if [ -f "$HOME"/.kerl/otp_releases ]; then
-                RELEASES=$(cat "$HOME"/.kerl/otp_releases)
+            file="$HOME"/.kerl/otp_releases
+            if [ -f "$file" ]; then
+                releases=$(cat "$file")
             fi
-            COMPREPLY=($(compgen -W "$RELEASES"))
+            COMPREPLY=($(compgen -W "git $releases" -- "$cur"))
+        fi
+        ;;
+    deploy)
+        file="$HOME"/.kerl/otp_installations
+        if [ "$COMP_CWORD" -eq 3 ] && [ -f "$file" ]; then
+            installations=$(cut -d ' ' -f 2 "$file")
+            COMPREPLY=($(compgen -W "$installations" -- "$cur"))
+        fi
+        ;;
+    update)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            COMPREPLY=($(compgen -W 'releases' -- "$cur"))
+        fi
+        ;;
+    list)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            COMPREPLY=($(compgen -W 'releases builds installations' -- "$cur"))
+        elif [ "$COMP_CWORD" -eq 3 ] && [ "$prev" == "releases" ]; then
+            COMPREPLY=($(compgen -W 'all' -- "$cur"))
+        fi
+        ;;
+    delete)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            COMPREPLY=($(compgen -W 'build installation' -- "$cur"))
+        elif [ "$COMP_CWORD" -eq 3 ]; then
+            if [ "$prev" == "build" ]; then
+                file="$HOME"/.kerl/otp_builds
+                if [ -f "$file" ]; then
+                    builds=$(cut -d ',' -f 2 "$file")
+                    COMPREPLY=($(compgen -W "$builds" -- "$cur"))
+                fi
+            elif [ "$prev" == "installation" ]; then
+                file="$HOME"/.kerl/otp_installations
+                if [ -f "$file" ]; then
+                    installations=$(cut -d ' ' -f 2 "$file")
+                    COMPREPLY=($(compgen -W "$installations" -- "$cur"))
+                fi
+            fi
         fi
         ;;
     path)
-        INSTALL_LIST="$HOME"/.kerl/otp_installations
-        if [ -f "$INSTALL_LIST" ]; then
-            NAMES=$(cut -d ' ' -f 2 "$INSTALL_LIST" | xargs basename)
-        fi
-        COMPREPLY=($(compgen -W "$NAMES" -- "$cur"))
-        ;;
-    deploy)
-        if [ "$COMP_CWORD" -eq 3 ]; then
-            if [ -f "$HOME"/.kerl/otp_installations ]; then
-                PATHS=$(cut -d ' ' -f 2 "$HOME"/.kerl/otp_installations)
-            fi
-        fi
-        COMPREPLY=($(compgen -W "$PATHS" -- "$cur"))
-        ;;
-    delete)
-        COMPREPLY=($(compgen -W 'build installation' -- "$cur"))
-        ;;
-    update)
-        COMPREPLY=($(compgen -W 'releases' -- "$cur"))
-        ;;
-    *)
-        if [ "$COMP_CWORD" -eq 3 ]; then
-            if [ -f "$HOME"/.kerl/otp_builds ]; then
-                BUILDS=$(cut -d ',' -f 2 "$HOME"/.kerl/otp_builds)
-            fi
-            if [ -n "$BUILDS" ]; then
-                for b in $BUILDS; do
-                    if [ "$prev" = "$b" ]; then
-                        _filedir
-                        return 0
-                    fi
-                done
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            file="$HOME"/.kerl/otp_installations
+            if [ -f "$file" ]; then
+                installations=$(cut -d ' ' -f 2 "$file" | xargs basename)
+                COMPREPLY=($(compgen -W "$installations" -- "$cur"))
             fi
         fi
         ;;
+    cleanup)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            file="$HOME"/.kerl/otp_builds
+            if [ -f "$file" ]; then
+                builds=$(cut -d ',' -f 2 "$file")
+            fi
+            COMPREPLY=($(compgen -W "all $builds" -- "$cur"))
+        fi
+        ;;
+    emit-activate)
+        if [ "$COMP_CWORD" -eq 2 ]; then
+            file="$HOME"/.kerl/otp_releases
+            if [ -f "$file" ]; then
+                releases=$(cat "$file")
+                COMPREPLY=($(compgen -W "$releases" -- "$cur"))
+            fi
+        elif [ "$COMP_CWORD" -eq 3 ]; then
+            file="$HOME"/.kerl/otp_builds
+            if [ -f "$file" ]; then
+                builds=$(cut -d ',' -f 2 "$file")
+                COMPREPLY=($(compgen -W "$builds" -- "$cur"))
+            fi
+        elif [ "$COMP_CWORD" -eq 4 ]; then
+            file="$HOME"/.kerl/otp_installations
+            if [ -f "$file" ]; then
+                installations=$(cut -d ' ' -f 2 "$file")
+                COMPREPLY=($(compgen -W "$installations" -- "$cur"))
+            fi
+        elif [ "$COMP_CWORD" -eq 5 ]; then
+            COMPREPLY=($(compgen -W "sh bash fish csh" -- "$cur"))
+        fi
+        ;;
+    *) ;;
     esac
 }
+
 complete -F _kerl kerl
