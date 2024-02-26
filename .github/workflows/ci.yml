@@ -1,6 +1,10 @@
 ---
 name: CI
-'on': [push, pull_request]
+'on':
+  - push
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
 env:
   ERLC_USE_SERVER: true
   KERL_DEBUG: 'yes'
