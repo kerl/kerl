@@ -1,7 +1,13 @@
 ---
 name: CI
 'on':
-  - push
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+  workflow_dispatch: {}
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
@@ -24,14 +30,14 @@ jobs:
             /bin/bash -c "$(curl -fsSL \
               https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=yes \
-              brew install automake fop wxwidgets fish shellcheck shfmt coreutils
+              brew install automake wxwidgets fish shellcheck shfmt coreutils
           else
             sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
             sudo apt-get update -y
             sudo apt-get upgrade -y
             sudo apt-get install -y --no-install-recommends \
               git curl libssl-dev make automake autoconf libncurses5-dev gcc g++ default-jdk \
-              unixodbc-dev libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev xsltproc fop \
+              unixodbc-dev libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev xsltproc \
               libxml2-utils libsctp-dev lksctp-tools software-properties-common shellcheck \
               shfmt
             sudo apt-add-repository -y ppa:fish-shell/release-3
