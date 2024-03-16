@@ -25,6 +25,8 @@
   - Fix shell completion scripts (#501)
   - Extend `KERL_AUTOCLEAN` to Git-based builds (#511)
   - Have CI run on pull request, workflow dispatch and push to main (#516)
+  - Ignore ownership and permissions of files in OTP source archives (#515)
+  
 12 October 2023 - 4.0.0
 
   - Fix fish shell deactivate (#460)
