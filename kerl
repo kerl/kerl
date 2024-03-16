@@ -466,6 +466,12 @@ _curl() {
     \curl -q --silent --location --fail $2 $3 $_curl_extra
 }
 
+unpack() {
+    # $1: <file> to extract to current directory
+
+    tar -x --no-same-owner --no-same-permissions -zf "$1"
+}
+
 get_tarball_releases() {
     tmp="$(mktemp "$TMP_DIR"/kerl.XXXXXX)"
     notice "Getting releases from erlang.org..."
@@ -818,7 +824,7 @@ do_normal_build() {
         # github tarballs have a directory in the form of "otp[_-]TAGNAME"
         # Ericsson tarballs have the classic otp_src_RELEASE pattern
         # Standardize on Ericsson format because that's what the rest of the script expects
-        (cd "$UNTARDIRNAME" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME".tar.gz &&
+        (cd "$UNTARDIRNAME" && unpack "$KERL_DOWNLOAD_DIR/$FILENAME".tar.gz &&
             cp -rfp ./* "$_KERL_BUILD_DIR/otp_src_$1")
         rm -rf "$UNTARDIRNAME"
     fi
@@ -1786,7 +1792,7 @@ download_manpages() {
         return 1
     fi
     notice "Extracting man pages..."
-    (cd "$absdir" && tar xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+    (cd "$absdir" && unpack "$KERL_DOWNLOAD_DIR/$FILENAME")
 }
 
 download_htmldocs() {
@@ -1795,7 +1801,7 @@ download_htmldocs() {
         return 1
     fi
     notice "Extracting HTML docs..."
-    (cd "$absdir" && mkdir -p html && tar -C "$absdir"/html -xzf "$KERL_DOWNLOAD_DIR/$FILENAME")
+    (cd "$absdir" && mkdir -p html && cd html && unpack "$KERL_DOWNLOAD_DIR/$FILENAME")
 }
 
 build_plt() {
