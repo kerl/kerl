@@ -1,6 +1,32 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+3 March 2024 - 4.1.0
+
+  - Ease log and output code maintenance (#476)
+  - Fix as per Lint workflow (#477)
+  - Update README.md (#478)
+  - Add lock/unlock for build git, build, and install (#479)
+  - Fix `is_older_than_x_days`: use `find` instead of `stat` (#481)
+  - Simplify code maintenance (#480)
+  - Fix/improve output on errors (#482)
+  - Fix typos in security policy (#486)
+  - Fix awk script (#484)
+  - Warn on stale build due to kernel changed (#485)
+  - Fix verification for `$#` in `kerl delete build` (#489)
+  - Minor fixes around `delete installation` (#488)
+  - Fix/complement `cleanup` (#492)
+  - Be more specific in the packages we suggest for installation (#491)
+  - Fix broken Zsh completion scripts (#497)
+  - `brew` in CI: don't install updates "just because" (#499)
+  - Attempt auto-cleanup of `otp_builds` and `otp_installations`, at every run (#490)
+  - Make Pop!_OS a `kerl`-known Linux distro, for package probing (#505)
+  - Prevent GitHub CI warnings on "Node.js 16 actions are deprecated" (#506)
+  - Fix shell completion scripts (#501)
+  - Extend `KERL_AUTOCLEAN` to Git-based builds (#511)
+  - Have CI run on pull request, workflow dispatch and push to main (#516)
+  - Ignore ownership and permissions of files in OTP source archives (#515)
+  
 12 October 2023 - 4.0.0
 
   - Fix fish shell deactivate (#460)
