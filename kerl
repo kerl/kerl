@@ -1196,11 +1196,11 @@ _do_build() {
     if [ -n "$KERL_BUILD_DOCS" ]; then
         notice "Building docs..."
         # shellcheck disable=SC2154  # KERL_DOC_TARGETS is referenced but not assigned
-        if ! log_build_cmd "make docs DOC_TARGETS=$KERL_DOC_TARGETS"; then
+        if ! log_build_cmd "make docs DOC_TARGETS=\"$KERL_DOC_TARGETS\""; then
             fail_do_build "building docs failed." "$2" "$1"
             return 1
         fi
-        if ! log_build_cmd "make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1"; then
+        if ! log_build_cmd "make release_docs DOC_TARGETS=\"$KERL_DOC_TARGETS\" RELEASE_ROOT=$KERL_BUILD_DIR/$2/release_$1"; then
             fail_do_build "release of docs failed." "$2" "$1"
             return 1
         fi
@@ -1722,7 +1722,7 @@ do_install() {
             error "couldn't cd into $ERL_TOP."
             exit_install
         fi
-        if ! log_install_cmd "ERL_TOP=$ERL_TOP make release_docs DOC_TARGETS=$KERL_DOC_TARGETS RELEASE_ROOT=$absdir"; then
+        if ! log_install_cmd "ERL_TOP=$ERL_TOP make release_docs DOC_TARGETS=\"$KERL_DOC_TARGETS\" RELEASE_ROOT=$absdir"; then
             show_install_logfile "couldn't install docs for Erlang/OTP $rel ($build_name) in $absdir"
             exit_install
         fi
