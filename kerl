@@ -882,7 +882,7 @@ _apk() {
 
 common_ALL_pkgs="gcc make"
 common_ALL_BUILD_BACKEND_git_pkgs="automake autoconf"
-common_debian_pkgs="${common_ALL_pkgs} libssl-dev libncurses5-dev g++"
+common_debian_pkgs="${common_ALL_pkgs} libssl-dev libncurses[^w]*dev g++"
 
 # To add package guessing magic for your Linux distro/package,
 # create a variable named _KPP_<distro>_pkgs where the content
