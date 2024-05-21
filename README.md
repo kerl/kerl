@@ -239,7 +239,7 @@ $ kerl deploy anotherhost /usr/local/lib/erlang/27.0
 Cloning Erlang/OTP 27.0 (/usr/local/lib/erlang/27.0) to anotherhost (/usr/local/lib/erlang/27.0)...
 ```
 
-On anotherhost, you can activate this installation running the following command:
+On `anotherhost`, you can activate this installation running the following command:
 
 ```console
 $ . /usr/local/lib/erlang/27.0/activate
