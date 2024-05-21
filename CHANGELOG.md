@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+21 May 2024 - 4.1.1
+
+  - KERL_DOC_TARGETS needs to be quoted (#520)
+  - Probe fails for `libncurses5-dev` (#521)
+  - Standardize on `libncurses-dev` for `dpkg` package probing (#523)
+  - Prepare for OTP 27 (#507)
+
 3 March 2024 - 4.1.0
 
   - Ease log and output code maintenance (#476)
