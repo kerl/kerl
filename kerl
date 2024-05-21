@@ -42,7 +42,7 @@ fi
 
 KERL_VERSION='4.1.0'
 OLDEST_OTP_LISTED='17'
-OLDEST_OTP_SUPPORTED='24'
+OLDEST_OTP_SUPPORTED='25'
 
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
@@ -847,7 +847,7 @@ _flags() {
     # (macOS 10.15)
     #
     # As of OTP 20.1 that is (apparently) no longer necessary and
-    # in OTP 24 breaks stuff. See thread and comment here:
+    # from OTP 24 breaks stuff. See thread and comment here:
     # https://github.com/erlang/otp/issues/4821#issuecomment-845914942
     case "$KERL_SYSTEM" in
     Darwin)
@@ -1034,6 +1034,9 @@ uname_r() {
 }
 
 _do_build() {
+    # $1: release (or git)
+    # $2: build name
+
     init_build_logfile "$1" "$2"
     log_build_entry "*** $(date) - kerl build $1 ***"
     log_build_entry "Build options:"
@@ -1195,6 +1198,14 @@ _do_build() {
     fi
     if [ -n "$KERL_BUILD_DOCS" ]; then
         notice "Building docs..."
+        OPT_VERSION=$(get_otp_version "$(cat OTP_VERSION)")
+        if [ "$OPT_VERSION" -ge 27 ]; then
+            # from OTP 27 on we depend on ex_doc to build the documentation
+            if ! log_build_cmd "./otp_build download_ex_doc"; then
+                fail_do_build "download_ex_doc failed." "$2" "$1"
+                return 1
+            fi
+        fi
         # shellcheck disable=SC2154  # KERL_DOC_TARGETS is referenced but not assigned
         if ! log_build_cmd "make docs DOC_TARGETS=\"$KERL_DOC_TARGETS\""; then
             fail_do_build "building docs failed." "$2" "$1"

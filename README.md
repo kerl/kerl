@@ -95,9 +95,10 @@ $ kerl list releases
 21.3.8.24
 22.3.4.26
 23.3.4.19
-24.3.4.13 *
-25.3.2.6 *
-26.1 *
+24.3.4.16
+25.3.2.9 *
+26.2.2 *
+27.0 *
 Run './kerl update releases' to update this list.
 Run './kerl list releases all' to view all available releases.
 Note: * means "currently supported".
@@ -106,44 +107,44 @@ Note: * means "currently supported".
 Pick your choice and build it:
 
 ```console
-$ kerl build 25.3 25.3
-Downloading (from GitHub) Erlang/OTP 25.3 to /home/user/.kerl/archives...
+$ kerl build 27.0 27.0
+Downloading (from GitHub) Erlang/OTP 27.0 to /home/user/.kerl/archives...
 ...
 Extracting source code for normal build...
-Building (normal) Erlang/OTP 25.3 (25.3); please wait...
+Building (normal) Erlang/OTP 27.0 (27.0); please wait...
 ...
-Erlang/OTP 25.3 (25.3) has been successfully built.
+Erlang/OTP 27.0 (27.0) has been successfully built.
 ```
 
 Note that named builds allow you to have different builds for the same Erlang/OTP release with
 different configure options:
 
 ```console
-$ KERL_BUILD_DOCS=yes kerl build 25.3 25.3-builtdocs
+$ KERL_BUILD_DOCS=yes kerl build 27.0 27.0-builtdocs
 Extracting source code for normal build...
-Building Erlang/OTP 25.3 (25.3-builtdocs); please wait...
+Building Erlang/OTP 27.0 (27.0-builtdocs); please wait...
 ...
 Building docs...
-Erlang/OTP 25.3 (25.3-builtdocs) has been successfully built.
+Erlang/OTP 27.0 (27.0-builtdocs) has been successfully built.
 ```
 
 You can verify your build has been registered:
 
 ```console
 $ kerl list builds
-25.3,25.3
-25.3,25.3-builtdocs
+27.0,27.0
+27.0,27.0-builtdocs
 ```
 
 Now install a build to some location:
 
 ```console
-$ kerl install 25.3 /usr/local/lib/erlang/25.3
-Installing Erlang/OTP 25.3 (25.3) in /usr/local/lib/erlang/25.3...
+$ kerl install 27.0 /usr/local/lib/erlang/27.0
+Installing Erlang/OTP 27.0 (27.0) in /usr/local/lib/erlang/27.0...
 Building Dialyzer PLT...
-Done building /usr/local/lib/erlang/25.3/dialyzer/plt.
+Done building /usr/local/lib/erlang/27.0/dialyzer/plt.
 You can activate this installation running the following command:
-. /usr/local/lib/erlang/25.3/activate
+. /usr/local/lib/erlang/27.0/activate
 Later on, you can leave the installation typing:
 kerl_deactivate
 ```
@@ -152,13 +153,13 @@ Here again you can check the installation's been registered:
 
 ```console
 $ kerl list installations
-25.3 /usr/local/lib/erlang/25.3
+27.0 /usr/local/lib/erlang/27.0
 ```
 
 And at last activate it:
 
 ```console
-$ . /usr/local/lib/erlang/25.3/activate
+$ . /usr/local/lib/erlang/27.0/activate
 ```
 
 Activation will backup your `$PATH`, and prepend it with the installation's `bin/`
@@ -178,7 +179,7 @@ $ kerl build-install git
 usage: ./kerl build-install git <git_url> <git_version> <build_name> [directory]
 ```
 
-You're now ready to work with your 25.3 installation:
+You're now ready to work with your 27.0 installation:
 
 ```console
 $ erl -version
@@ -196,7 +197,7 @@ Anytime you can check which installation, if any, is currently active with:
 ```console
 $ kerl active
 The current active installation is:
-/usr/local/lib/erlang/25.3
+/usr/local/lib/erlang/27.0
 ```
 
 You can get an overview of the current `kerl` state with:
@@ -204,16 +205,16 @@ You can get an overview of the current `kerl` state with:
 ```console
 $ kerl status
 Available builds:
-25.3,25.3
-25.3,25.3-builtdocs
+27.0,27.0
+27.0,27.0-builtdocs
 ----------
 Available installations:
-25.3 /usr/local/lib/erlang/25.3
+27.0 /usr/local/lib/erlang/27.0
 ----------
 The current active installation is:
-/usr/local/lib/erlang/25.3
+/usr/local/lib/erlang/27.0
 The Dialyzer PLT for the active installation is:
-/usr/local/lib/erlang/25.3/dialyzer/plt
+/usr/local/lib/erlang/27.0/dialyzer/plt
 The build options for the active installation are:
 ...
 ```
@@ -221,27 +222,27 @@ The build options for the active installation are:
 You can delete builds and installations with the following commands:
 
 ```console
-$ kerl delete build 25.3-builtdocs
-Build '25.3-builtdocs' has been deleted.
+$ kerl delete build 27.0-builtdocs
+Build '27.0-builtdocs' has been deleted.
 ```
 
 ```console
-$ kerl delete installation 25.3
-Installation '25.3' has been deleted.
+$ kerl delete installation 27.0
+Installation '27.0' has been deleted.
 ```
 
 You can easily deploy an installation to another host having `ssh` and `rsync` access with the
 following command:
 
 ```console
-$ kerl deploy anotherhost /usr/local/lib/erlang/25.3
-Cloning Erlang/OTP 25.3 (/usr/local/lib/erlang/25.3) to anotherhost (/usr/local/lib/erlang/25.3)...
+$ kerl deploy anotherhost /usr/local/lib/erlang/27.0
+Cloning Erlang/OTP 27.0 (/usr/local/lib/erlang/27.0) to anotherhost (/usr/local/lib/erlang/27.0)...
 ```
 
-On anotherhost, you can activate this installation running the following command:
+On `anotherhost`, you can activate this installation running the following command:
 
 ```console
-$ . /usr/local/lib/erlang/25.3/activate
+$ . /usr/local/lib/erlang/27.0/activate
 ```
 
 Later on, you can leave the installation typing:
@@ -261,18 +262,21 @@ $ export OTP_GITHUB_URL='https://github.com/<orgname>/otp'
 $ KERL_INCLUDE_RELEASE_CANDIDATES=yes kerl update releases
 Getting releases from GitHub...
 The available releases are:
-24.0-rc1 *
-24.0-rc1.1-orgname *
 ...
-24.3.4.13 *
-24.3.4.13.1-orgname *
-25.0-rc1 *
-...
-25.3.2.3 *
-26.0-rc1 *
-26.0-rc1.1-orgname *
-...
-26.0.2 *
+24.0-rc3
+24.0-rc3.1-orgname
+24.3.4.16
+24.3.4.16.1.1-orgname
+25.0-rc3 *
+25.0-rc3.1-orgname *
+25.3.2.9 *
+25.3.2.9.1-orgname *
+26.0-rc3 *
+26.0-rc3.1-orgname *
+26.2.2 *
+26.2.2.1-orgname *
+27.0 *
+27.0.1-orgname *
 ```
 
 **Note**: this list, kept in a file managed by `kerl`, is different depending on the build backend
@@ -282,7 +286,7 @@ From here (provided the `KERL_BUILD_BACKEND` and `OTP_GITHUB_URL` variables rema
 possible to use `kerl` as before:
 
 ```console
-$ kerl build 26.0-rc1.1-orgname 26.0-rc1.1-orgname
+$ kerl build 27.0.1-orgname 27.0.1-orgname
 ```
 
 ### Building Erlang/OTP from a Git source
@@ -292,10 +296,10 @@ You can build Erlang/OTP directly from a Git repository with a command of the fo
 be either a branch, a tag or a commit id that will be passed to `git checkout`:
 
 ```console
-$ kerl build git https://github.com/erlang/otp.git OTP-24.3.4.13 24.3.4.13
+$ kerl build git https://github.com/erlang/otp.git OTP-27.0 27.0
 Checking out Erlang/OTP git repository from https://github.com/erlang/otp.git...
-Building (git) Erlang/OTP OTP-24.3.4.13; please wait...
-Erlang/OTP '25.3' (from git) has been successfully built.
+Building (git) Erlang/OTP OTP-27.0; please wait...
+Erlang/OTP '27.0' (from git) has been successfully built.
 ```
 
 ### Debugging `kerl` usage
@@ -441,12 +445,12 @@ created via `kerl build git...`, and according to `KERL_INSTALL_HTMLDOCS` and `K
 Default: `chunks`
 Available targets:
 
-- `man`: install manpage docs.
+- `man` (dropped in OTP 27): install manpage docs.
 - `html`: install HTML docs.
-- `pdf`: install PDF docs.
+- `pdf` (dropped in OTP 27): install PDF docs.
 - `chunks`: install the "chunks" format to get documentation from the `erl` REPL.
 
-You can set multiple type of targets separated by space, example `$KERL_DOC_TARGETS="man html pdf chunks"`
+You can set multiple type of targets separated by space, example `KERL_DOC_TARGETS="html chunks"`
 
 #### `KERL_INSTALL_MANPAGES`
 
@@ -523,9 +527,9 @@ $ kerl build git <git_url> <git_version> <build_name>
 Creates a named build either from an official Erlang/OTP release or from a git repository.
 
 ```console
-$ kerl build 25.3 25.3
+$ kerl build 27.0 27.0
 $ #or
-$ kerl build git https://github.com/erlang/otp.git OTP-24.3.4.13 24.3.4.13
+$ kerl build git https://github.com/erlang/otp.git OTP-27.0 27.0
 ```
 
 #### Tuning
@@ -545,7 +549,7 @@ variable, either in your `$HOME/.kerlrc` file or prepending it to the command
 line.
 
 ```console
-$ KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl" kerl build 25.0.3 25.0.3-minimal
+$ KERL_CONFIGURE_APPLICATIONS="kernel stdlib sasl" kerl build 27.0 27.0-minimal
 ```
 
 ##### Configure disable applications
@@ -556,7 +560,7 @@ building (and subsequent installing) Erlang/OTP with the
 file or prepending it to the command line.
 
 ```console
-$ KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc" kerl build 24.3.4.13 24.3.4.13-no-odbc
+$ KERL_CONFIGURE_DISABLE_APPLICATIONS="odbc" kerl build 27.0 27.0-no-odbc
 ```
 
 ##### Enable autoconf
@@ -611,7 +615,7 @@ $ kerl install <build_name> [directory]
 Installs a named build to the specified filesystem location.
 
 ```console
-$ kerl install 25.3 /usr/local/lib/erlang/25.3
+$ kerl install 27.0 /usr/local/lib/erlang/27.0
 ```
 
 If path is omitted the current working directory will be used. However, if
@@ -737,13 +741,13 @@ $ kerl delete installation <build_name|directory>
 Deletes the specified build or installation.
 
 ```console
-$ kerl delete build 25.3
-The 25.3 build has been deleted
+$ kerl delete build 27.0
+The 27.0 build has been deleted
 ```
 
 ```console
-$ kerl delete installation /usr/local/lib/erlang/25.3
-The installation in /usr/local/lib/erlang/25.3 has been deleted
+$ kerl delete installation /usr/local/lib/erlang/27.0
+The installation in /usr/local/lib/erlang/27.0 has been deleted
 ```
 
 ### `active`
@@ -757,7 +761,7 @@ Prints the path of the currently active installation, if any.
 ```console
 $ kerl active
 The current active installation is:
-/usr/local/lib/erlang/25.3
+/usr/local/lib/erlang/27.0
 ```
 
 ### `status`
@@ -771,16 +775,16 @@ Prints the available builds and installations as well as the currently active in
 ```console
 $ kerl status
 Available builds:
-25.3,25.3
-25.3,25.3-builtdocs
+27.0,27.0
+27.0,27.0-builtdocs
 ----------
 Available installations:
-25.3 /usr/local/lib/erlang/25.3
+27.0 /usr/local/lib/erlang/27.0
 ----------
 The current active installation is:
-/usr/local/lib/erlang/25.3
+/usr/local/lib/erlang/27.0
 Dialyzer PLT for the active installation is:
-/usr/local/lib/erlang/25.3/dialyzer/plt
+/usr/local/lib/erlang/27.0/dialyzer/plt
 The build options for the active installation are:
 ...
 ```
@@ -802,8 +806,8 @@ No active kerl-managed erlang installation
 ```
 
 ```console
-$ kerl path 24.3.3
-/usr/local/lib/erlang/24.3.3
+$ kerl path 27.0
+/usr/local/lib/erlang/27.0
 ```
 
 ### `build-install`

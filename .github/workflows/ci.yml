@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        otp_vsn: [24, 25, 26, master]
+        otp_vsn: [25, 26, 27, master]
         os: [ubuntu-22.04, macos-13]
     steps:
       - name: Update env.
@@ -58,6 +58,7 @@ jobs:
               echo '_KERL_PREFIX_GIT=git' >> $GITHUB_ENV
               echo '_KERL_PREFIX_GIT_TARGET=https://github.com/erlang/otp.git' >> $GITHUB_ENV
               echo 'KERL_BUILD_DOCS=yes' >> $GITHUB_ENV
+              echo 'KERL_DOC_TARGETS="html chunks"' >> $GITHUB_ENV
               _KERL_REL=git
               ;;
             *)
