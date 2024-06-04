@@ -489,6 +489,13 @@ Available variables:
 
 The format of the prompt section to add.
 
+#### `KERL_GIT_CLONE_DEPTH`
+
+Default: `not set`
+Value passed to `git clone --depth=` when using `kerl build git ...`.
+
+**Note**: this doesn't always result in smaller clones.
+
 ### Installation configuration
 
 #### `KERL_DEFAULT_INSTALL_DIR`

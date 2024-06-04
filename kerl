@@ -675,6 +675,19 @@ exit_install() {
     exit 1
 }
 
+get_git_clone_depth() {
+    if [ -n "${KERL_GIT_CLONE_DEPTH}" ]; then
+        depth=" --depth ${KERL_GIT_CLONE_DEPTH}"
+    fi
+    echo "${depth}"
+}
+
+output_git_clone_depth() {
+    if [ -n "${KERL_GIT_CLONE_DEPTH}" ]; then
+        echo " (depth = ${KERL_GIT_CLONE_DEPTH})"
+    fi
+}
+
 do_git_build() {
     git_url=$1
     git_version=$2
@@ -691,9 +704,10 @@ do_git_build() {
 
     mkdir -p "$KERL_GIT_DIR" || exit_build
     cd "$KERL_GIT_DIR" || exit_build
-    notice "Checking out Erlang/OTP git repository from $git_url..."
+    notice "Checking out Erlang/OTP git repository from $git_url...$(output_git_clone_depth)"
+    # shellcheck disable=SC2046  # Quote this to prevent word splitting
     if [ ! -d "$GIT" ] &&
-        ! git clone -q --mirror "$git_url" "$GIT" >/dev/null 2>&1; then
+        ! git clone$(get_git_clone_depth) -q --mirror "$git_url" "$GIT" >/dev/null 2>&1; then
         exit_build "mirroring remote git repository ($_KERL_BUILD_DIR exists?)."
     fi
 
