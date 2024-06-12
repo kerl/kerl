@@ -312,6 +312,18 @@ a best effort attempt at line numbers. The line numbers may or may not be accura
 
 You can tune `kerl` using the `.kerlrc` file in your `$HOME` directory.
 
+### `kerl` and OpenSSL
+
+If you're running `kerl` on macOS, it will try to guess the OpenSSL
+version to use if none is specified (e.g. via `KERL_CONFIGURE_OPTIONS`' `--with-ssl`).
+
+Since Erlang/OTP 25.1, OpenSSL 3.0 is supported, so the following applies
+
+| Erlang/OTP version | OpenSSL version |
+|-                   |-                |
+| up until 25.1      | 1.1             |
+| after 25.1         | 3.0             |
+
 ## `kerl` options
 
 `kerl` options can be passed either via `.kerlrc` or environment variables, as shown below.
