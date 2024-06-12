@@ -1084,8 +1084,12 @@ _do_build() {
             whichbrew=$(command -v brew)
             if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
                 brew_prefix=$(brew_openssl "$1")
+                notice "Attempting to use Homebrew OpenSSL from $brew_prefix..."
                 if [ -n "$brew_prefix" ] && [ -d "$brew_prefix" ]; then
+                    success "... found!"
                     KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS "--with-ssl=$brew_prefix
+                else
+                    warn "... you may have to brew the expected version or otherwise use --with-ssl"
                 fi
             fi
         fi
