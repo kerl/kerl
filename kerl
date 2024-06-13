@@ -1047,6 +1047,18 @@ uname_r() {
     eval "$(uname_r_label)"
 }
 
+brew_openssl() {
+    # $1: release (or git)
+    otp_major=$(echo "$1" | cut -d. -f1)
+    otp_minor=$(echo "$1" | cut -d. -f2)
+
+    if [ "$otp_major" = 'git' ] || [ "$otp_major" -lt 25 ] || { [ "$otp_major" -eq 25 ] && [ "$otp_minor" -lt 1 ]; }; then
+        brew --prefix openssl@1.1
+    else
+        brew --prefix openssl@3.0
+    fi
+}
+
 _do_build() {
     # $1: release (or git)
     # $2: build name
@@ -1071,9 +1083,13 @@ _do_build() {
         if ! echo "$KERL_CONFIGURE_OPTIONS" | \grep 'with-ssl' >/dev/null 2>&1; then
             whichbrew=$(command -v brew)
             if [ -n "$whichbrew" ] && [ -x "$whichbrew" ]; then
-                brew_prefix=$(brew --prefix openssl@1.1)
+                brew_prefix=$(brew_openssl "$1")
+                notice "Attempting to use Homebrew OpenSSL from $brew_prefix..."
                 if [ -n "$brew_prefix" ] && [ -d "$brew_prefix" ]; then
+                    success "... found!"
                     KERL_CONFIGURE_OPTIONS="$KERL_CONFIGURE_OPTIONS "--with-ssl=$brew_prefix
+                else
+                    warn "... you may have to brew the expected version or otherwise use --with-ssl"
                 fi
             fi
         fi

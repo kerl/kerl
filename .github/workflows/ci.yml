@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        otp_vsn: [25, 26, 27, master]
+        otp_vsn: ['25.0', '25', '26', '27', 'master']
         os: [ubuntu-22.04, macos-13]
     steps:
       - name: Update env.
@@ -30,7 +30,7 @@ jobs:
             /bin/bash -c "$(curl -fsSL \
               https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=yes \
-              brew install automake wxwidgets fish shellcheck shfmt coreutils
+              brew install automake wxwidgets fish shellcheck shfmt coreutils openssl@3.0
           else
             sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
             sudo apt-get update -y
