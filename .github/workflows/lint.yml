@@ -14,7 +14,7 @@ concurrency:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
           SHFMT_OPTS: -i 4 -d
       # uses .markdownlint.yml for configuration
       - name: Run markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v15
+        uses: DavidAnson/markdownlint-cli2-action@v16
         with:
           globs: |
            *.md
