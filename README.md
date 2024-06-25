@@ -558,7 +558,7 @@ $ kerl build git https://github.com/erlang/otp.git OTP-27.0 27.0
 You can specify the configure options to use when building Erlang/OTP with the
 `KERL_CONFIGURE_OPTIONS` variable, either in your `$HOME/.kerlrc` file or
 prepending it to the command line. A full list of all options can be found the in
-[Erlang/OTP documentation](https://erlang.org/doc/installation_guide/INSTALL.html#Advanced-configuration-and-build-of-ErlangOTP_Configuring).
+[Erlang/OTP documentation](https://www.erlang.org/doc/system/install.html#configuring-1).
 
 ##### Configure applications
 
