@@ -910,7 +910,7 @@ _KPP_alpine_probe="_apk"
 _KPP_debian_pkgs=${common_debian_pkgs}
 _KPP_debian_probe="_dpkg"
 
-_KPP_fedora_pkgs="${common_ALL_pkgs} openssl-devel ncurses-devel g++"
+_KPP_fedora_pkgs="${common_ALL_pkgs} openssl-devel ncurses-devel gcc-c++"
 _KPP_fedora_probe="_rpm"
 
 _KPP_linuxmint_pkgs=${common_debian_pkgs}
