@@ -1334,7 +1334,7 @@ if type kerl_deactivate 2>/dev/null | \grep -qw function; then
     kerl_deactivate
 fi
 
-_KERL=$(command -v kerl)
+_KERL=\$(command -v kerl)
 if [ -n "\$_KERL" ]; then
     _KERL_VERSION=\$(\$_KERL version)
 fi
@@ -1596,7 +1596,7 @@ if ( \$status == 0 ) then
     kerl_deactivate
 endif
 
-set _KERL = $(command -v kerl)
+set _KERL = \$(command -v kerl)
 
 if ( "\$_KERL" != "" ) then
   set _KERL_VERSION = \`\$_KERL version\`
