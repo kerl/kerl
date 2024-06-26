@@ -11,6 +11,8 @@ name: Lint
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
+env:
+  CI: true
 jobs:
   lint:
     name: Lint

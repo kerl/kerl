@@ -14,6 +14,7 @@ concurrency:
 env:
   ERLC_USE_SERVER: true
   KERL_DEBUG: 'yes'
+  CI: true
 jobs:
   ci:
     name: CI OTP ${{matrix.otp_vsn}}, on ${{matrix.os}}
