@@ -2330,7 +2330,7 @@ version)
         usage_exit "version"
     fi
 
-    tip "$KERL_VERSION"
+    echo "$KERL_VERSION"
     ;;
 build)
     if [ "$2" = 'git' ]; then
