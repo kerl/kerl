@@ -132,6 +132,8 @@ jobs:
         run: tests/activate_test.fish $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN")
       - name: Test activate/cleanup (csh)
         run: tests/activate_test.csh $_KERL_REL $_KERL_VSN $(./kerl path install_"$_KERL_VSN")
+      - name: Test version parse (sh/bash)
+        run: tests/version_parse_test.sh
       - name: Delete installation
         run: ./kerl delete installation $(./kerl path install_"$_KERL_VSN")
       - name: Delete build
