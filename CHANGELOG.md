@@ -1,6 +1,15 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+3 Jul 2024 - 4.2.0
+
+  - Allow specifying Git clone depth on `kerl build git ...` (#527)
+  - On macOS, use OpenSSL 1.1 if Erlang/OTP is pre-25.1, and OpenSSL 3.0 otherwise (#528)
+  - Fix warning on Fedora's missing package `gcc-c++` by (#532)
+  - Have shared code reusable (on the package warning list) (#534)
+  - Fix broken documentation links (#533)
+  - `kerl upgrade` always "upgrading" (#539)
+
 21 May 2024 - 4.1.1
 
   - KERL_DOC_TARGETS needs to be quoted (#520)
