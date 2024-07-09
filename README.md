@@ -63,7 +63,7 @@ $ kerl upgrade
 Local kerl found (/usr/local/bin/kerl) at version 2.6.0.
 Remote kerl found at version 3.0.0.
 Versions are different. Upgrading to 3.0.0...
-kerl 2.6.0 is now available at /usr/local/bin/kerl.
+kerl 3.0.0 is now available at /usr/local/bin/kerl.
 Updating list of available releases...
 ... done!
 ```
