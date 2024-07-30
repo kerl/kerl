@@ -16,20 +16,24 @@
 #
 # ------------------------------------------------------------------------------
 
+if [[ -z ${KERL_BASE_DIR+x} ]]; then
+    KERL_BASE_DIR="$HOME/.kerl"
+fi
+
 _kerl_otp_releases() {
-    releases=(${(f)"$(_call_program releases cat ~/.kerl/otp_releases 2>/dev/null)"})
+    releases=(${(f)"$(_call_program releases cat $KERL_BASE_DIR/otp_releases 2>/dev/null)"})
 }
 
 _kerl_otp_builds() {
-    builds=(${(f)"$(_call_program builds cat ~/.kerl/otp_builds 2>/dev/null | cut -f 2 -d ",")"})
+    builds=(${(f)"$(_call_program builds cat $KERL_BASE_DIR/otp_builds 2>/dev/null | cut -f 2 -d ",")"})
 }
 
 _kerl_otp_installations_names() {
-    installations=(${(f)"$(_call_program installations cat ~/.kerl/otp_installations 2>/dev/null | cut -f 2 -d " ")"})
+    installations=(${(f)"$(_call_program installations cat $KERL_BASE_DIR/otp_installations 2>/dev/null | cut -f 2 -d " ")"})
 }
 
 _kerl_otp_installations_directories() {
-    installations=(${(f)"$(_call_program installations cat ~/.kerl/otp_installations 2>/dev/null | cut -f 2 -d " " | xargs basename)"})
+    installations=(${(f)"$(_call_program installations cat $KERL_BASE_DIR/otp_installations 2>/dev/null | cut -f 2 -d " " | xargs basename)"})
 }
 
 local -a _1st_arguments
