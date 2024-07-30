@@ -117,6 +117,7 @@ complete -c kerl -n "__fish_seen_subcommand_from install && __fish_seen_argument
 
 ## build-install subcommand
 complete -c kerl -n "__fish_seen_subcommand_from build-install && not __fish_seen_argument git (kerl_otp_releases)" -a "git (kerl_otp_releases)"
+complete -c kerl -n "__fish_seen_subcommand_from build-install && __fish_seen_argument git (kerl_otp_releases)" -a "(__fish_complete_directories)"
 
 ## delopy subcommand
 complete -c kerl -n "__fish_seen_subcommand_from deploy" -a "(kerl_deploy_complete)"
