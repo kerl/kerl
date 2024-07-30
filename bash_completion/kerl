@@ -7,6 +7,10 @@
 # shellcheck disable=SC2312  # Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore)
 
 _kerl() {
+    if [[ -z ${KERL_BASE_DIR+x} ]]; then
+        KERL_BASE_DIR="$HOME/.kerl"
+    fi
+
     local command cur prev releases builds installations file
 
     command=${COMP_WORDS[1]}
@@ -20,7 +24,7 @@ _kerl() {
     case $command in
     build)
         if [ "$COMP_CWORD" -eq 2 ]; then
-            file="$HOME"/.kerl/otp_releases
+            file="$KERL_BASE_DIR"/otp_releases
             if [ -f "$file" ]; then
                 releases=$(cat "$file")
             fi
@@ -28,7 +32,7 @@ _kerl() {
         fi
         ;;
     install)
-        file="$HOME"/.kerl/otp_builds
+        file="$KERL_BASE_DIR"/otp_builds
         if [ "$COMP_CWORD" -eq 2 ] && [ -f "$file" ]; then
             builds=$(cut -d ',' -f 2 "$file")
             COMPREPLY=($(compgen -W "$builds" -- "$cur"))
@@ -36,7 +40,7 @@ _kerl() {
         ;;
     build-install)
         if [ "$COMP_CWORD" -eq 2 ]; then
-            file="$HOME"/.kerl/otp_releases
+            file="$KERL_BASE_DIR"/otp_releases
             if [ -f "$file" ]; then
                 releases=$(cat "$file")
             fi
@@ -44,7 +48,7 @@ _kerl() {
         fi
         ;;
     deploy)
-        file="$HOME"/.kerl/otp_installations
+        file="$KERL_BASE_DIR"/otp_installations
         if [ "$COMP_CWORD" -eq 3 ] && [ -f "$file" ]; then
             installations=$(cut -d ' ' -f 2 "$file")
             COMPREPLY=($(compgen -W "$installations" -- "$cur"))
@@ -67,13 +71,13 @@ _kerl() {
             COMPREPLY=($(compgen -W 'build installation' -- "$cur"))
         elif [ "$COMP_CWORD" -eq 3 ]; then
             if [ "$prev" == "build" ]; then
-                file="$HOME"/.kerl/otp_builds
+                file="$KERL_BASE_DIR"/otp_builds
                 if [ -f "$file" ]; then
                     builds=$(cut -d ',' -f 2 "$file")
                     COMPREPLY=($(compgen -W "$builds" -- "$cur"))
                 fi
             elif [ "$prev" == "installation" ]; then
-                file="$HOME"/.kerl/otp_installations
+                file="$KERL_BASE_DIR"/otp_installations
                 if [ -f "$file" ]; then
                     installations=$(cut -d ' ' -f 2 "$file")
                     COMPREPLY=($(compgen -W "$installations" -- "$cur"))
@@ -83,7 +87,7 @@ _kerl() {
         ;;
     path)
         if [ "$COMP_CWORD" -eq 2 ]; then
-            file="$HOME"/.kerl/otp_installations
+            file="$KERL_BASE_DIR"/otp_installations
             if [ -f "$file" ]; then
                 installations=$(cut -d ' ' -f 2 "$file" | xargs basename)
                 COMPREPLY=($(compgen -W "$installations" -- "$cur"))
@@ -92,7 +96,7 @@ _kerl() {
         ;;
     cleanup)
         if [ "$COMP_CWORD" -eq 2 ]; then
-            file="$HOME"/.kerl/otp_builds
+            file="$KERL_BASE_DIR"/otp_builds
             if [ -f "$file" ]; then
                 builds=$(cut -d ',' -f 2 "$file")
             fi
@@ -101,19 +105,19 @@ _kerl() {
         ;;
     emit-activate)
         if [ "$COMP_CWORD" -eq 2 ]; then
-            file="$HOME"/.kerl/otp_releases
+            file="$KERL_BASE_DIR"/otp_releases
             if [ -f "$file" ]; then
                 releases=$(cat "$file")
                 COMPREPLY=($(compgen -W "$releases" -- "$cur"))
             fi
         elif [ "$COMP_CWORD" -eq 3 ]; then
-            file="$HOME"/.kerl/otp_builds
+            file="$KERL_BASE_DIR"/otp_builds
             if [ -f "$file" ]; then
                 builds=$(cut -d ',' -f 2 "$file")
                 COMPREPLY=($(compgen -W "$builds" -- "$cur"))
             fi
         elif [ "$COMP_CWORD" -eq 4 ]; then
-            file="$HOME"/.kerl/otp_installations
+            file="$KERL_BASE_DIR"/otp_installations
             if [ -f "$file" ]; then
                 installations=$(cut -d ' ' -f 2 "$file")
                 COMPREPLY=($(compgen -W "$installations" -- "$cur"))
