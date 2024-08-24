@@ -914,15 +914,15 @@ Deactivation is the same as in other shells:
 $ kerl_deactivate
 ```
 
-### Bash
+### Command-line completion
 
-Bash completion is available from
-<https://github.com/kerl/kerl/raw/master/bash_completion/kerl>.
+Optionally, download and install `kerl`'s:
 
-### Zsh
+- `bash_completion` file from <https://github.com/kerl/kerl/raw/master/bash_completion/kerl>
+- `zsh_completion` file from <https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>
+- `fish-completion` file from <https://github.com/kerl/kerl/raw/master/fish_completion/kerl.fish>
 
-Zsh completion is available from
-<https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>.
+depending on your preferred shell.
 
 ## The `kerl` glossary
 
