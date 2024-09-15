@@ -895,7 +895,7 @@ _apk() {
 }
 
 common_ALL_pkgs="gcc make"
-common_ALL_BUILD_BACKEND_git_pkgs="automake autoconf"
+common_ALL_BUILD_BACKEND_git_pkgs="autoconf"
 common_debian_pkgs="${common_ALL_pkgs} libssl-dev libncurses-dev g++"
 common_rhel_pkgs="${common_ALL_pkgs} openssl-devel ncurses-devel gcc-c++"
 

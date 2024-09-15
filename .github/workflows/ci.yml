@@ -30,13 +30,13 @@ jobs:
             /bin/bash -c "$(curl -fsSL \
               https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=yes \
-              brew install automake wxwidgets fish shellcheck shfmt coreutils openssl@3.0
+              brew install wxwidgets fish shellcheck shfmt coreutils openssl@3.0
           else
             sudo sed -i 's/azure\.//' /etc/apt/sources.list # Reduces chance of time-outs
             sudo apt-get update -y
             sudo apt-get upgrade -y
             sudo apt-get install -y --no-install-recommends \
-              git curl libssl-dev make automake autoconf libncurses-dev gcc g++ default-jdk \
+              git curl libssl-dev make autoconf libncurses-dev gcc g++ default-jdk \
               unixodbc-dev libwxgtk3.2-dev libwxgtk-webview3.2-dev xsltproc \
               libxml2-utils libsctp-dev lksctp-tools software-properties-common shellcheck \
               shfmt
