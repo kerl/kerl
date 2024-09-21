@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+21 Sep 2024 - 4.3.0
+
+  - Fix `kerl upgrade` example on `README.md` (#541)
+  - Make Bash and Zsh completions support custom `KERL_BASE_DIR` (#544)
+  - Add fish shell completion support (#543)
+  - Stop depending on (or proposing, in probes) `automake` (#547)
+
 3 Jul 2024 - 4.2.0
 
   - Allow specifying Git clone depth on `kerl build git ...` (#527)
