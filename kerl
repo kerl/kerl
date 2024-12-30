@@ -468,8 +468,14 @@ _curl() {
 
 unpack() {
     # $1: <file> to extract to current directory
-
-    tar -x --no-same-owner --no-same-permissions -zf "$1"
+    case "$KERL_SYSTEM" in
+	OpenBSD)
+    	gtar -x --no-same-owner --no-same-permissions -zf "$1"
+	;;
+	*)
+    	tar -x --no-same-owner --no-same-permissions -zf "$1"
+    	;;
+    esac
 }
 
 get_tarball_releases() {
