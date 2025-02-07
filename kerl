@@ -79,6 +79,16 @@ usage_exit() {
     exit 1
 }
 
+if [ "$1" = "version" ]; then
+    if [ $# -ne 1 ]; then
+        KERL_COLORIZE=0
+        usage_exit "version"
+    fi
+
+    echo "$KERL_VERSION"
+    exit 0
+fi
+
 error() {
     # $1: log entry
 
@@ -2325,13 +2335,6 @@ fix_otp_builds
 fix_otp_installations
 
 case "$1" in
-version)
-    if [ $# -ne 1 ]; then
-        usage_exit "version"
-    fi
-
-    echo "$KERL_VERSION"
-    ;;
 build)
     if [ "$2" = 'git' ]; then
         if [ $# -ne 5 ]; then
