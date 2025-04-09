@@ -309,8 +309,13 @@ Darwin | FreeBSD | OpenBSD)
     MD5SUM='openssl md5'
     MD5SUM_FIELD=2
     SED_OPT=-E
+    _unpack_tar="$(command -v gtar)"
+    if [ -z "$_unpack_tar" ] || [ ! -x "$_unpack_tar" ]; then
+        _unpack_tar=tar
+    fi
     ;;
 *)
+    _unpack_tar=tar
     MD5SUM=md5sum
     MD5SUM_FIELD=1
     SED_OPT=-r
@@ -478,8 +483,7 @@ _curl() {
 
 unpack() {
     # $1: <file> to extract to current directory
-
-    tar -x --no-same-owner --no-same-permissions -zf "$1"
+    "$_unpack_tar" -x --no-same-owner --no-same-permissions -zf "$1"
 }
 
 get_tarball_releases() {
