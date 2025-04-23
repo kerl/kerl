@@ -1,6 +1,11 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+23 Apr 2025 - 4.3.1
+
+  - Fast-track for `kerl version` (#553)
+  - Use `gtar` to extract archives, if available (#555)
+
 21 Sep 2024 - 4.3.0
 
   - Fix `kerl upgrade` example on `README.md` (#541)
