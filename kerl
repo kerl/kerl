@@ -1157,10 +1157,10 @@ _do_build() {
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="${TMP_DIR}/kerloptions.$$"
     {
-        echo "This is kerl's control file for build configuration."
-        echo "Please don't edit it manually!"
-        echo "CFLAGS: ${CFLAGS:-}"
-        echo "KERL_CONFIGURE_OPTIONS: $KERL_CONFIGURE_OPTIONS"
+        echo "# This is kerl's control file for build configuration."
+        echo "# Please don't edit it manually!"
+        echo "CFLAGS:${CFLAGS:-}"
+        echo "KERL_CONFIGURE_OPTIONS:$KERL_CONFIGURE_OPTIONS"
         echo "$(uname_r_label): $(uname_r)"
     } >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f "$MD5SUM_FIELD")
@@ -1904,7 +1904,8 @@ print_buildopts() {
     buildopts="$1/$KERL_CONFIG_STORAGE_FILENAME"
     if [ -f "$buildopts" ]; then
         notice "The build options for the active installation are:"
-        cat "$buildopts"
+        # the comments are added when the file is created, so we can safely remove them here
+        cat "$buildopts" | grep -v "^# "
     else
         error "the build options for the active installation are not available."
     fi
