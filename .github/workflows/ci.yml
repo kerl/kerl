@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        otp_vsn: ['25.0', '25', '26', '27', 'master']
+        otp_vsn: ['26', '27', '28', 'master']
         os: [ubuntu-24.04, macos-14]
     steps:
       - name: Update env.
