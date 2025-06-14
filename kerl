@@ -1263,34 +1263,34 @@ _do_build() {
     fi
 
     if [ -n "$KERL_RELEASE_TARGET" ]; then
+        KERL_RELEASE_TARGET_SUB_FOLDER=
+        R_TYPE_KNOWN=
         for r_type in $KERL_RELEASE_TARGET; do
+            R_TYPE_KNOWN=true
+            KERL_RELEASE_TARGET_SUB_FOLDER=
             case $r_type in
             opt | debug)
+                KERL_RELEASE_TARGET_SUB_FOLDER=
+                ;;
+            gcov | gprof | valgrind | asan | lcnt)
+                KERL_RELEASE_TARGET_SUB_FOLDER=/erts/emulator
+                ;;
+            *)
+                R_TYPE_KNOWN=false
+                warn "runtime type '$r_type' is invalid!"
+                ;;
+            esac
+            if [ "${R_TYPE_KNOWN}" = "true" ]; then
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                if ! cd "$ERL_TOP"; then
-                    fail_do_build "couldn't cd into $ERL_TOP" "$2" "$1"
+                if ! cd "$ERL_TOP${KERL_RELEASE_TARGET_SUB_FOLDER}"; then
+                    fail_do_build "couldn't cd into $ERL_TOP${KERL_RELEASE_TARGET_SUB_FOLDER}" "$2" "$1"
                     return 1
                 fi
                 if ! log_build_cmd "make TYPE=$r_type ERL_TOP=$ERL_TOP"; then
                     fail_do_build "build of '$r_type' VM failed." "$2" "$1"
                     return 1
                 fi
-                ;;
-            gcov | gprof | valgrind | asan | lcnt)
-                notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                if ! cd "$ERL_TOP/erts/emulator"; then
-                    fail_do_build "couldn't cd into $ERL_TOP/erts/emulator" "$2" "$1"
-                    return 1
-                fi
-                if ! log_build_cmd "make $r_type ERL_TOP=$ERL_TOP"; then
-                    fail_do_build "build of '$r_type' VM failed." "$2" "$1"
-                    return 1
-                fi
-                ;;
-            *)
-                warn "runtime type '$r_type' is invalid!"
-                ;;
-            esac
+            fi
         done
     fi
 }
