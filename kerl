@@ -1263,27 +1263,27 @@ _do_build() {
     fi
 
     if [ -n "$KERL_RELEASE_TARGET" ]; then
-        KERL_RELEASE_TARGET_SUB_FOLDER=
-        R_TYPE_KNOWN=
+        kerl_release_target_sub_folder=
+        r_type_known=
         for r_type in $KERL_RELEASE_TARGET; do
-            R_TYPE_KNOWN=true
-            KERL_RELEASE_TARGET_SUB_FOLDER=
+            r_type_known=true
+            kerl_release_target_sub_folder=
             case $r_type in
             opt | debug)
-                KERL_RELEASE_TARGET_SUB_FOLDER=
+                kerl_release_target_sub_folder=
                 ;;
             gcov | gprof | valgrind | asan | lcnt)
-                KERL_RELEASE_TARGET_SUB_FOLDER=/erts/emulator
+                kerl_release_target_sub_folder=/erts/emulator
                 ;;
             *)
-                R_TYPE_KNOWN=false
+                r_type_known=false
                 warn "runtime type '$r_type' is invalid!"
                 ;;
             esac
-            if [ "${R_TYPE_KNOWN}" = "true" ]; then
+            if [ "${r_type_known}" = "true" ]; then
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                if ! cd "$ERL_TOP${KERL_RELEASE_TARGET_SUB_FOLDER}"; then
-                    fail_do_build "couldn't cd into $ERL_TOP${KERL_RELEASE_TARGET_SUB_FOLDER}" "$2" "$1"
+                if ! cd "$ERL_TOP${kerl_release_target_sub_folder}"; then
+                    fail_do_build "couldn't cd into $ERL_TOP${kerl_release_target_sub_folder}" "$2" "$1"
                     return 1
                 fi
                 if ! log_build_cmd "make $r_type TYPE=$r_type ERL_TOP=$ERL_TOP"; then
