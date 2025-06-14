@@ -1137,8 +1137,8 @@ _do_build() {
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     if ! cd "$ERL_TOP"; then
-        error "couldn't cd into $ERL_TOP."
-        exit_install
+        fail_do_build "couldn't cd into $ERL_TOP"
+        return 1
     fi
 
     # Set configuration flags given applications white/black lists
@@ -1736,10 +1736,7 @@ do_install() {
 
     notice "Installing Erlang/OTP $rel ($build_name) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
-    if ! cd "$ERL_TOP"; then
-        error "couldn't cd into $ERL_TOP."
-        exit_install
-    fi
+    cd "$ERL_TOP" || exit_install
     init_install_logfile "$rel" "$build_name"
 
     prev_build_kernel_release=$(grep <"$ERL_TOP"/"$KERL_CONFIG_STORAGE_FILENAME" -o "^$(uname_r_label): \(.*\)\$" | sed -n "s|^$(uname_r_label): \(.*\)\$|\1|p")
