@@ -1286,7 +1286,7 @@ _do_build() {
                     fail_do_build "couldn't cd into $ERL_TOP${KERL_RELEASE_TARGET_SUB_FOLDER}" "$2" "$1"
                     return 1
                 fi
-                if ! log_build_cmd "make TYPE=$r_type ERL_TOP=$ERL_TOP"; then
+                if ! log_build_cmd "make $r_type TYPE=$r_type ERL_TOP=$ERL_TOP"; then
                     fail_do_build "build of '$r_type' VM failed." "$2" "$1"
                     return 1
                 fi
