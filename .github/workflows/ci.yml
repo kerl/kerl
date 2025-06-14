@@ -47,7 +47,7 @@ jobs:
           fi
           echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Update OTP releases
         run: ./kerl update releases
       - name: Choose OTP version
