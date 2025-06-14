@@ -434,7 +434,9 @@ clone a Git repository and build from there.
 #### `KERL_RELEASE_TARGET`
 
 Allows building, alongside the regular VM, a list of various runtime types for debugging
-(such as `cerl -debug` or `cerl -asan`)
+(such as `cerl -debug` or `cerl -asan`). If you're executing separate `build` and `install` steps
+(instead of using builtin command `build-install`) you need to define that variable in a way
+that both commands can consume it.
 
 **Note**: enable this build using `KERL_RELEASE_TARGET="debug asan"`
 
