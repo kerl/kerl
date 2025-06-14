@@ -1907,7 +1907,7 @@ print_buildopts() {
     if [ -f "$buildopts" ]; then
         notice "The build options for the active installation are:"
         # the comments are added when the file is created, so we can safely remove them here
-        cat "$buildopts" | grep -v "^# "
+        grep -v "^# " <"$buildopts"
     else
         error "the build options for the active installation are not available."
     fi
