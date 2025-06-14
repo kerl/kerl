@@ -1745,7 +1745,7 @@ do_install() {
         opt | debug)
             notice "Installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
             cd "$ERL_TOP" || exit_install
-            if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir"; then
+            if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir && cd $absdir && ./Install $INSTALL_OPT $absdir"; then
                 show_install_logfile "install Erlang/OTP $rel ($build_name) of type '$r_type', in $absdir, failed"
                 exit_install
             fi
