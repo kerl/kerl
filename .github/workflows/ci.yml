@@ -101,7 +101,7 @@ jobs:
           source $(./kerl path install_"$_KERL_VSN")/activate
           for r_type in $KERL_RELEASE_TARGET;
           do
-            print "Checking $r_type... "
+            printf "Checking %s... " "$r_type"
             cerl -"$r_type" -noshell -eval '{ok, D} = file:open("build_type", [write]), io:format(D, "~s", [erlang:system_info(build_type)]), halt().'
             if [ "${r_type}" != "$(cat build_type)" ]; then
               echo " nok"
