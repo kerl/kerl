@@ -48,11 +48,15 @@ $ chmod a+x kerl
 
 and drop it in your `$PATH`.
 
-Optionally, download and install `kerl`'s `bash_completion` file from
-<https://github.com/kerl/kerl/raw/master/bash_completion/kerl>
+### Command-line completion
 
-Optionally, download and install `kerl`'s `zsh-completion` file from
-<https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>
+Optionally, download and install `kerl`'s:
+
+- `bash_completion` file from <https://github.com/kerl/kerl/raw/master/bash_completion/kerl>
+- `zsh_completion` file from <https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>
+- `fish-completion` file from <https://github.com/kerl/kerl/raw/master/fish_completion/kerl.fish>
+
+depending on your preferred shell.
 
 ### Updating `kerl` locally
 
@@ -913,16 +917,6 @@ Deactivation is the same as in other shells:
 ```console
 $ kerl_deactivate
 ```
-
-### Command-line completion
-
-Optionally, download and install `kerl`'s:
-
-- `bash_completion` file from <https://github.com/kerl/kerl/raw/master/bash_completion/kerl>
-- `zsh_completion` file from <https://github.com/kerl/kerl/raw/master/zsh_completion/_kerl>
-- `fish-completion` file from <https://github.com/kerl/kerl/raw/master/fish_completion/kerl.fish>
-
-depending on your preferred shell.
 
 ## The `kerl` glossary
 
