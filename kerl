@@ -1750,7 +1750,7 @@ do_install() {
                 exit_install
             fi
             ;;
-        *)
+        gcov | gprof | valgrind | asan | lcnt)
             BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
             if [ -n "$BEAM_TYPE_SMP" ]; then
                 ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
@@ -1758,6 +1758,9 @@ do_install() {
                 cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
                 cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
             fi
+            ;;
+        *)
+            warn "runtime type '$r_type' is invalid!"
             ;;
         esac
     done
