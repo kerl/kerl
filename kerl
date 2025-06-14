@@ -1074,6 +1074,19 @@ brew_openssl() {
     fi
 }
 
+is_known_release_type() {
+    # #1: release type
+
+    case $1 in
+    opt | gcov | gprof | debug | valgrind | asan | lcnt)
+        "true"
+        ;;
+    *)
+        "false"
+        ;;
+    esac
+}
+
 _do_build() {
     # $1: release (or git)
     # $2: build name
@@ -1124,8 +1137,8 @@ _do_build() {
 
     ERL_TOP="$KERL_BUILD_DIR/$2/otp_src_$1"
     if ! cd "$ERL_TOP"; then
-        fail_do_build "couldn't cd into $ERL_TOP"
-        return 1
+        error "couldn't cd into $ERL_TOP."
+        exit_install
     fi
 
     # Set configuration flags given applications white/black lists
@@ -1237,7 +1250,7 @@ _do_build() {
     fi
 
     # shellcheck disable=SC2086  # Double quote to prevent globbing and word splitting
-    if ! log_build_cmd "_flags ./otp_build boot -a $KERL_CONFIGURE_OPTIONS"; then
+    if ! log_build_cmd "_flags ./otp_build boot -a"; then
         fail_do_build "build failed." "$2" "$1"
         return 1
     fi
@@ -1264,33 +1277,32 @@ _do_build() {
 
     if [ -n "$KERL_RELEASE_TARGET" ]; then
         for r_type in $KERL_RELEASE_TARGET; do
-            kerl_release_target_subfolder=
-            r_type_known=true
             build_type_prefix=
-            case $r_type in
-            opt | debug)
-                build_type_prefix="TYPE="
-                kerl_release_target_subfolder=
-                ;;
-            gcov | gprof | valgrind | asan | lcnt)
-                build_type_prefix=
-                kerl_release_target_subfolder="/erts/emulator"
-                ;;
-            *)
-                r_type_known=false
+            kerl_release_target_subfolder=
+
+            r_type_known=$(is_known_release_type "${r_type}")
+            if [ "${r_type_known}" = "true" ]; then
+                if [ "${r_type}" != "opt" ]; then # avoid opt, done above
+                    if [ "${r_type}" = "debug" ]; then
+                        build_type_prefix="TYPE="
+                        kerl_release_target_subfolder=
+                    else
+                        build_type_prefix=
+                        kerl_release_target_subfolder="/erts/emulator"
+                    fi
+
+                    notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
+                    if ! cd "$ERL_TOP${kerl_release_target_subfolder}"; then
+                        fail_do_build "couldn't cd into $ERL_TOP${kerl_release_target_subfolder}" "$2" "$1"
+                        return 1
+                    fi
+                    if ! log_build_cmd "make $build_type_prefix$r_type ERL_TOP=$ERL_TOP"; then
+                        fail_do_build "build of '$r_type' VM failed." "$2" "$1"
+                        return 1
+                    fi
+                fi
+            else
                 warn "runtime type '$r_type' is invalid!"
-                ;;
-            esac
-            if [ "${r_type_known}" = "true" ] && [ "${r_type}" != "opt" ]; then
-                notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
-                if ! cd "$ERL_TOP${kerl_release_target_subfolder}"; then
-                    fail_do_build "couldn't cd into $ERL_TOP${kerl_release_target_subfolder}" "$2" "$1"
-                    return 1
-                fi
-                if ! log_build_cmd "make $build_type_prefix$r_type ERL_TOP=$ERL_TOP"; then
-                    fail_do_build "build of '$r_type' VM failed." "$2" "$1"
-                    return 1
-                fi
             fi
         done
     fi
@@ -1724,7 +1736,10 @@ do_install() {
 
     notice "Installing Erlang/OTP $rel ($build_name) in $absdir..."
     ERL_TOP="$KERL_BUILD_DIR/$build_name/otp_src_$rel"
-    cd "$ERL_TOP" || exit_install
+    if ! cd "$ERL_TOP"; then
+        error "couldn't cd into $ERL_TOP."
+        exit_install
+    fi
     init_install_logfile "$rel" "$build_name"
 
     prev_build_kernel_release=$(grep <"$ERL_TOP"/"$KERL_CONFIG_STORAGE_FILENAME" -o "^$(uname_r_label): \(.*\)\$" | sed -n "s|^$(uname_r_label): \(.*\)\$|\1|p")
@@ -1742,34 +1757,30 @@ do_install() {
     fi
 
     for r_type in $KERL_RELEASE_TARGET; do
-        case "$r_type" in
-        opt | debug)
-            if [ "${r_type}" != "opt" ]; then
+        r_type_known=$(is_known_release_type "${r_type}")
+        if [ "${r_type_known}" = "true" ]; then
+            if [ "${r_type}" != "opt" ]; then # avoid opt, done above
                 notice "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
-                cd "$ERL_TOP" || exit_install
-                if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir"; then
-                    show_install_logfile "install Erlang/OTP $rel ($build_name) of type '$r_type', in $absdir, failed"
-                    exit_install
+
+                if [ "${r_type}" = "debug" ]; then
+                    if ! cd "$ERL_TOP"; then
+                        error "couldn't cd into $ERL_TOP."
+                        exit_install
+                    fi
+                    if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir"; then
+                        show_install_logfile "install Erlang/OTP $rel ($build_name) of type '$r_type', in $absdir, failed"
+                        exit_install
+                    fi
                 fi
-            fi
-            ;;
-        gcov | gprof | valgrind | asan | lcnt)
-            notice "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
-            BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
-            if [ -n "$BEAM_TYPE_SMP" ]; then
+
+                BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
                 ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
-                notice "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
                 cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
                 cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
-            else
-                show_install_logfile "install of Erlang/OTP $rel ($build_name) ${r_type} VM, in $absdir, failed!"
-                exit_install
             fi
-            ;;
-        *)
+        else
             warn "runtime type '$r_type' is invalid!"
-            ;;
-        esac
+        fi
     done
 
     [ -n "$KERL_RELEASE_TARGET" ] && [ -f bin/cerl ] && cp bin/cerl "$absdir/bin"
