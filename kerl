@@ -1281,7 +1281,7 @@ _do_build() {
                 warn "runtime type '$r_type' is invalid!"
                 ;;
             esac
-            if [ "${r_type_known}" = "true" ]; then
+            if [ "${r_type_known}" = "true" ] && [ "${r_type}" != "opt" ]; then
                 notice "Also building for Erlang/OTP $1 ($2) $r_type VM; please wait..."
                 if ! cd "$ERL_TOP${kerl_release_target_subfolder}"; then
                     fail_do_build "couldn't cd into $ERL_TOP${kerl_release_target_subfolder}" "$2" "$1"
@@ -1744,11 +1744,13 @@ do_install() {
     for r_type in $KERL_RELEASE_TARGET; do
         case "$r_type" in
         opt | debug)
-            notice "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
-            cd "$ERL_TOP" || exit_install
-            if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir"; then
-                show_install_logfile "install Erlang/OTP $rel ($build_name) of type '$r_type', in $absdir, failed"
-                exit_install
+            if [ "${r_type}" != "opt" ]; then
+                notice "Also installing Erlang/OTP $rel ($build_name) ${r_type} VM in $absdir..."
+                cd "$ERL_TOP" || exit_install
+                if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir"; then
+                    show_install_logfile "install Erlang/OTP $rel ($build_name) of type '$r_type', in $absdir, failed"
+                    exit_install
+                fi
             fi
             ;;
         gcov | gprof | valgrind | asan | lcnt)
