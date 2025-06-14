@@ -1263,7 +1263,6 @@ _do_build() {
     fi
 
     if [ -n "$KERL_RELEASE_TARGET" ]; then
-        # where `$TYPE` is `opt`, `gcov`, `gprof`, `debug`, `valgrind`, `asan` or `lcnt`.
         for r_type in $KERL_RELEASE_TARGET; do
             case $r_type in
             opt | debug)
