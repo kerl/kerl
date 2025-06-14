@@ -175,12 +175,12 @@ the two previous actions to be played in sequence.
 
 ```console
 $ kerl build-install
-usage: /usr/local/bin/kerl build-install <release> [build_name] [directory]
+usage: kerl build-install <release> [build_name] [directory]
 ```
 
 ```console
 $ kerl build-install git
-usage: /usr/local/bin/kerl build-install git <git_url> <git_version> <build_name> [directory]
+usage: kerl build-install git <git_url> <git_version> <build_name> [directory]
 ```
 
 You're now ready to work with your 28.0 installation:
