@@ -21,8 +21,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        otp_vsn: ['25.0', '25', '26', '27', 'master']
-        os: [ubuntu-24.04, macos-14]
+        otp_vsn: ['26', '27', '28', 'master']
+        os: [ubuntu-24.04, macos-15]
     steps:
       - name: Update env.
         run: |
@@ -47,7 +47,7 @@ jobs:
           fi
           echo 'KERL_RELEASE_TARGET=debug opt' >> $GITHUB_ENV
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Update OTP releases
         run: ./kerl update releases
       - name: Choose OTP version
@@ -101,10 +101,14 @@ jobs:
           source $(./kerl path install_"$_KERL_VSN")/activate
           for r_type in $KERL_RELEASE_TARGET;
           do
+            printf "Checking %s... " "$r_type"
             cerl -"$r_type" -noshell -eval '{ok, D} = file:open("build_type", [write]), io:format(D, "~s", [erlang:system_info(build_type)]), halt().'
             if [ "${r_type}" != "$(cat build_type)" ]; then
+              echo " nok"
               echo "${r_type} != $(cat build_type)"
               exit 1;
+            else
+              echo " ok"
             fi
           done
           kerl_deactivate

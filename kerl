@@ -42,7 +42,7 @@ fi
 
 KERL_VERSION='4.3.1'
 OLDEST_OTP_LISTED='17'
-OLDEST_OTP_SUPPORTED='25'
+OLDEST_OTP_SUPPORTED='26'
 
 ERLANG_DOWNLOAD_URL='https://erlang.org/download'
 KERL_CONFIG_STORAGE_FILENAME='.kerl_config'
@@ -1157,10 +1157,10 @@ _do_build() {
     # Check to see if configuration options need to be stored or have changed
     TMPOPT="${TMP_DIR}/kerloptions.$$"
     {
-        echo "This is kerl's control file for build configuration."
-        echo "Please don't edit it manually!"
-        echo "CFLAGS: ${CFLAGS:-}"
-        echo "KERL_CONFIGURE_OPTIONS: $KERL_CONFIGURE_OPTIONS"
+        echo "# This is kerl's control file for build configuration."
+        echo "# Please don't edit it manually!"
+        echo "CFLAGS:${CFLAGS:-}"
+        echo "KERL_CONFIGURE_OPTIONS:$KERL_CONFIGURE_OPTIONS"
         echo "$(uname_r_label): $(uname_r)"
     } >>"$TMPOPT"
     SUM=$($MD5SUM "$TMPOPT" | cut -d ' ' -f "$MD5SUM_FIELD")
@@ -1263,7 +1263,6 @@ _do_build() {
     fi
 
     if [ -n "$KERL_RELEASE_TARGET" ]; then
-        # where `$TYPE` is `opt`, `gcov`, `gprof`, `debug`, `valgrind`, `asan` or `lcnt`.
         for r_type in $KERL_RELEASE_TARGET; do
             case $r_type in
             opt | debug)
@@ -1751,7 +1750,7 @@ do_install() {
                 exit_install
             fi
             ;;
-        *)
+        gcov | gprof | valgrind | asan | lcnt)
             BEAM_TYPE_SMP=$(\find . -name "beam.${r_type}.smp")
             if [ -n "$BEAM_TYPE_SMP" ]; then
                 ERL_CHILD_SETUP_TYPE=$(\find . -name "erl_child_setup.${r_type}")
@@ -1759,6 +1758,9 @@ do_install() {
                 cp "$BEAM_TYPE_SMP" "$absdir"/erts-*/bin/
                 cp "$ERL_CHILD_SETUP_TYPE" "$absdir"/erts-*/bin/
             fi
+            ;;
+        *)
+            warn "runtime type '$r_type' is invalid!"
             ;;
         esac
     done
@@ -1904,7 +1906,8 @@ print_buildopts() {
     buildopts="$1/$KERL_CONFIG_STORAGE_FILENAME"
     if [ -f "$buildopts" ]; then
         notice "The build options for the active installation are:"
-        cat "$buildopts"
+        # the comments are added when the file is created, so we can safely remove them here
+        grep -v "^# " <"$buildopts"
     else
         error "the build options for the active installation are not available."
     fi
