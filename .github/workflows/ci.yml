@@ -72,7 +72,7 @@ jobs:
         # yamllint disable rule:line-length
         run: |
           echo "OpenSSL is $(openssl version)"
-          export MAKEFLAGS=-j$(($(nproc) + 2))
+          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
           if ! ./kerl build ${_KERL_PREFIX_GIT} \
                             ${_KERL_PREFIX_GIT_TARGET} \
                            "${_KERL_VSN}" \
