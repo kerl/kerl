@@ -1079,10 +1079,10 @@ is_known_release_type() {
 
     case $1 in
     opt | gcov | gprof | debug | valgrind | asan | lcnt)
-        "true"
+        echo "true"
         ;;
     *)
-        "false"
+        echo "false"
         ;;
     esac
 }
