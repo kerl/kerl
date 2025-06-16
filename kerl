@@ -1764,7 +1764,7 @@ do_install() {
                         error "couldn't cd into $ERL_TOP."
                         exit_install
                     fi
-                    if ! log_install_cmd "TYPE=$r_type ERL_TOP=$ERL_TOP ./otp_build release -a $absdir"; then
+                    if ! log_install_cmd "make release ERL_TOP=$ERL_TOP TYPE=$r_type RELEASE_ROOT=$absdir"; then
                         show_install_logfile "install Erlang/OTP $rel ($build_name) of type '$r_type', in $absdir, failed"
                         exit_install
                     fi
