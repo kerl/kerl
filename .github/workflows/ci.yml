@@ -72,7 +72,7 @@ jobs:
         # yamllint disable rule:line-length
         run: |
           echo "OpenSSL is $(openssl version)"
-          export MAKEFLAGS=-j$(($(nproc) + 2))
+          export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
           if ! ./kerl build ${_KERL_PREFIX_GIT} \
                             ${_KERL_PREFIX_GIT_TARGET} \
                            "${_KERL_VSN}" \
@@ -104,11 +104,11 @@ jobs:
             printf "Checking %s... " "$r_type"
             cerl -"$r_type" -noshell -eval '{ok, D} = file:open("build_type", [write]), io:format(D, "~s", [erlang:system_info(build_type)]), halt().'
             if [ "${r_type}" != "$(cat build_type)" ]; then
-              echo " nok"
+              echo "nok"
               echo "${r_type} != $(cat build_type)"
               exit 1;
             else
-              echo " ok"
+              echo "ok"
             fi
           done
           kerl_deactivate
