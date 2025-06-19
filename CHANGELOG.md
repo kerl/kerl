@@ -1,6 +1,11 @@
 <!-- markdownlint-disable MD007 # ul-indent -->
 # Changelog
 
+18 Jun 2025 - 4.4.0
+
+  - Support OTP 28 (#559)
+  - Fix "No debug build is produced" (#560)
+
 23 Apr 2025 - 4.3.1
 
   - Fast-track for `kerl version` (#553)
